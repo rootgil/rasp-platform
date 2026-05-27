@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — ignore all except example templates
+# env files - ignore all except example templates
 .env*
 !.env*.example
 

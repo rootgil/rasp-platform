@@ -23,7 +23,7 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
     { label: "Agent ID", value: agent.id, mono: true },
     { label: "Application", value: agent.project.name },
     { label: "Language", value: agent.language },
-    { label: "Framework", value: agent.framework ?? "—" },
+    { label: "Framework", value: agent.framework ?? "-" },
     { label: "Version", value: agent.version, mono: true },
     { label: "Channel", value: agent.channel },
     { label: "Mode", value: agent.mode },

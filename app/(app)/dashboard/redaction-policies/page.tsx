@@ -46,7 +46,7 @@ export default async function RedactionPoliciesPage() {
             <p className="text-sm text-[#2563eb] mt-0.5">
               All sensitive data is redacted inside the RASP agent before any telemetry leaves the customer&apos;s environment.
               No PII, credentials, or regulated data transits the network to the control plane in cleartext.
-              If redaction fails, the event is dropped — never sent with raw data.
+              If redaction fails, the event is dropped - never sent with raw data.
             </p>
           </div>
         </CardContent>

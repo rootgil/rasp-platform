@@ -33,7 +33,7 @@ export default function ContactPage() {
         <div className="max-w-2xl mx-auto text-center mb-12">
           <h1 className="text-4xl font-bold text-[#0f172a]">Talk to us</h1>
           <p className="mt-4 text-lg text-[#475569]">
-            Book a 30-minute demo with our team. We&apos;ll show you how RASP Platform works in your stack.
+            Book a 30-minute demo with our team. We&apos;ll show you how Queno works in your stack.
           </p>
         </div>
 
@@ -120,11 +120,11 @@ export default function ContactPage() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-[#475569]">
                 <MapPin size={16} className="text-[#94a3b8] mt-0.5 shrink-0" />
-                <p>Montréal, QC, Canada 🍁<br />Remote-first team</p>
+                <p>Montréal, QC, Canada<br />Remote-first team</p>
               </div>
               <div className="flex items-start gap-3 text-sm text-[#475569]">
                 <Mail size={16} className="text-[#94a3b8] mt-0.5 shrink-0" />
-                <p>security@rasp.io</p>
+                <p>security@queno.io</p>
               </div>
             </div>
 

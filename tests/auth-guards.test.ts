@@ -1,5 +1,5 @@
 /**
- * Auth guard unit tests — verifies requireSession and requireAdmin
+ * Auth guard unit tests - verifies requireSession and requireAdmin
  * throw the correct HTTP Response objects without hitting the DB.
  */
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";

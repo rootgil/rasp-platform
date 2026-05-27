@@ -159,7 +159,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <tbody className="divide-y divide-[#e2e8f0]">
                   {project.apiKeys.map((k) => (
                     <tr key={k.id} className="hover:bg-[#f8fafc]">
-                      <td className="px-4 py-3 text-sm">{k.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-sm">{k.name ?? "-"}</td>
                       <td className="px-4 py-3 font-mono text-xs">{k.prefix}…</td>
                       <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatRelativeTime(k.createdAt)}</td>
                     </tr>

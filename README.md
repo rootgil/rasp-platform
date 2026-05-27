@@ -2,7 +2,7 @@
 
 AI-native Runtime Application Self-Protection for regulated Canadian workloads (PIPEDA · Law 25 · PHIPA).
 
-This repo is the **management control plane** — landing page, client dashboard, admin backoffice, and management APIs.  
+This repo is the **management control plane** - landing page, client dashboard, admin backoffice, and management APIs.  
 Separate repos: `rasp-collector` (event ingestion) · `rasp-agent-node` (runtime agent) · `rasp-docs`
 
 ## Demo credentials
@@ -17,7 +17,7 @@ Separate repos: `rasp-collector` (event ingestion) · `rasp-agent-node` (runtime
 - **Next.js 16** (App Router) · React 19 · TypeScript
 - **Tailwind CSS 4** · Radix UI · lucide-react · Recharts
 - **Prisma 7** · PostgreSQL (Neon)
-- **Auth.js v5** (NextAuth) — Credentials provider · JWT sessions
+- **Auth.js v5** (NextAuth) - Credentials provider · JWT sessions
 - **Zod** · bcryptjs · Vitest
 
 ## Quick start
@@ -36,7 +36,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Edit `.env` — set your **Neon** connection string:
+Edit `.env` - set your **Neon** connection string:
 
 ```
 DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/rasp_platform?sslmode=require"
@@ -114,15 +114,15 @@ lib/
 
 ## Security model
 
-- **Agent-side redaction** — PII scrubbed before any telemetry leaves the customer env
-- **API keys** — bcrypt-hashed, prefix-only stored, one-time display at creation
-- **RBAC** — double enforcement: middleware + server-side `requireAdmin()` per backoffice route
-- **Org scoping** — every query filtered by `organizationId`; cross-tenant access is architecturally impossible
-- **Audit log** — every mutation writes to `AuditLog` table
-- **Kill switch** — disable any agent from the dashboard; takes effect within 60s
+- **Agent-side redaction** - PII scrubbed before any telemetry leaves the customer env
+- **API keys** - bcrypt-hashed, prefix-only stored, one-time display at creation
+- **RBAC** - double enforcement: middleware + server-side `requireAdmin()` per backoffice route
+- **Org scoping** - every query filtered by `organizationId`; cross-tenant access is architecturally impossible
+- **Audit log** - every mutation writes to `AuditLog` table
+- **Kill switch** - disable any agent from the dashboard; takes effect within 60s
 
 ## Roadmap
 
-- **J1** (this repo) — Platform UI + management APIs ✅
-- **J2** — `rasp-collector`: event ingestion, HMAC verification, rate limiting
-- **J3** — `rasp-agent-node`: Node.js runtime agent, SQLi/path traversal/command injection detection
+- **J1** (this repo) - Platform UI + management APIs ✅
+- **J2** - `rasp-collector`: event ingestion, HMAC verification, rate limiting
+- **J3** - `rasp-agent-node`: Node.js runtime agent, SQLi/path traversal/command injection detection

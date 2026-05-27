@@ -27,7 +27,7 @@ export default async function ApiDiscoveryPage() {
     <div className="space-y-6">
       <PageHeader
         title="API Discovery"
-        description="Runtime endpoint inventory — observed from live traffic"
+        description="Runtime endpoint inventory - observed from live traffic"
         action={
           <Button variant="secondary">
             Export OpenAPI spec

@@ -1,4 +1,4 @@
-# AGENTS.md — rasp-platform
+# AGENTS.md - rasp-platform
 
 This repository contains the RASP management platform.
 

@@ -54,10 +54,10 @@ export default async function SettingsPage() {
           <CardContent className="p-0">
             <dl className="divide-y divide-[#e2e8f0]">
               {[
-                { label: "Name", value: user?.name ?? "—" },
-                { label: "Email", value: user?.email ?? "—" },
+                { label: "Name", value: user?.name ?? "-" },
+                { label: "Email", value: user?.email ?? "-" },
                 { label: "Role", value: membership.role },
-                { label: "Member since", value: user?.createdAt.toLocaleDateString("en-CA") ?? "—" },
+                { label: "Member since", value: user?.createdAt.toLocaleDateString("en-CA") ?? "-" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <dt className="text-sm text-[#475569]">{label}</dt>
@@ -82,7 +82,7 @@ export default async function SettingsPage() {
               <tbody className="divide-y divide-[#e2e8f0]">
                 {members.map((m) => (
                   <tr key={m.id} className="hover:bg-[#f8fafc]">
-                    <td className="px-5 py-3 font-medium text-[#0f172a]">{m.user.name ?? "—"}</td>
+                    <td className="px-5 py-3 font-medium text-[#0f172a]">{m.user.name ?? "-"}</td>
                     <td className="px-5 py-3 text-[#475569]">{m.user.email}</td>
                     <td className="px-5 py-3 capitalize text-xs font-medium text-[#475569]">{m.role}</td>
                   </tr>

@@ -29,7 +29,7 @@ export default async function BackofficeCustomersPage() {
             <tbody className="divide-y divide-[#e2e8f0]">
               {users.map((user) => (
                 <tr key={user.id} className="hover:bg-[#f8fafc]">
-                  <td className="px-4 py-3 font-medium text-[#0f172a]">{user.name ?? "—"}</td>
+                  <td className="px-4 py-3 font-medium text-[#0f172a]">{user.name ?? "-"}</td>
                   <td className="px-4 py-3 text-[#475569]">{user.email}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
@@ -41,7 +41,7 @@ export default async function BackofficeCustomersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-[#475569]">
-                    {user.memberships.map((m) => m.organization.name).join(", ") || "—"}
+                    {user.memberships.map((m) => m.organization.name).join(", ") || "-"}
                   </td>
                   <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatDate(user.createdAt)}</td>
                 </tr>

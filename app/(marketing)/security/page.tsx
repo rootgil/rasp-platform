@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Lock, FileSearch, Cpu, Server, RadioTower } from "lucide-react";
+import { Shield, Lock, FileSearch, Cpu, Server, RadioTower, Flag, Scale, Heart } from "lucide-react";
 
 const principles = [
   {
     icon: Lock,
     title: "Scrub at the Source",
-    body: "All sensitive data is redacted inside the RASP agent — before any telemetry leaves the customer environment. Even if the control plane is compromised, no PII, credentials, or regulated data has been transmitted in cleartext.",
+    body: "All sensitive data is redacted inside the Queno agent - before any telemetry leaves the customer environment. Even if the control plane is compromised, no PII, credentials, or regulated data has been transmitted in cleartext.",
   },
   {
     icon: FileSearch,
@@ -15,7 +15,7 @@ const principles = [
   {
     icon: Cpu,
     title: "Fail-Open Agent Design",
-    body: "If the RASP agent encounters an unexpected error, it logs the issue and passes the request through unchanged. It never blocks your application, even in block mode, when it cannot make a confident decision.",
+    body: "If the Queno agent encounters an unexpected error, it logs the issue and passes the request through unchanged. It never blocks your application, even in block mode, when it cannot make a confident decision.",
   },
   {
     icon: Server,
@@ -41,22 +41,24 @@ export default function SecurityPage() {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h1 className="text-4xl font-bold text-[#0f172a]">Security & Privacy</h1>
           <p className="mt-4 text-lg text-[#475569]">
-            RASP Platform is designed for organizations that cannot afford to leak data — healthcare, finance, legal, and government.
+            Queno is designed for organizations that cannot afford to leak data - healthcare, finance, legal, and government.
           </p>
         </div>
 
         {/* Compliance grid */}
         <div className="grid sm:grid-cols-3 gap-6 mb-16">
           {[
-            { flag: "🇨🇦", law: "PIPEDA", body: "Federal private sector privacy law. Consent, purpose limitation, breach notification within 72 hours." },
-            { flag: "🔒", law: "Loi 25 (Québec)", body: "Stricter breach notification requirements, mandatory privacy impact assessments, data inventory." },
-            { flag: "🏥", law: "PHIPA (Ontario)", body: "Personal Health Information Protection Act. Agent-side redaction ensures zero PHI in transit." },
-          ].map((c) => (
-            <Card key={c.law} className="border-[#bfdbfe]">
+            { Icon: Flag, law: "PIPEDA", body: "Federal private sector privacy law. Consent, purpose limitation, breach notification within 72 hours." },
+            { Icon: Scale, law: "Loi 25 (Québec)", body: "Stricter breach notification requirements, mandatory privacy impact assessments, data inventory." },
+            { Icon: Heart, law: "PHIPA (Ontario)", body: "Personal Health Information Protection Act. Agent-side redaction ensures zero PHI in transit." },
+          ].map(({ Icon, law, body }) => (
+            <Card key={law} className="border-[#bfdbfe]">
               <CardContent className="p-6">
-                <div className="text-3xl mb-3">{c.flag}</div>
-                <h3 className="font-bold text-[#0f172a] mb-2">{c.law}</h3>
-                <p className="text-sm text-[#475569]">{c.body}</p>
+                <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eff6ff] mb-4">
+                  <Icon size={18} className="text-[#2563eb]" strokeWidth={2} />
+                </div>
+                <h3 className="font-bold text-[#0f172a] mb-2">{law}</h3>
+                <p className="text-sm text-[#475569]">{body}</p>
               </CardContent>
             </Card>
           ))}

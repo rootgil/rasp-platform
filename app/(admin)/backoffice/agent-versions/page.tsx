@@ -39,7 +39,7 @@ export default async function AgentVersionsPage() {
                   <td className="px-4 py-3 font-mono font-bold text-[#0f172a]">{v.version}</td>
                   <td className="px-4 py-3 text-xs capitalize">{v.channel}</td>
                   <td className="px-4 py-3"><StatusBadge status={v.status} /></td>
-                  <td className="px-4 py-3 text-xs text-[#475569] hidden md:table-cell max-w-xs truncate">{v.changelog ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs text-[#475569] hidden md:table-cell max-w-xs truncate">{v.changelog ?? "-"}</td>
                   <td className="px-4 py-3 text-xs text-[#94a3b8]">
                     {v.releasedAt ? formatDate(v.releasedAt) : "Not released"}
                   </td>

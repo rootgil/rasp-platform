@@ -11,8 +11,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "RASP Platform — AI-Native Runtime Application Security",
-    template: "%s | RASP Platform",
+    default: "Queno - AI-Native Runtime Application Security",
+    template: "%s | Queno",
   },
   description:
     "AI-native Runtime Application Self-Protection for regulated Canadian workloads. PIPEDA, Law 25, PHIPA compliant.",

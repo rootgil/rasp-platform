@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Shield, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,15 +45,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#2563eb]">
-            <Shield size={20} className="text-white" strokeWidth={2} />
-          </div>
-          <div>
-            <span className="text-lg font-bold text-[#0f172a]">RASP</span>
-            <span className="text-lg font-bold text-[#2563eb]"> Platform</span>
-          </div>
-        </div>
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
+          <img src="/logo.png" alt="Queno" className="h-16 w-auto" />
+        </Link>
 
         <div className="bg-white border border-[#e2e8f0] rounded-[12px] p-8 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <h1 className="text-xl font-semibold text-[#0f172a] mb-1">Sign in</h1>

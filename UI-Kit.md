@@ -1,4 +1,4 @@
-# UI Kit Frontend — RASP Platform
+# UI Kit Frontend - RASP Platform
 
 ## 1. Direction visuelle
 
@@ -125,22 +125,22 @@ font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 
 ```txt
 Page title
-30px / 36px — font-weight 700
+30px / 36px - font-weight 700
 
 Section title
-20px / 28px — font-weight 600
+20px / 28px - font-weight 600
 
 Card title
-16px / 24px — font-weight 600
+16px / 24px - font-weight 600
 
 Body
-14px / 22px — font-weight 400
+14px / 22px - font-weight 400
 
 Small text
 13px / 20px
 
 Metadata / Labels
-12px / 16px — uppercase possible
+12px / 16px - uppercase possible
 ```
 
 ---

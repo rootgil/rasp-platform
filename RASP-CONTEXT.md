@@ -1157,7 +1157,7 @@ Java:
 
 # 17. Roadmap complet en 3 jours
 
-# Jour 1 — Architecture + plateforme Next.js
+# Jour 1 - Architecture + plateforme Next.js
 
 ## Objectif du jour
 
@@ -1333,7 +1333,7 @@ Dans `rasp-docs`, créer :
 
 ---
 
-# Jour 2 — Collector + Agent Node.js + audit local
+# Jour 2 - Collector + Agent Node.js + audit local
 
 ## Objectif du jour
 
@@ -1520,7 +1520,7 @@ Tests prioritaires :
 
 ---
 
-# Jour 3 — Intégration, tests, docs, livraison
+# Jour 3 - Intégration, tests, docs, livraison
 
 ## Objectif du jour
 
@@ -1688,7 +1688,7 @@ Scénario :
 ## `rasp-platform/AGENTS.md`
 
 ```markdown
-# AGENTS.md — rasp-platform
+# AGENTS.md - rasp-platform
 
 This repository contains the RASP management platform.
 
@@ -1740,7 +1740,7 @@ This is a monolithic Next.js application containing:
 ## `rasp-collector/AGENTS.md`
 
 ```markdown
-# AGENTS.md — rasp-collector
+# AGENTS.md - rasp-collector
 
 This repository contains the RASP event collector.
 
@@ -1789,7 +1789,7 @@ Responsibilities:
 ## `rasp-agent-node/AGENTS.md`
 
 ```markdown
-# AGENTS.md — rasp-agent-node
+# AGENTS.md - rasp-agent-node
 
 This repository contains the Node.js RASP agent.
 
@@ -1851,7 +1851,7 @@ Rules:
 ## `rasp-docs/AGENTS.md`
 
 ```markdown
-# AGENTS.md — rasp-docs
+# AGENTS.md - rasp-docs
 
 This repository contains the technical documentation for the RASP platform.
 

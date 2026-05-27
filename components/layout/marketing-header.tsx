@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,8 @@ export function MarketingHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#2563eb]">
-              <Shield size={16} className="text-white" strokeWidth={2} />
-            </div>
-            <span className="text-sm font-bold text-[#0f172a]">RASP<span className="text-[#2563eb]"> Platform</span></span>
+          <Link href="/" className="flex items-center">
+            <img src="/logo.png" alt="Queno" className="h-16 w-auto" />
           </Link>
 
           {/* Desktop nav */}

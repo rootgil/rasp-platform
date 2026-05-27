@@ -37,7 +37,7 @@ export function DashboardCharts({ chartData, severityData }: ChartProps) {
       {/* Area Chart */}
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle>Events — Last 7 Days</CardTitle>
+          <CardTitle>Events - Last 7 Days</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>

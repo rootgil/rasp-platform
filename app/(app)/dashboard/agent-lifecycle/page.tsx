@@ -54,7 +54,7 @@ export default async function AgentLifecyclePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-[#0f172a] font-mono">
-                  {latest?.version ?? "—"}
+                  {latest?.version ?? "-"}
                 </p>
                 <p className="text-xs text-[#94a3b8] mt-1">
                   {CHANNEL_DESCRIPTIONS[channel]}

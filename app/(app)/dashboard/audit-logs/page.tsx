@@ -51,10 +51,10 @@ export default async function AuditLogsPage() {
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-[#2563eb]">{log.action}</td>
                   <td className="px-4 py-3 font-mono text-xs text-[#94a3b8] hidden md:table-cell">
-                    {log.target ? log.target.slice(0, 16) + "…" : "—"}
+                    {log.target ? log.target.slice(0, 16) + "…" : "-"}
                   </td>
                   <td className="px-4 py-3 text-xs text-[#94a3b8] hidden lg:table-cell max-w-xs truncate">
-                    {log.metadata ? JSON.stringify(log.metadata) : "—"}
+                    {log.metadata ? JSON.stringify(log.metadata) : "-"}
                   </td>
                 </tr>
               ))}

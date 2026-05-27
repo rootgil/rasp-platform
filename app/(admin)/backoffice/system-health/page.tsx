@@ -28,7 +28,7 @@ export default async function SystemHealthPage() {
     {
       name: "Collector Service",
       status: collectorHealth.status,
-      detail: collectorHealth.status === "healthy" ? "All ingestion workers active" : "Cannot reach collector — check COLLECTOR_INTERNAL_URL",
+      detail: collectorHealth.status === "healthy" ? "All ingestion workers active" : "Cannot reach collector - check COLLECTOR_INTERNAL_URL",
     },
     { name: "Auth Service", status: "healthy", detail: "JWT signing active" },
     { name: "Rate Limiter", status: "healthy", detail: "Redis-backed (mock)" },

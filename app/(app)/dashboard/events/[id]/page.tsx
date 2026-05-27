@@ -37,9 +37,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 { label: "Type", value: event.type, mono: true },
                 { label: "Severity", value: <SeverityBadge severity={event.severity} /> },
                 { label: "Application", value: event.project.name },
-                { label: "Method", value: event.method ?? "—", mono: true },
-                { label: "Endpoint", value: event.path ?? "—", mono: true },
-                { label: "Source IP", value: event.sourceIp ?? "—", mono: true },
+                { label: "Method", value: event.method ?? "-", mono: true },
+                { label: "Endpoint", value: event.path ?? "-", mono: true },
+                { label: "Source IP", value: event.sourceIp ?? "-", mono: true },
                 { label: "Action", value: <StatusBadge status={event.action} /> },
                 { label: "Redacted", value: event.redacted ? "Yes" : "No" },
                 { label: "Detected at", value: formatDate(event.createdAt) },
@@ -65,7 +65,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-[#16a34a]">
               <span className="h-2 w-2 rounded-full bg-[#16a34a]" />
-              Payload scrubbed at source — no raw sensitive data transmitted
+              Payload scrubbed at source - no raw sensitive data transmitted
             </div>
           </CardContent>
         </Card>

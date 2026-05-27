@@ -1,17 +1,13 @@
 import Link from "next/link";
-import { Shield } from "lucide-react";
 
 export function MarketingFooter() {
   return (
-    <footer className="bg-[#0f172a] text-white mt-20">
+    <footer className="bg-[#0f172a] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#2563eb]">
-                <Shield size={14} className="text-white" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-bold">RASP Platform</span>
+            <div className="mb-4">
+              <img src="/logo.png" alt="Queno" className="h-9 w-auto brightness-0 invert" />
             </div>
             <p className="text-sm text-[#94a3b8]">
               AI-native Runtime Application Self-Protection for regulated Canadian workloads.
@@ -50,7 +46,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94a3b8]">
-          <p>© {new Date().getFullYear()} RASP Platform. Built in Canada 🍁</p>
+          <p>© {new Date().getFullYear()} Queno. Built in Canada.</p>
           <div className="flex gap-4">
             <Link href="/security" className="hover:text-white">Privacy Policy</Link>
             <Link href="/security" className="hover:text-white">Terms of Service</Link>

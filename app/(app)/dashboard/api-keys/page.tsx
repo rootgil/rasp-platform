@@ -55,7 +55,7 @@ export default async function ApiKeysPage() {
             <tbody className="divide-y divide-[#e2e8f0]">
               {keys.map((key) => (
                 <tr key={key.id} className="hover:bg-[#f8fafc] transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#0f172a]">{key.name ?? "—"}</td>
+                  <td className="px-4 py-3 font-medium text-[#0f172a]">{key.name ?? "-"}</td>
                   <td className="px-4 py-3 font-mono text-xs text-[#475569]">
                     <div className="flex items-center gap-1.5">
                       <KeyRound size={12} className="text-[#94a3b8]" />
@@ -93,7 +93,7 @@ export default async function ApiKeysPage() {
       <div className="rounded-[8px] border border-[#e2e8f0] bg-[#f8fafc] p-4 text-xs text-[#475569]">
         <p className="font-semibold text-[#0f172a] mb-1">Security note</p>
         API keys are shown in full only at creation time. Only the prefix and a secure hash are stored.
-        Revoke compromised keys immediately — revocation takes effect within 60 seconds on the collector.
+        Revoke compromised keys immediately - revocation takes effect within 60 seconds on the collector.
       </div>
     </div>
   );
