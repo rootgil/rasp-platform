@@ -74,27 +74,27 @@ export default async function AgentLifecyclePage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[700px]">
+          <table className="w-full text-sm min-w-[360px]">
             <thead>
               <tr className="bg-background border-b border-border">
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Agent ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Channel</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Version</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Channel</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Last Heartbeat</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Kill Switch</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {agents.map((agent) => (
                 <tr key={agent.id} className="hover:bg-background">
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{agent.id.slice(0, 12)}…</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">{agent.id.slice(0, 12)}…</td>
                   <td className="px-4 py-3 text-sm font-medium">{agent.project.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{agent.version}</td>
-                  <td className="px-4 py-3 text-xs capitalize">{agent.channel}</td>
+                  <td className="px-4 py-3 font-mono text-xs hidden md:table-cell">{agent.version}</td>
+                  <td className="px-4 py-3 text-xs capitalize hidden md:table-cell">{agent.channel}</td>
                   <td className="px-4 py-3"><StatusBadge status={agent.status} /></td>
-                  <td className="px-4 py-3 text-xs text-text-muted">
+                  <td className="px-4 py-3 text-xs text-text-muted hidden md:table-cell">
                     {agent.lastHeartbeatAt ? formatDate(agent.lastHeartbeatAt) : "Never"}
                   </td>
                   <td className="px-4 py-3">

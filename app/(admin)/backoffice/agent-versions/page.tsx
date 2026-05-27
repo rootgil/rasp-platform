@@ -2,10 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { PromoteVersionButton } from "./promote-version-button";
+import { NewVersionButton } from "./new-version-button";
 
 export default async function AgentVersionsPage() {
   const versions = await prisma.agentVersion.findMany({
@@ -17,7 +16,7 @@ export default async function AgentVersionsPage() {
       <PageHeader
         title="Agent Versions"
         description="Manage RASP agent release channels and promotions"
-        action={<Button><Plus size={16} />New Version</Button>}
+        action={<NewVersionButton />}
       />
 
       <Card>

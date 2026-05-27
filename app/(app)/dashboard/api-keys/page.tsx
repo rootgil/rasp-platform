@@ -41,14 +41,14 @@ export default async function ApiKeysPage() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[640px]">
+          <table className="w-full text-sm min-w-[320px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Prefix</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Prefix</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Application</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Created</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actions</th>
               </tr>
             </thead>
@@ -56,13 +56,13 @@ export default async function ApiKeysPage() {
               {keys.map((key) => (
                 <tr key={key.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3 font-medium text-text-primary">{key.name ?? "-"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">
                     <div className="flex items-center gap-1.5">
                       <KeyRound size={12} className="text-text-muted" />
                       {key.prefix}…
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm">{key.project.name}</td>
+                  <td className="px-4 py-3 text-sm hidden md:table-cell">{key.project.name}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       key.revoked
@@ -72,7 +72,7 @@ export default async function ApiKeysPage() {
                       {key.revoked ? "Revoked" : "Active"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-text-muted">{formatDate(key.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted hidden md:table-cell">{formatDate(key.createdAt)}</td>
                   <td className="px-4 py-3">
                     {!key.revoked && <RevokeKeyButton keyId={key.id} />}
                   </td>

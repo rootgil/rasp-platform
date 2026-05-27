@@ -10,7 +10,9 @@ export default auth((req) => {
   const isAdmin = (session?.user as { role?: string })?.role === "admin";
 
   if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    return NextResponse.redirect(
+      new URL(isAdmin ? "/backoffice" : "/dashboard", nextUrl)
+    );
   }
 
   if (nextUrl.pathname.startsWith("/dashboard")) {

@@ -30,17 +30,17 @@ export default async function AgentsPage() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[800px]">
+          <table className="w-full text-sm min-w-[360px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Language</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Language</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Version</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Mode</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Channel</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Mode</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Channel</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Last Heartbeat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -52,12 +52,12 @@ export default async function AgentsPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm font-medium text-text-primary">{a.project.name}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary capitalize">{a.language}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{a.version}</td>
+                  <td className="px-4 py-3 text-xs text-text-secondary capitalize hidden sm:table-cell">{a.language}</td>
+                  <td className="px-4 py-3 font-mono text-xs hidden sm:table-cell">{a.version}</td>
                   <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
-                  <td className="px-4 py-3"><StatusBadge status={a.mode} /></td>
-                  <td className="px-4 py-3 text-xs text-text-secondary capitalize">{a.channel}</td>
-                  <td className="px-4 py-3 text-xs text-text-muted">
+                  <td className="px-4 py-3 hidden md:table-cell"><StatusBadge status={a.mode} /></td>
+                  <td className="px-4 py-3 text-xs text-text-secondary capitalize hidden md:table-cell">{a.channel}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted hidden md:table-cell">
                     {a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}
                   </td>
                 </tr>

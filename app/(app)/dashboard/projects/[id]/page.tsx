@@ -58,23 +58,23 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[500px]">
+              <table className="w-full text-sm min-w-[280px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Version</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Mode</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Mode</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {project.agents.map((a) => (
                     <tr key={a.id} className="hover:bg-background">
-                      <td className="px-4 py-3 font-mono text-xs text-text-secondary">{a.id.slice(0, 12)}…</td>
-                      <td className="px-4 py-3 font-mono text-xs">{a.version}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">{a.id.slice(0, 12)}…</td>
+                      <td className="px-4 py-3 font-mono text-xs hidden md:table-cell">{a.version}</td>
                       <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
-                      <td className="px-4 py-3"><StatusBadge status={a.mode} /></td>
+                      <td className="px-4 py-3 hidden md:table-cell"><StatusBadge status={a.mode} /></td>
                       <td className="px-4 py-3 text-xs text-text-muted">{a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}</td>
                     </tr>
                   ))}
@@ -89,12 +89,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[480px]">
+              <table className="w-full text-sm min-w-[280px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Endpoint</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Endpoint</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">When</th>
                   </tr>
                 </thead>
@@ -103,7 +103,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     <tr key={ev.id} className="hover:bg-background">
                       <td className="px-4 py-3"><SeverityBadge severity={ev.severity} /></td>
                       <td className="px-4 py-3 font-mono text-xs">{ev.type}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ev.method} {ev.path}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden md:table-cell">{ev.method} {ev.path}</td>
                       <td className="px-4 py-3 text-xs text-text-muted">{formatRelativeTime(ev.createdAt)}</td>
                     </tr>
                   ))}
@@ -118,14 +118,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[560px]">
+              <table className="w-full text-sm min-w-[280px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Path</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Auth</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Auth</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Risk</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Flags</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Flags</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -133,13 +133,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     <tr key={ep.id} className="hover:bg-background">
                       <td className="px-4 py-3 font-mono text-xs font-bold">{ep.method}</td>
                       <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ep.pathPattern}</td>
-                      <td className="px-4 py-3 text-xs">{ep.authStatus}</td>
+                      <td className="px-4 py-3 text-xs hidden sm:table-cell">{ep.authStatus}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-semibold ${ep.riskScore >= 70 ? "text-critical" : ep.riskScore >= 40 ? "text-medium" : "text-success"}`}>
                           {ep.riskScore}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <div className="flex gap-1">
                           {ep.isShadowApi && <span className="text-xs px-2 py-0.5 rounded-full bg-critical-bg text-critical-text border border-[#fecaca]">Shadow</span>}
                           {ep.isZombieApi && <span className="text-xs px-2 py-0.5 rounded-full bg-medium-bg text-medium-text border border-[#fde68a]">Zombie</span>}
@@ -158,20 +158,20 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[360px]">
+              <table className="w-full text-sm min-w-[200px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Prefix</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Prefix</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {project.apiKeys.map((k) => (
                     <tr key={k.id} className="hover:bg-background">
                       <td className="px-4 py-3 text-sm">{k.name ?? "-"}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{k.prefix}…</td>
-                      <td className="px-4 py-3 text-xs text-text-muted">{formatRelativeTime(k.createdAt)}</td>
+                      <td className="px-4 py-3 font-mono text-xs hidden sm:table-cell">{k.prefix}…</td>
+                      <td className="px-4 py-3 text-xs text-text-muted hidden md:table-cell">{formatRelativeTime(k.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

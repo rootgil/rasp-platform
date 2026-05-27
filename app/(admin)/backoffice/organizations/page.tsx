@@ -18,15 +18,15 @@ export default async function BackofficeOrgsPage() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[640px]">
+          <table className="w-full text-sm min-w-[300px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Organization</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Plan</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Members</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Projects</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agents</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Plan</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Members</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Projects</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Agents</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Created</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -39,11 +39,11 @@ export default async function BackofficeOrgsPage() {
                         {org.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-xs font-medium uppercase text-text-secondary">{org.plan}</td>
-                    <td className="px-4 py-3 text-xs">{org._count.members}</td>
-                    <td className="px-4 py-3 text-xs">{org._count.projects}</td>
-                    <td className="px-4 py-3 text-xs">{agentCount}</td>
-                    <td className="px-4 py-3 text-xs text-text-muted">{formatDate(org.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs font-medium uppercase text-text-secondary hidden sm:table-cell">{org.plan}</td>
+                    <td className="px-4 py-3 text-xs hidden md:table-cell">{org._count.members}</td>
+                    <td className="px-4 py-3 text-xs hidden md:table-cell">{org._count.projects}</td>
+                    <td className="px-4 py-3 text-xs hidden md:table-cell">{agentCount}</td>
+                    <td className="px-4 py-3 text-xs text-text-muted hidden lg:table-cell">{formatDate(org.createdAt)}</td>
                   </tr>
                 );
               })}

@@ -176,10 +176,12 @@ model AuditLog {
 }
 
 model ContactLead {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  company   String?
-  message   String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  name        String
+  email       String
+  company     String?
+  message     String?
+  status      String    @default("pending")
+  convertedAt DateTime?
+  createdAt   DateTime  @default(now())
 }

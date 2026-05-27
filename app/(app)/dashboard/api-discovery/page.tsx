@@ -44,17 +44,17 @@ export default async function ApiDiscoveryPage() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[800px]">
+          <table className="w-full text-sm min-w-[400px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Path</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Auth</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Sensitive Data</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Auth</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Sensitive Data</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Risk</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Flags</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Traffic</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Flags</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Traffic</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -62,8 +62,8 @@ export default async function ApiDiscoveryPage() {
                 <tr key={ep.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3 font-mono text-xs font-bold text-text-primary">{ep.method}</td>
                   <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ep.pathPattern}</td>
-                  <td className="px-4 py-3 text-xs">{ep.project.name}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-xs hidden md:table-cell">{ep.project.name}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       ep.authStatus === "none"
                         ? "text-critical-text bg-critical-bg border-[#fecaca]"
@@ -74,7 +74,7 @@ export default async function ApiDiscoveryPage() {
                       {ep.authStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs">
+                  <td className="px-4 py-3 text-xs hidden lg:table-cell">
                     {ep.hasSensitiveData ? (
                       <span className="text-high font-medium">Yes</span>
                     ) : (
@@ -83,7 +83,7 @@ export default async function ApiDiscoveryPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full bg-border-light overflow-hidden">
+                      <div className="w-16 h-1.5 rounded-full bg-border-light overflow-hidden hidden sm:block">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -97,7 +97,7 @@ export default async function ApiDiscoveryPage() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <div className="flex gap-1">
                       {ep.isShadowApi && (
                         <span className="text-xs px-1.5 py-0.5 rounded bg-critical-bg text-critical-text border border-[#fecaca] font-medium">Shadow</span>
@@ -107,7 +107,7 @@ export default async function ApiDiscoveryPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-text-secondary">{ep.trafficCount}</td>
+                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">{ep.trafficCount}</td>
                 </tr>
               ))}
               {endpoints.length === 0 && (
