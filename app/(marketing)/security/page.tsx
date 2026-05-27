@@ -1,0 +1,109 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { Shield, Lock, FileSearch, Cpu, Server, RadioTower } from "lucide-react";
+
+const principles = [
+  {
+    icon: Lock,
+    title: "Scrub at the Source",
+    body: "All sensitive data is redacted inside the RASP agent — before any telemetry leaves the customer environment. Even if the control plane is compromised, no PII, credentials, or regulated data has been transmitted in cleartext.",
+  },
+  {
+    icon: FileSearch,
+    title: "Immutable Local Audit Log",
+    body: "Every redaction decision generates an HMAC-chained entry in an append-only local file. Tampering is detectable. The customer owns the complete evidence chain.",
+  },
+  {
+    icon: Cpu,
+    title: "Fail-Open Agent Design",
+    body: "If the RASP agent encounters an unexpected error, it logs the issue and passes the request through unchanged. It never blocks your application, even in block mode, when it cannot make a confident decision.",
+  },
+  {
+    icon: Server,
+    title: "Kill Switch",
+    body: "Operators can disable any agent from the dashboard. The agent self-disables within 60 seconds of the next heartbeat. Useful for emergency maintenance or incident response.",
+  },
+  {
+    icon: Shield,
+    title: "API Key Security",
+    body: "API keys are bcrypt-hashed at creation. Only the prefix is stored. The raw key is shown once, then irretrievable. Revocation propagates to the collector within 60 seconds.",
+  },
+  {
+    icon: RadioTower,
+    title: "HMAC Payload Verification",
+    body: "All telemetry from agents to the collector is HMAC-SHA256 signed. Tampered or replayed events are rejected. mTLS is used on the collector transport layer.",
+  },
+];
+
+export default function SecurityPage() {
+  return (
+    <div className="py-16 md:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center mb-16">
+          <h1 className="text-4xl font-bold text-[#0f172a]">Security & Privacy</h1>
+          <p className="mt-4 text-lg text-[#475569]">
+            RASP Platform is designed for organizations that cannot afford to leak data — healthcare, finance, legal, and government.
+          </p>
+        </div>
+
+        {/* Compliance grid */}
+        <div className="grid sm:grid-cols-3 gap-6 mb-16">
+          {[
+            { flag: "🇨🇦", law: "PIPEDA", body: "Federal private sector privacy law. Consent, purpose limitation, breach notification within 72 hours." },
+            { flag: "🔒", law: "Loi 25 (Québec)", body: "Stricter breach notification requirements, mandatory privacy impact assessments, data inventory." },
+            { flag: "🏥", law: "PHIPA (Ontario)", body: "Personal Health Information Protection Act. Agent-side redaction ensures zero PHI in transit." },
+          ].map((c) => (
+            <Card key={c.law} className="border-[#bfdbfe]">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">{c.flag}</div>
+                <h3 className="font-bold text-[#0f172a] mb-2">{c.law}</h3>
+                <p className="text-sm text-[#475569]">{c.body}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <h2 className="text-2xl font-bold text-[#0f172a] mb-8">Security Architecture</h2>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          {principles.map((p) => {
+            const Icon = p.icon;
+            return (
+              <Card key={p.title}>
+                <CardContent className="p-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eff6ff] mb-4">
+                    <Icon size={20} className="text-[#2563eb]" strokeWidth={2} />
+                  </div>
+                  <h3 className="font-semibold text-[#0f172a] mb-2">{p.title}</h3>
+                  <p className="text-sm text-[#475569] leading-relaxed">{p.body}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* SBOM & Signing note */}
+        <div className="rounded-[12px] border border-[#e2e8f0] bg-[#f8fafc] p-8">
+          <h3 className="text-lg font-bold text-[#0f172a] mb-4">Supply Chain Security</h3>
+          <div className="grid sm:grid-cols-2 gap-6 text-sm text-[#475569]">
+            <div>
+              <h4 className="font-semibold text-[#0f172a] mb-2">SBOM</h4>
+              <p>Every agent release includes a full Software Bill of Materials (SBOM) in SPDX format. Dependency vulnerabilities are scanned on every build.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-[#0f172a] mb-2">HSM Signing</h4>
+              <p>Agent packages are signed with an HSM-backed key. The public key is published in DNS for verification. Never install an unsigned agent.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-[#0f172a] mb-2">mTLS</h4>
+              <p>All agent-to-collector communication uses mutual TLS. Both parties authenticate with certificates. No unencrypted telemetry.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-[#0f172a] mb-2">Rate Limiting</h4>
+              <p>100 events/second per API key. 10 heartbeats/minute per agent. Collector rejects oversized payloads (max 512KB) before inspection.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

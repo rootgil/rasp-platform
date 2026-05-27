@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String               @id @default(cuid())
+  email          String               @unique
+  name           String?
+  passwordHash   String
+  role           String               @default("user")
+  createdAt      DateTime             @default(now())
+  memberships    OrganizationMember[]
+  auditLogs      AuditLog[]
+}
+
+model Organization {
+  id        String               @id @default(cuid())
+  name      String
+  plan      String               @default("free")
+  createdAt DateTime             @default(now())
+  members   OrganizationMember[]
+  projects  Project[]
+  auditLogs AuditLog[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String       @default("member")
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id                  String               @id @default(cuid())
+  organizationId      String
+  name                String
+  language            String
+  framework           String?
+  environment         String               @default("production")
+  collectorUrl        String?
+  createdAt           DateTime             @default(now())
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agents              Agent[]
+  apiKeys             ApiKey[]
+  securityEvents      SecurityEvent[]
+  alerts              Alert[]
+  discoveredEndpoints DiscoveredEndpoint[]
+  redactionPolicies   RedactionPolicy[]
+  rules               Rule[]
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  projectId String
+  keyHash   String
+  prefix    String
+  name      String?
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Agent {
+  id              String          @id @default(cuid())
+  projectId       String
+  language        String
+  framework       String?
+  version         String
+  status          String          @default("offline")
+  channel         String          @default("stable")
+  mode            String          @default("monitor")
+  lastHeartbeatAt DateTime?
+  killSwitch      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  securityEvents  SecurityEvent[]
+}
+
+model AgentVersion {
+  id         String    @id @default(cuid())
+  version    String
+  channel    String
+  status     String    @default("candidate")
+  changelog  String?
+  releasedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  projectId String
+  agentId   String?
+  type      String
+  severity  String
+  method    String?
+  path      String?
+  sourceIp  String?
+  payload   Json?
+  redacted  Boolean  @default(true)
+  action    String   @default("monitor")
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+  alerts    Alert[]
+}
+
+model Alert {
+  id              String        @id @default(cuid())
+  projectId       String
+  securityEventId String
+  status          String        @default("open")
+  severity        String
+  assignedTo      String?
+  createdAt       DateTime      @default(now())
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  securityEvent   SecurityEvent @relation(fields: [securityEventId], references: [id], onDelete: Cascade)
+}
+
+model Rule {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  type      String
+  mode      String   @default("monitor")
+  enabled   Boolean  @default(true)
+  config    Json?
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DiscoveredEndpoint {
+  id               String   @id @default(cuid())
+  projectId        String
+  method           String
+  pathPattern      String
+  authStatus       String   @default("unknown")
+  authorization    String   @default("unknown")
+  hasSensitiveData Boolean  @default(false)
+  riskScore        Int      @default(0)
+  trafficCount     Int      @default(0)
+  isShadowApi      Boolean  @default(false)
+  isZombieApi      Boolean  @default(false)
+  firstSeenAt      DateTime @default(now())
+  lastSeenAt       DateTime @default(now())
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model RedactionPolicy {
+  id        String   @id @default(cuid())
+  projectId String
+  mode      String   @default("denylist")
+  rules     Json?
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  actorId        String?
+  organizationId String?
+  action         String
+  target         String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  actor          User?         @relation(fields: [actorId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model ContactLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  message   String?
+  createdAt DateTime @default(now())
+}
