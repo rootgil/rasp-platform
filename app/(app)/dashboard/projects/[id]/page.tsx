@@ -13,9 +13,8 @@ import { formatRelativeTime } from "@/lib/utils";
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect("/login");
 
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const project = await prisma.project.findFirst({

@@ -16,8 +16,7 @@ const CHANNEL_DESCRIPTIONS: Record<string, string> = {
 
 export default async function AgentLifecyclePage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const [agents, versions] = await Promise.all([

@@ -11,8 +11,7 @@ import { RevokeKeyButton } from "./revoke-key-button";
 
 export default async function ApiKeysPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const [keys, projects] = await Promise.all([

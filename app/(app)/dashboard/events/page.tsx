@@ -16,8 +16,7 @@ export default async function EventsPage({
 }) {
   const filters = await searchParams;
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const where: Record<string, unknown> = {

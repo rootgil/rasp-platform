@@ -17,8 +17,7 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
 
 export default async function RedactionPoliciesPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const policies = await prisma.redactionPolicy.findMany({

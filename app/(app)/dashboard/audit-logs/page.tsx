@@ -8,8 +8,7 @@ import { FileSearch } from "lucide-react";
 
 export default async function AuditLogsPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const logs = await prisma.auditLog.findMany({

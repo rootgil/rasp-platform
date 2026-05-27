@@ -87,10 +87,9 @@ async function getDashboardData(organizationId: string) {
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
 
   const membership = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: session?.user?.id },
     include: { organization: true },
   });
   if (!membership) redirect("/login");

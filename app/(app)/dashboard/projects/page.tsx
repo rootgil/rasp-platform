@@ -12,10 +12,9 @@ import { CreateProjectDialog } from "./create-project-dialog";
 
 export default async function ProjectsPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
 
   const membership = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: session?.user?.id },
   });
   if (!membership) redirect("/login");
 

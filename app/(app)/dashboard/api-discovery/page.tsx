@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export default async function ApiDiscoveryPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const endpoints = await prisma.discoveredEndpoint.findMany({

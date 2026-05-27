@@ -15,8 +15,7 @@ export default async function AlertsPage({
 }) {
   const { status } = await searchParams;
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const alerts = await prisma.alert.findMany({

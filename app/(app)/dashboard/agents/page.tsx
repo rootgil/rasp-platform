@@ -9,8 +9,7 @@ import Link from "next/link";
 
 export default async function AgentsPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
   const agents = await prisma.agent.findMany({

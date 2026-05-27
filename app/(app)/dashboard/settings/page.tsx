@@ -6,17 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SettingsPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
 
   const [membership, user] = await Promise.all([
     prisma.organizationMember.findFirst({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
       include: {
         organization: true,
         user: { select: { name: true, email: true, role: true, createdAt: true } },
       },
     }),
-    prisma.user.findUnique({ where: { id: session.user.id } }),
+    prisma.user.findUnique({ where: { id: session?.user?.id } }),
   ]);
 
   if (!membership) redirect("/login");
