@@ -1,7 +1,18 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("neon.tech")
+    ? { rejectUnauthorized: false }
+    : undefined,
+  connectionTimeoutMillis: 30_000,
+});
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const EVENT_TYPES = [
   "sql_injection",
