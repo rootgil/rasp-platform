@@ -71,28 +71,28 @@ export default function PricingPage() {
     <div className="py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#0f172a]">Simple, transparent pricing</h1>
-          <p className="mt-4 text-lg text-[#475569]">No surprise overage fees. No per-event billing.</p>
+          <h1 className="text-4xl font-bold text-text-primary">Simple, transparent pricing</h1>
+          <p className="mt-4 text-lg text-text-secondary">No surprise overage fees. No per-event billing.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {tiers.map((tier) => (
             <Card
               key={tier.name}
-              className={tier.highlight ? "border-[#2563eb] ring-2 ring-[#2563eb]/10" : ""}
+              className={tier.highlight ? "border-brand ring-2 ring-brand/10" : ""}
             >
               {tier.highlight && (
-                <div className="bg-[#2563eb] text-white text-xs font-medium text-center py-1.5 rounded-t-[12px]">
+                <div className="bg-brand text-white text-xs font-medium text-center py-1.5 rounded-t-[12px]">
                   Most popular
                 </div>
               )}
               <CardHeader>
                 <CardTitle>{tier.name}</CardTitle>
                 <div className="flex items-end gap-1">
-                  <span className="text-3xl font-bold text-[#0f172a]">{tier.price}</span>
-                  <span className="text-[#94a3b8] text-sm">{tier.period}</span>
+                  <span className="text-3xl font-bold text-text-primary">{tier.price}</span>
+                  <span className="text-text-muted text-sm">{tier.period}</span>
                 </div>
-                <p className="text-sm text-[#475569]">{tier.description}</p>
+                <p className="text-sm text-text-secondary">{tier.description}</p>
               </CardHeader>
               <CardContent className="space-y-5">
                 <Button
@@ -104,8 +104,8 @@ export default function PricingPage() {
                 </Button>
                 <ul className="space-y-2.5">
                   {tier.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-[#475569]">
-                      <CheckCircle2 size={16} className="text-[#16a34a] shrink-0" />
+                    <li key={f} className="flex items-center gap-2 text-sm text-text-secondary">
+                      <CheckCircle2 size={16} className="text-success shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -116,7 +116,7 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-[#94a3b8] text-sm">
+          <p className="text-text-muted text-sm">
             All plans include a 14-day free trial. No credit card required.
           </p>
         </div>

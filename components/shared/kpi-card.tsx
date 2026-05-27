@@ -33,17 +33,17 @@ export function KpiCard({
           <Icon size={20} style={{ color: iconColor }} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[#94a3b8] uppercase tracking-wide">
+          <p className="text-xs font-medium text-text-muted uppercase tracking-wide">
             {title}
           </p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a] leading-none">
+          <p className="mt-1 text-2xl font-bold text-text-primary leading-none">
             {value}
           </p>
           {delta && (
             <p
               className={cn(
                 "mt-1 text-xs",
-                deltaPositive ? "text-[#16a34a]" : "text-[#dc2626]"
+                deltaPositive ? "text-success" : "text-critical"
               )}
             >
               {delta}

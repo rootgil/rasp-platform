@@ -57,22 +57,22 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Version</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Mode</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Last Heartbeat</th>
+                  <tr className="bg-background border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Mode</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
+                <tbody className="divide-y divide-border">
                   {project.agents.map((a) => (
-                    <tr key={a.id} className="hover:bg-[#f8fafc]">
-                      <td className="px-4 py-3 font-mono text-xs text-[#475569]">{a.id.slice(0, 12)}…</td>
+                    <tr key={a.id} className="hover:bg-background">
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary">{a.id.slice(0, 12)}…</td>
                       <td className="px-4 py-3 font-mono text-xs">{a.version}</td>
                       <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                       <td className="px-4 py-3"><StatusBadge status={a.mode} /></td>
-                      <td className="px-4 py-3 text-xs text-[#94a3b8]">{a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}</td>
+                      <td className="px-4 py-3 text-xs text-text-muted">{a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -86,20 +86,20 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Severity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Endpoint</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">When</th>
+                  <tr className="bg-background border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Endpoint</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">When</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
+                <tbody className="divide-y divide-border">
                   {project.securityEvents.map((ev) => (
-                    <tr key={ev.id} className="hover:bg-[#f8fafc]">
+                    <tr key={ev.id} className="hover:bg-background">
                       <td className="px-4 py-3"><SeverityBadge severity={ev.severity} /></td>
                       <td className="px-4 py-3 font-mono text-xs">{ev.type}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#475569]">{ev.method} {ev.path}</td>
-                      <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatRelativeTime(ev.createdAt)}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ev.method} {ev.path}</td>
+                      <td className="px-4 py-3 text-xs text-text-muted">{formatRelativeTime(ev.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -113,28 +113,28 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Method</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Path</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Auth</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Risk</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Flags</th>
+                  <tr className="bg-background border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Path</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Auth</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Risk</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Flags</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
+                <tbody className="divide-y divide-border">
                   {project.discoveredEndpoints.map((ep) => (
-                    <tr key={ep.id} className="hover:bg-[#f8fafc]">
+                    <tr key={ep.id} className="hover:bg-background">
                       <td className="px-4 py-3 font-mono text-xs font-bold">{ep.method}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#475569]">{ep.pathPattern}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ep.pathPattern}</td>
                       <td className="px-4 py-3 text-xs">{ep.authStatus}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs font-semibold ${ep.riskScore >= 70 ? "text-[#dc2626]" : ep.riskScore >= 40 ? "text-[#d97706]" : "text-[#16a34a]"}`}>
+                        <span className={`text-xs font-semibold ${ep.riskScore >= 70 ? "text-critical" : ep.riskScore >= 40 ? "text-medium" : "text-success"}`}>
                           {ep.riskScore}
                         </span>
                       </td>
                       <td className="px-4 py-3 flex gap-1">
-                        {ep.isShadowApi && <span className="text-xs px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#991b1b] border border-[#fecaca]">Shadow</span>}
-                        {ep.isZombieApi && <span className="text-xs px-2 py-0.5 rounded-full bg-[#fffbeb] text-[#92400e] border border-[#fde68a]">Zombie</span>}
+                        {ep.isShadowApi && <span className="text-xs px-2 py-0.5 rounded-full bg-critical-bg text-critical-text border border-[#fecaca]">Shadow</span>}
+                        {ep.isZombieApi && <span className="text-xs px-2 py-0.5 rounded-full bg-medium-bg text-medium-text border border-[#fde68a]">Zombie</span>}
                       </td>
                     </tr>
                   ))}
@@ -149,18 +149,18 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Prefix</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Created</th>
+                  <tr className="bg-background border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Prefix</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
+                <tbody className="divide-y divide-border">
                   {project.apiKeys.map((k) => (
-                    <tr key={k.id} className="hover:bg-[#f8fafc]">
+                    <tr key={k.id} className="hover:bg-background">
                       <td className="px-4 py-3 text-sm">{k.name ?? "-"}</td>
                       <td className="px-4 py-3 font-mono text-xs">{k.prefix}…</td>
-                      <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatRelativeTime(k.createdAt)}</td>
+                      <td className="px-4 py-3 text-xs text-text-muted">{formatRelativeTime(k.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

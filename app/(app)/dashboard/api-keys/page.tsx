@@ -42,22 +42,22 @@ export default async function ApiKeysPage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Prefix</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Created</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Actions</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Prefix</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {keys.map((key) => (
-                <tr key={key.id} className="hover:bg-[#f8fafc] transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#0f172a]">{key.name ?? "-"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#475569]">
+                <tr key={key.id} className="hover:bg-background transition-colors">
+                  <td className="px-4 py-3 font-medium text-text-primary">{key.name ?? "-"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">
                     <div className="flex items-center gap-1.5">
-                      <KeyRound size={12} className="text-[#94a3b8]" />
+                      <KeyRound size={12} className="text-text-muted" />
                       {key.prefix}…
                     </div>
                   </td>
@@ -65,13 +65,13 @@ export default async function ApiKeysPage() {
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       key.revoked
-                        ? "text-[#991b1b] bg-[#fef2f2] border-[#fecaca]"
-                        : "text-[#166534] bg-[#f0fdf4] border-[#bbf7d0]"
+                        ? "text-critical-text bg-critical-bg border-[#fecaca]"
+                        : "text-success-text bg-success-bg border-[#bbf7d0]"
                     }`}>
                       {key.revoked ? "Revoked" : "Active"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatDate(key.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted">{formatDate(key.createdAt)}</td>
                   <td className="px-4 py-3">
                     {!key.revoked && <RevokeKeyButton keyId={key.id} />}
                   </td>
@@ -79,7 +79,7 @@ export default async function ApiKeysPage() {
               ))}
               {keys.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-text-muted">
                     No API keys yet
                   </td>
                 </tr>
@@ -89,8 +89,8 @@ export default async function ApiKeysPage() {
         </CardContent>
       </Card>
 
-      <div className="rounded-[8px] border border-[#e2e8f0] bg-[#f8fafc] p-4 text-xs text-[#475569]">
-        <p className="font-semibold text-[#0f172a] mb-1">Security note</p>
+      <div className="rounded-md border border-border bg-background p-4 text-xs text-text-secondary">
+        <p className="font-semibold text-text-primary mb-1">Security note</p>
         API keys are shown in full only at creation time. Only the prefix and a secure hash are stored.
         Revoke compromised keys immediately - revocation takes effect within 60 seconds on the collector.
       </div>

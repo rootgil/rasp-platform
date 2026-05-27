@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
+  if (!session?.user) redirect("/login");
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
   if (!membership) redirect("/login");
 
@@ -43,11 +44,11 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
         <Card>
           <CardHeader><CardTitle>Agent Details</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <dl className="divide-y divide-[#e2e8f0]">
+            <dl className="divide-y divide-border">
               {rows.map(({ label, value, mono }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <dt className="text-sm text-[#475569]">{label}</dt>
-                  <dd className={`text-sm font-medium text-[#0f172a] ${mono ? "font-mono" : ""}`}>{value}</dd>
+                  <dt className="text-sm text-text-secondary">{label}</dt>
+                  <dd className={`text-sm font-medium text-text-primary ${mono ? "font-mono" : ""}`}>{value}</dd>
                 </div>
               ))}
             </dl>
@@ -59,27 +60,27 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="h-2 w-2 rounded-full bg-[#16a34a] mt-1.5 shrink-0" />
+                <div className="h-2 w-2 rounded-full bg-success mt-1.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#0f172a]">Agent registered</p>
-                  <p className="text-xs text-[#94a3b8]">{formatDate(agent.createdAt)}</p>
+                  <p className="text-sm font-medium text-text-primary">Agent registered</p>
+                  <p className="text-xs text-text-muted">{formatDate(agent.createdAt)}</p>
                 </div>
               </div>
               {agent.lastHeartbeatAt && (
                 <div className="flex items-start gap-3">
-                  <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${agent.status === "online" ? "bg-[#16a34a]" : "bg-[#94a3b8]"}`} />
+                  <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${agent.status === "online" ? "bg-success" : "bg-text-muted"}`} />
                   <div>
-                    <p className="text-sm font-medium text-[#0f172a]">Last heartbeat</p>
-                    <p className="text-xs text-[#94a3b8]">{formatDate(agent.lastHeartbeatAt)}</p>
+                    <p className="text-sm font-medium text-text-primary">Last heartbeat</p>
+                    <p className="text-xs text-text-muted">{formatDate(agent.lastHeartbeatAt)}</p>
                   </div>
                 </div>
               )}
               {agent.killSwitch && (
                 <div className="flex items-start gap-3">
-                  <div className="h-2 w-2 rounded-full bg-[#dc2626] mt-1.5 shrink-0" />
+                  <div className="h-2 w-2 rounded-full bg-critical mt-1.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-[#dc2626]">Kill switch active</p>
-                    <p className="text-xs text-[#94a3b8]">Agent will self-disable on next heartbeat</p>
+                    <p className="text-sm font-medium text-critical">Kill switch active</p>
+                    <p className="text-xs text-text-muted">Agent will self-disable on next heartbeat</p>
                   </div>
                 </div>
               )}

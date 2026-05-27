@@ -28,16 +28,16 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[260px] bg-[#0f172a] flex flex-col z-40">
+    <aside className="fixed left-0 top-0 h-full w-[260px] bg-text-primary flex flex-col z-40">
       {/* Logo */}
       <div className="flex h-16 items-center px-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#2563eb]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand">
             <Shield size={16} className="text-white" strokeWidth={2} />
           </div>
           <div>
             <span className="text-sm font-bold text-white">RASP</span>
-            <span className="ml-1.5 text-xs font-medium text-[#94a3b8] bg-[#1e293b] px-1.5 py-0.5 rounded">Admin</span>
+            <span className="ml-1.5 text-xs font-medium text-text-muted bg-[#1e293b] px-1.5 py-0.5 rounded">Admin</span>
           </div>
         </div>
       </div>
@@ -55,10 +55,10 @@ export function AdminSidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-[8px] px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[#2563eb] text-white"
-                      : "text-[#94a3b8] hover:bg-white/10 hover:text-white"
+                      ? "bg-brand text-white"
+                      : "text-text-muted hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <Icon size={18} strokeWidth={2} />
@@ -74,7 +74,7 @@ export function AdminSidebar() {
       <div className="p-4 border-t border-white/10">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-2 px-3 py-2 rounded-[8px] text-sm text-[#94a3b8] hover:bg-white/10 hover:text-white transition-colors"
+          className="flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm text-text-muted hover:bg-white/10 hover:text-white transition-colors"
         >
           <LogOut size={16} />
           Sign out

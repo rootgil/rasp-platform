@@ -36,16 +36,16 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col z-40">
+    <aside className="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-border flex flex-col z-40">
       {/* Logo */}
-      <div className="flex h-16 items-center px-5 border-b border-[#e2e8f0]">
+      <div className="flex h-16 items-center px-5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#2563eb]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand">
             <Shield size={16} className="text-white" strokeWidth={2} />
           </div>
           <div>
-            <span className="text-sm font-bold text-[#0f172a]">RASP</span>
-            <span className="text-sm font-bold text-[#2563eb]"> Platform</span>
+            <span className="text-sm font-bold text-text-primary">RASP</span>
+            <span className="text-sm font-bold text-brand"> Platform</span>
           </div>
         </div>
       </div>
@@ -63,16 +63,16 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-[8px] px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[#eff6ff] text-[#2563eb]"
-                      : "text-[#475569] hover:bg-[#f8fafc] hover:text-[#0f172a]"
+                      ? "bg-brand-light text-brand"
+                      : "text-text-secondary hover:bg-background hover:text-text-primary"
                   )}
                 >
                   <Icon
                     size={18}
                     strokeWidth={2}
-                    className={isActive ? "text-[#2563eb]" : "text-[#94a3b8]"}
+                    className={isActive ? "text-brand" : "text-text-muted"}
                   />
                   {item.label}
                 </Link>
@@ -83,10 +83,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[#e2e8f0]">
-        <div className="rounded-[8px] bg-[#f8fafc] border border-[#e2e8f0] p-3">
-          <p className="text-xs text-[#94a3b8] font-medium">Environment</p>
-          <p className="text-xs font-semibold text-[#0f172a] mt-0.5">Production</p>
+      <div className="p-4 border-t border-border">
+        <div className="rounded-md bg-background border border-border p-3">
+          <p className="text-xs text-text-muted font-medium">Environment</p>
+          <p className="text-xs font-semibold text-text-primary mt-0.5">Production</p>
         </div>
       </div>
     </aside>

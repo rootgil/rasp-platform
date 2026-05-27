@@ -52,29 +52,29 @@ export default async function EventsPage({
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Severity</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Attack Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase hidden md:table-cell">Endpoint</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">When</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Attack Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Endpoint</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">When</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {events.map((ev) => (
-                <tr key={ev.id} className="hover:bg-[#f8fafc] transition-colors">
+                <tr key={ev.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3"><SeverityBadge severity={ev.severity} /></td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#0f172a]">{ev.type.replace(/_/g, " ")}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-primary">{ev.type.replace(/_/g, " ")}</td>
                   <td className="px-4 py-3 text-sm">{ev.project.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#475569] hidden md:table-cell">
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden md:table-cell">
                     {ev.method} {ev.path}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={ev.action} />
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">
-                    <Link href={`/dashboard/events/${ev.id}`} className="hover:text-[#2563eb]">
+                  <td className="px-4 py-3 text-xs text-text-muted">
+                    <Link href={`/dashboard/events/${ev.id}`} className="hover:text-brand">
                       {formatRelativeTime(ev.createdAt)}
                     </Link>
                   </td>
@@ -82,7 +82,7 @@ export default async function EventsPage({
               ))}
               {events.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-text-muted">
                     No security events found
                   </td>
                 </tr>

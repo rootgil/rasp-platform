@@ -33,15 +33,15 @@ export function DataTable<T>({
 
   return (
     <div className={cn("", className)}>
-      <div className="overflow-x-auto rounded-[12px] border border-[#e2e8f0]">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
+            <tr className="bg-background border-b border-border">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   className={cn(
-                    "px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase tracking-wide",
+                    "px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wide",
                     col.className
                   )}
                 >
@@ -50,7 +50,7 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-[#e2e8f0]">
+          <tbody className="bg-white divide-y divide-border">
             {slice.length === 0 && emptyState ? (
               <tr>
                 <td colSpan={columns.length} className="p-0">
@@ -61,13 +61,13 @@ export function DataTable<T>({
               slice.map((row, i) => (
                 <tr
                   key={i}
-                  className="hover:bg-[#f8fafc] transition-colors"
+                  className="hover:bg-background transition-colors"
                 >
                   {columns.map((col) => (
                     <td
                       key={col.key}
                       className={cn(
-                        "px-4 py-3 text-[#0f172a]",
+                        "px-4 py-3 text-text-primary",
                         col.className
                       )}
                     >
@@ -83,7 +83,7 @@ export function DataTable<T>({
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4 px-1">
-          <p className="text-sm text-[#475569]">
+          <p className="text-sm text-text-secondary">
             {page * pageSize + 1}–{Math.min((page + 1) * pageSize, data.length)} of {data.length}
           </p>
           <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function DataTable<T>({
             >
               <ChevronLeft size={16} />
             </Button>
-            <span className="text-sm text-[#475569]">
+            <span className="text-sm text-text-secondary">
               {page + 1} / {totalPages}
             </span>
             <Button

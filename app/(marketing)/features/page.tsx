@@ -96,8 +96,8 @@ export default function FeaturesPage() {
     <div className="py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-[#0f172a]">Platform Features</h1>
-          <p className="mt-4 text-lg text-[#475569] max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-text-primary">Platform Features</h1>
+          <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
             Every capability designed for security teams operating in regulated environments.
           </p>
         </div>
@@ -113,23 +113,23 @@ export default function FeaturesPage() {
               >
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eff6ff]">
-                      <Icon size={20} className="text-[#2563eb]" strokeWidth={2} />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand-light">
+                      <Icon size={20} className="text-brand" strokeWidth={2} />
                     </div>
-                    <span className="text-xs font-medium text-[#94a3b8] uppercase tracking-wide">Feature</span>
+                    <span className="text-xs font-medium text-text-muted uppercase tracking-wide">Feature</span>
                   </div>
-                  <h2 className="text-2xl font-bold text-[#0f172a] mb-2">{section.title}</h2>
-                  <p className="text-base font-medium text-[#2563eb] mb-4">{section.subtitle}</p>
-                  <p className="text-[#475569] leading-relaxed">{section.description}</p>
+                  <h2 className="text-2xl font-bold text-text-primary mb-2">{section.title}</h2>
+                  <p className="text-base font-medium text-brand mb-4">{section.subtitle}</p>
+                  <p className="text-text-secondary leading-relaxed">{section.description}</p>
                 </div>
 
                 <Card>
                   <CardContent className="p-6">
                     <ul className="space-y-3">
                       {section.features.map((f) => (
-                        <li key={f} className="flex items-start gap-3 text-sm text-[#475569]">
-                          <span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-[#f0fdf4] border border-[#bbf7d0] flex items-center justify-center">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+                        <li key={f} className="flex items-start gap-3 text-sm text-text-secondary">
+                          <span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-success-bg border border-[#bbf7d0] flex items-center justify-center">
+                            <span className="h-1.5 w-1.5 rounded-full bg-success" />
                           </span>
                           {f}
                         </li>

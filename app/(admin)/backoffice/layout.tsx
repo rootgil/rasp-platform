@@ -8,7 +8,7 @@ export default async function BackofficeLayout({ children }: { children: React.R
   if ((session.user as { role?: string }).role !== "admin") redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="min-h-screen bg-background">
       <AdminSidebar />
       <main className="ml-[260px]">
         <div className="p-6 lg:p-8">

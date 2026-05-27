@@ -18,32 +18,32 @@ export default async function BackofficeCustomersPage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Role</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Organization</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Joined</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Organization</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Joined</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-[#f8fafc]">
-                  <td className="px-4 py-3 font-medium text-[#0f172a]">{user.name ?? "-"}</td>
-                  <td className="px-4 py-3 text-[#475569]">{user.email}</td>
+                <tr key={user.id} className="hover:bg-background">
+                  <td className="px-4 py-3 font-medium text-text-primary">{user.name ?? "-"}</td>
+                  <td className="px-4 py-3 text-text-secondary">{user.email}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       user.role === "admin"
-                        ? "text-[#1e40af] bg-[#eff6ff] border-[#bfdbfe]"
-                        : "text-[#475569] bg-[#f8fafc] border-[#e2e8f0]"
+                        ? "text-low-text bg-brand-light border-[#bfdbfe]"
+                        : "text-text-secondary bg-background border-border"
                     }`}>
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#475569]">
+                  <td className="px-4 py-3 text-xs text-text-secondary">
                     {user.memberships.map((m) => m.organization.name).join(", ") || "-"}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatDate(user.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted">{formatDate(user.createdAt)}</td>
                 </tr>
               ))}
             </tbody>

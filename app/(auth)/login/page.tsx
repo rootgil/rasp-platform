@@ -42,16 +42,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
           <img src="/logo.png" alt="Queno" className="h-16 w-auto" />
         </Link>
 
-        <div className="bg-white border border-[#e2e8f0] rounded-[12px] p-8 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <h1 className="text-xl font-semibold text-[#0f172a] mb-1">Sign in</h1>
-          <p className="text-sm text-[#475569] mb-6">
+        <div className="bg-white border border-border rounded-lg p-8 shadow-card">
+          <h1 className="text-xl font-semibold text-text-primary mb-1">Sign in</h1>
+          <p className="text-sm text-text-secondary mb-6">
             Access your security dashboard
           </p>
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#475569]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -93,7 +93,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-[8px] px-3 py-2">
+              <p className="text-sm text-critical bg-critical-bg border border-[#fecaca] rounded-md px-3 py-2">
                 {error}
               </p>
             )}
@@ -103,18 +103,18 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-[#e2e8f0]">
-            <p className="text-xs text-center text-[#94a3b8]">
+          <div className="mt-6 pt-5 border-t border-border">
+            <p className="text-xs text-center text-text-muted">
               Demo credentials:{" "}
-              <span className="font-mono text-[#475569]">demo@acme.io</span> /{" "}
-              <span className="font-mono text-[#475569]">demo1234</span>
+              <span className="font-mono text-text-secondary">demo@acme.io</span> /{" "}
+              <span className="font-mono text-text-secondary">demo1234</span>
             </p>
           </div>
         </div>
 
-        <p className="mt-4 text-center text-sm text-[#94a3b8]">
+        <p className="mt-4 text-center text-sm text-text-muted">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-[#2563eb] hover:underline font-medium">
+          <Link href="/signup" className="text-brand hover:underline font-medium">
             Request access
           </Link>
         </p>

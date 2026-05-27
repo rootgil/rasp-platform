@@ -33,15 +33,15 @@ export default async function SettingsPage() {
         <Card>
           <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <dl className="divide-y divide-[#e2e8f0]">
+            <dl className="divide-y divide-border">
               {[
                 { label: "Name", value: membership.organization.name },
                 { label: "Plan", value: membership.organization.plan.toUpperCase() },
                 { label: "Created", value: membership.organization.createdAt.toLocaleDateString("en-CA") },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <dt className="text-sm text-[#475569]">{label}</dt>
-                  <dd className="text-sm font-medium text-[#0f172a]">{value}</dd>
+                  <dt className="text-sm text-text-secondary">{label}</dt>
+                  <dd className="text-sm font-medium text-text-primary">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -51,7 +51,7 @@ export default async function SettingsPage() {
         <Card>
           <CardHeader><CardTitle>Your Profile</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <dl className="divide-y divide-[#e2e8f0]">
+            <dl className="divide-y divide-border">
               {[
                 { label: "Name", value: user?.name ?? "-" },
                 { label: "Email", value: user?.email ?? "-" },
@@ -59,8 +59,8 @@ export default async function SettingsPage() {
                 { label: "Member since", value: user?.createdAt.toLocaleDateString("en-CA") ?? "-" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <dt className="text-sm text-[#475569]">{label}</dt>
-                  <dd className="text-sm font-medium text-[#0f172a]">{value}</dd>
+                  <dt className="text-sm text-text-secondary">{label}</dt>
+                  <dd className="text-sm font-medium text-text-primary">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -72,18 +72,18 @@ export default async function SettingsPage() {
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-[#475569] uppercase">Name</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-[#475569] uppercase">Email</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-[#475569] uppercase">Role</th>
+                <tr className="bg-background border-b border-border">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0]">
+              <tbody className="divide-y divide-border">
                 {members.map((m) => (
-                  <tr key={m.id} className="hover:bg-[#f8fafc]">
-                    <td className="px-5 py-3 font-medium text-[#0f172a]">{m.user.name ?? "-"}</td>
-                    <td className="px-5 py-3 text-[#475569]">{m.user.email}</td>
-                    <td className="px-5 py-3 capitalize text-xs font-medium text-[#475569]">{m.role}</td>
+                  <tr key={m.id} className="hover:bg-background">
+                    <td className="px-5 py-3 font-medium text-text-primary">{m.user.name ?? "-"}</td>
+                    <td className="px-5 py-3 text-text-secondary">{m.user.email}</td>
+                    <td className="px-5 py-3 capitalize text-xs font-medium text-text-secondary">{m.role}</td>
                   </tr>
                 ))}
               </tbody>

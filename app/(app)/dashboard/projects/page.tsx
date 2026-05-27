@@ -44,11 +44,11 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="h-12 w-12 rounded-full bg-[#f1f5f9] flex items-center justify-center mb-4">
-              <Boxes size={24} className="text-[#94a3b8]" />
+            <div className="h-12 w-12 rounded-full bg-border-light flex items-center justify-center mb-4">
+              <Boxes size={24} className="text-text-muted" />
             </div>
-            <p className="text-sm font-semibold text-[#0f172a]">No applications yet</p>
-            <p className="mt-1 text-sm text-[#94a3b8]">Add an application to start protecting it</p>
+            <p className="text-sm font-semibold text-text-primary">No applications yet</p>
+            <p className="mt-1 text-sm text-text-muted">Add an application to start protecting it</p>
             <CreateProjectDialog>
               <Button className="mt-4">
                 <Plus size={16} />
@@ -61,36 +61,36 @@ export default async function ProjectsPage() {
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {projects.map((project) => (
             <Link key={project.id} href={`/dashboard/projects/${project.id}`}>
-              <Card className="hover:border-[#2563eb] transition-colors cursor-pointer h-full">
+              <Card className="hover:border-brand transition-colors cursor-pointer h-full">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#eff6ff]">
-                      <Boxes size={18} className="text-[#2563eb]" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-light">
+                      <Boxes size={18} className="text-brand" />
                     </div>
                     <StatusBadge status={project.environment} />
                   </div>
-                  <h3 className="font-semibold text-[#0f172a] font-mono">{project.name}</h3>
-                  <p className="text-xs text-[#94a3b8] mt-0.5">
+                  <h3 className="font-semibold text-text-primary font-mono">{project.name}</h3>
+                  <p className="text-xs text-text-muted mt-0.5">
                     {project.language} {project.framework ? `· ${project.framework}` : ""}
                   </p>
 
-                  <div className="mt-4 flex items-center gap-4 text-xs text-[#475569]">
+                  <div className="mt-4 flex items-center gap-4 text-xs text-text-secondary">
                     <span className="flex items-center gap-1">
-                      <Server size={12} className="text-[#94a3b8]" />
+                      <Server size={12} className="text-text-muted" />
                       {project._count.agents} agents
                     </span>
                     <span className="flex items-center gap-1">
-                      <ShieldAlert size={12} className="text-[#94a3b8]" />
+                      <ShieldAlert size={12} className="text-text-muted" />
                       {project._count.securityEvents} events
                     </span>
                     {project._count.alerts > 0 && (
-                      <span className="flex items-center gap-1 text-[#dc2626]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#dc2626]" />
+                      <span className="flex items-center gap-1 text-critical">
+                        <span className="h-1.5 w-1.5 rounded-full bg-critical" />
                         {project._count.alerts} alerts
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-xs text-[#94a3b8]">
+                  <p className="mt-3 text-xs text-text-muted">
                     Created {formatRelativeTime(project.createdAt)}
                   </p>
                 </CardContent>

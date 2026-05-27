@@ -142,7 +142,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden py-20 md:py-28 lg:py-32">
         {/* Background gradient */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#eff6ff] via-[#f8fafc] to-white" />
+          <div className="absolute inset-0 bg-linear-to-br from-brand-light via-background to-white" />
           {/* Glow orbs */}
           <div
             className="absolute -top-40 -right-40 h-[640px] w-[640px] rounded-full opacity-40"
@@ -168,23 +168,23 @@ export default function LandingPage() {
                 className="anim-fade-up inline-flex items-center gap-2 rounded-full border border-[#bfdbfe] bg-white/80 backdrop-blur px-3 py-1 mb-8"
                 style={{ animationDelay: "0s" }}
               >
-                <span className="anim-status-pulse h-1.5 w-1.5 rounded-full bg-[#2563eb]" />
-                <span className="text-xs font-medium text-[#1e40af]">
+                <span className="anim-status-pulse h-1.5 w-1.5 rounded-full bg-brand" />
+                <span className="text-xs font-medium text-low-text">
                   Built for regulated Canadian workloads
                 </span>
               </div>
 
               <h1
-                className="anim-fade-up text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-[#0f172a] leading-[1.08] tracking-tight"
+                className="anim-fade-up text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-text-primary leading-[1.08] tracking-tight"
                 style={{ animationDelay: "0.1s" }}
               >
                 AI-Native RASP for
                 <br />
-                <span className="text-[#2563eb]">APIs in Production</span>
+                <span className="text-brand">APIs in Production</span>
               </h1>
 
               <p
-                className="anim-fade-up mt-6 text-lg text-[#475569] leading-relaxed max-w-xl mx-auto lg:mx-0"
+                className="anim-fade-up mt-6 text-lg text-text-secondary leading-relaxed max-w-xl mx-auto lg:mx-0"
                 style={{ animationDelay: "0.2s" }}
               >
                 Runtime Application Self-Protection that detects and blocks
@@ -209,10 +209,10 @@ export default function LandingPage() {
 
               {/* Stack strip */}
               <div
-                className="anim-fade-up mt-10 pt-8 border-t border-[#e2e8f0]"
+                className="anim-fade-up mt-10 pt-8 border-t border-border"
                 style={{ animationDelay: "0.4s" }}
               >
-                <p className="text-[10px] font-medium text-[#94a3b8] uppercase tracking-widest mb-3">
+                <p className="text-[10px] font-medium text-text-muted uppercase tracking-widest mb-3">
                   Works with your stack
                 </p>
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5">
@@ -222,7 +222,7 @@ export default function LandingPage() {
                         className="h-2 w-2 rounded-full"
                         style={{ backgroundColor: lang.color }}
                       />
-                      <span className="text-sm font-medium text-[#475569]">
+                      <span className="text-sm font-medium text-text-secondary">
                         {lang.name}
                       </span>
                     </div>
@@ -243,15 +243,15 @@ export default function LandingPage() {
       </section>
 
       {/* ── 2. Stats bar ───────────────────────────────────── */}
-      <section className="border-y border-[#e2e8f0] bg-white py-6 sm:py-8">
+      <section className="border-y border-border bg-white py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#e2e8f0] text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border text-center">
             {stats.map(({ value, label }) => (
               <div key={label} className="px-6 py-4 sm:py-2">
-                <div className="text-2xl md:text-3xl font-bold text-[#0f172a]">
+                <div className="text-2xl md:text-3xl font-bold text-text-primary">
                   {value}
                 </div>
-                <div className="mt-1 text-sm text-[#475569]">{label}</div>
+                <div className="mt-1 text-sm text-text-secondary">{label}</div>
               </div>
             ))}
           </div>
@@ -262,10 +262,10 @@ export default function LandingPage() {
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#0f172a]">
+            <h2 className="text-3xl md:text-4xl font-bold text-text-primary">
               Security that runs with your code
             </h2>
-            <p className="mt-4 text-lg text-[#475569] max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
               Unlike perimeter tools, Queno operates inside your application
               process - with full context of every call.
             </p>
@@ -277,18 +277,18 @@ export default function LandingPage() {
               return (
                 <div
                   key={feature.title}
-                  className="group rounded-[12px] border border-[#e2e8f0] bg-white p-6 transition-all duration-200 hover:border-[#2563eb]/40 hover:shadow-[0_4px_20px_rgba(37,99,235,0.08)] hover:-translate-y-0.5"
+                  className="group rounded-lg border border-border bg-white p-6 transition-all duration-200 hover:border-brand/40 hover:shadow-[0_4px_20px_rgba(37,99,235,0.08)] hover:-translate-y-0.5"
                   style={{
                     animationDelay: `${i * 0.08}s`,
                   }}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eff6ff] mb-4 group-hover:bg-[#dbeafe] transition-colors">
-                    <Icon size={20} className="text-[#2563eb]" strokeWidth={2} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand-light mb-4 group-hover:bg-[#dbeafe] transition-colors">
+                    <Icon size={20} className="text-brand" strokeWidth={2} />
                   </div>
-                  <h3 className="text-base font-semibold text-[#0f172a] mb-2">
+                  <h3 className="text-base font-semibold text-text-primary mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-[#475569] leading-relaxed">
+                  <p className="text-sm text-text-secondary leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -299,37 +299,37 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. How it works ────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#f8fafc] border-y border-[#e2e8f0]">
+      <section className="py-16 md:py-24 bg-background border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#0f172a]">
+            <h2 className="text-3xl md:text-4xl font-bold text-text-primary">
               Deploy in minutes
             </h2>
-            <p className="mt-4 text-lg text-[#475569] max-w-xl mx-auto">
+            <p className="mt-4 text-lg text-text-secondary max-w-xl mx-auto">
               One require. No code changes. Full protection immediately.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-0 relative">
             {/* Connector lines (desktop) */}
-            <div className="hidden md:block absolute top-[2.375rem] left-[calc(33.33%+8px)] right-[calc(33.33%+8px)] h-px bg-gradient-to-r from-[#cbd5e1] via-[#93c5fd] to-[#cbd5e1]" />
+            <div className="hidden md:block absolute top-[2.375rem] left-[calc(33.33%+8px)] right-[calc(33.33%+8px)] h-px bg-linear-to-r from-[#cbd5e1] via-[#93c5fd] to-[#cbd5e1]" />
 
             {steps.map((step, i) => (
               <div
                 key={step.num}
                 className="relative flex flex-col items-center text-center px-6 py-6"
               >
-                <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white text-sm font-bold mb-5 shadow-[0_0_0_6px_rgba(37,99,235,0.12)]">
+                <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white text-sm font-bold mb-5 shadow-[0_0_0_6px_rgba(37,99,235,0.12)]">
                   {step.num}
                 </div>
-                <h3 className="font-semibold text-[#0f172a] mb-2 text-base">
+                <h3 className="font-semibold text-text-primary mb-2 text-base">
                   {step.title}
                 </h3>
-                <p className="text-sm text-[#475569] leading-relaxed mb-4">
+                <p className="text-sm text-text-secondary leading-relaxed mb-4">
                   {step.desc}
                 </p>
                 {step.code && (
-                  <code className="text-xs bg-[#0f172a] text-[#93c5fd] rounded-[6px] px-3 py-1.5 font-mono">
+                  <code className="text-xs bg-text-primary text-[#93c5fd] rounded-sm px-3 py-1.5 font-mono">
                     {step.code}
                   </code>
                 )}
@@ -340,14 +340,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── 5. Agent snippet ───────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#0f172a]">
+      <section className="py-16 md:py-24 bg-text-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-white mb-4">
                 Zero config. Full coverage.
               </h2>
-              <p className="text-[#94a3b8] mb-6 leading-relaxed">
+              <p className="text-text-muted mb-6 leading-relaxed">
                 One require. The Queno agent instruments your application at
                 runtime and begins protecting it immediately.
               </p>
@@ -360,11 +360,11 @@ export default function LandingPage() {
                 ].map((item) => (
                   <li
                     key={item}
-                    className="flex items-center gap-2 text-sm text-[#94a3b8]"
+                    className="flex items-center gap-2 text-sm text-text-muted"
                   >
                     <CheckCircle2
                       size={16}
-                      className="text-[#16a34a] shrink-0"
+                      className="text-success shrink-0"
                     />
                     {item}
                   </li>
@@ -376,14 +376,14 @@ export default function LandingPage() {
             </div>
 
             {/* Code block */}
-            <div className="rounded-[12px] bg-[#1e293b] border border-white/10 overflow-hidden">
+            <div className="rounded-lg bg-[#1e293b] border border-white/10 overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/10">
-                <div className="h-3 w-3 rounded-full bg-[#dc2626]/70" />
-                <div className="h-3 w-3 rounded-full bg-[#d97706]/70" />
-                <div className="h-3 w-3 rounded-full bg-[#16a34a]/70" />
-                <span className="ml-2 text-xs text-[#475569]">server.js</span>
+                <div className="h-3 w-3 rounded-full bg-critical/70" />
+                <div className="h-3 w-3 rounded-full bg-medium/70" />
+                <div className="h-3 w-3 rounded-full bg-success/70" />
+                <span className="ml-2 text-xs text-text-secondary">server.js</span>
               </div>
-              <pre className="p-6 text-sm font-mono text-[#e2e8f0] overflow-auto leading-relaxed">
+              <pre className="p-6 text-sm font-mono text-border overflow-auto leading-relaxed">
 {`// npm install @queno/agent-node
 
 require('@queno/agent-node').init({
@@ -413,10 +413,10 @@ const app = express();
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#0f172a]">
+            <h2 className="text-3xl md:text-4xl font-bold text-text-primary">
               Trusted by security teams
             </h2>
-            <p className="mt-4 text-lg text-[#475569]">
+            <p className="mt-4 text-lg text-text-secondary">
               Protecting production APIs across regulated Canadian industries.
             </p>
           </div>
@@ -425,7 +425,7 @@ const app = express();
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="rounded-[12px] border border-[#e2e8f0] bg-white p-6 flex flex-col gap-5 transition-all duration-200 hover:border-[#2563eb]/30 hover:shadow-[0_4px_20px_rgba(37,99,235,0.07)]"
+                className="rounded-lg border border-border bg-white p-6 flex flex-col gap-5 transition-all duration-200 hover:border-brand/30 hover:shadow-[0_4px_20px_rgba(37,99,235,0.07)]"
               >
                 {/* Quote mark */}
                 <svg
@@ -441,17 +441,17 @@ const app = express();
                   />
                 </svg>
 
-                <p className="text-[#475569] text-sm leading-relaxed flex-1">
+                <p className="text-text-secondary text-sm leading-relaxed flex-1">
                   {t.quote}
                 </p>
 
-                <div className="flex items-center gap-3 pt-4 border-t border-[#f1f5f9]">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eff6ff] text-[#2563eb] text-sm font-bold shrink-0">
+                <div className="flex items-center gap-3 pt-4 border-t border-border-light">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-brand text-sm font-bold shrink-0">
                     {t.name[0]}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#0f172a]">{t.name}</p>
-                    <p className="text-xs text-[#94a3b8]">
+                    <p className="text-sm font-semibold text-text-primary">{t.name}</p>
+                    <p className="text-xs text-text-muted">
                       {t.role}, {t.company}
                     </p>
                   </div>
@@ -463,26 +463,26 @@ const app = express();
       </section>
 
       {/* ── 7. Compliance ──────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#f8fafc] border-t border-[#e2e8f0]">
+      <section className="py-16 md:py-24 bg-background border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#0f172a]">
+            <h2 className="text-3xl font-bold text-text-primary">
               Built for Canadian compliance
             </h2>
-            <p className="mt-3 text-[#475569] max-w-xl mx-auto">
+            <p className="mt-3 text-text-secondary max-w-xl mx-auto">
               Designed from the ground up for PIPEDA, Law 25, and PHIPA
               requirements.
             </p>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
             {compliance.map(({ Icon, title, desc }) => (
-              <Card key={title} className="hover:border-[#2563eb]/40 transition-colors">
+              <Card key={title} className="hover:border-brand/40 transition-colors">
                 <CardContent className="p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eff6ff] mb-4">
-                    <Icon size={18} className="text-[#2563eb]" strokeWidth={2} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand-light mb-4">
+                    <Icon size={18} className="text-brand" strokeWidth={2} />
                   </div>
-                  <h3 className="font-semibold text-[#0f172a] mb-2">{title}</h3>
-                  <p className="text-sm text-[#475569] leading-relaxed">{desc}</p>
+                  <h3 className="font-semibold text-text-primary mb-2">{title}</h3>
+                  <p className="text-sm text-text-secondary leading-relaxed">{desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -491,7 +491,7 @@ const app = express();
       </section>
 
       {/* ── 8. CTA ─────────────────────────────────────────── */}
-      <section className="py-16 md:py-20 bg-[#2563eb]">
+      <section className="py-16 md:py-20 bg-brand">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to protect your APIs?
@@ -503,7 +503,7 @@ const app = express();
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
-              className="bg-white text-[#2563eb] hover:bg-[#f8fafc] shadow-md"
+              className="bg-white text-brand hover:bg-background shadow-md"
               asChild
             >
               <Link href="/contact">Book a demo</Link>

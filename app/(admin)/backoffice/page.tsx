@@ -43,18 +43,18 @@ export default async function BackofficePage() {
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Plan</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Members</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Projects</th>
+                <tr className="bg-background border-b border-border">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Plan</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Members</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Projects</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0]">
+              <tbody className="divide-y divide-border">
                 {recentOrgs.map((org) => (
-                  <tr key={org.id} className="hover:bg-[#f8fafc]">
-                    <td className="px-4 py-3 font-medium text-[#0f172a]">{org.name}</td>
-                    <td className="px-4 py-3 text-xs uppercase font-medium text-[#475569]">{org.plan}</td>
+                  <tr key={org.id} className="hover:bg-background">
+                    <td className="px-4 py-3 font-medium text-text-primary">{org.name}</td>
+                    <td className="px-4 py-3 text-xs uppercase font-medium text-text-secondary">{org.plan}</td>
                     <td className="px-4 py-3 text-xs">{org._count.members}</td>
                     <td className="px-4 py-3 text-xs">{org._count.projects}</td>
                   </tr>
@@ -69,17 +69,17 @@ export default async function BackofficePage() {
           <CardContent className="space-y-3">
             {versionDist.map((v, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="font-mono text-xs text-[#475569] w-16">{v.version}</span>
-                <div className="flex-1 h-2 rounded-full bg-[#f1f5f9] overflow-hidden">
+                <span className="font-mono text-xs text-text-secondary w-16">{v.version}</span>
+                <div className="flex-1 h-2 rounded-full bg-border-light overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[#2563eb]"
+                    className="h-full rounded-full bg-brand"
                     style={{ width: `${Math.round((v._count / totalAgents) * 100)}%` }}
                   />
                 </div>
-                <span className="text-xs text-[#475569] w-8 text-right">{v._count}</span>
+                <span className="text-xs text-text-secondary w-8 text-right">{v._count}</span>
               </div>
             ))}
-            {versionDist.length === 0 && <p className="text-sm text-[#94a3b8]">No agents registered</p>}
+            {versionDist.length === 0 && <p className="text-sm text-text-muted">No agents registered</p>}
           </CardContent>
         </Card>
       </div>

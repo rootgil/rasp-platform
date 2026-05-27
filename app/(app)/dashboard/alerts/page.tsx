@@ -44,10 +44,10 @@ export default async function AlertsPage({
           <a
             key={s}
             href={s ? `?status=${s}` : "?"}
-            className={`px-3 py-1.5 rounded-[8px] text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               (status ?? "") === s
-                ? "bg-[#2563eb] text-white"
-                : "bg-white border border-[#e2e8f0] text-[#475569] hover:bg-[#f8fafc]"
+                ? "bg-brand text-white"
+                : "bg-white border border-border text-text-secondary hover:bg-background"
             }`}
           >
             {s ? s.charAt(0).toUpperCase() + s.slice(1) : "All"}
@@ -59,33 +59,33 @@ export default async function AlertsPage({
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Severity</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Attack Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase hidden md:table-cell">Endpoint</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">When</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Actions</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Attack Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Endpoint</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">When</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {alerts.map((alert) => (
-                <tr key={alert.id} className="hover:bg-[#f8fafc] transition-colors">
+                <tr key={alert.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3"><SeverityBadge severity={alert.severity} /></td>
                   <td className="px-4 py-3 font-mono text-xs">{alert.securityEvent.type.replace(/_/g, " ")}</td>
                   <td className="px-4 py-3 text-sm">{alert.project.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#475569] hidden md:table-cell">
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden md:table-cell">
                     {alert.securityEvent.method} {alert.securityEvent.path}
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={alert.status} /></td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatRelativeTime(alert.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted">{formatRelativeTime(alert.createdAt)}</td>
                   <td className="px-4 py-3"><AlertActions alertId={alert.id} currentStatus={alert.status} /></td>
                 </tr>
               ))}
               {alerts.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-text-muted">
                     No alerts found
                   </td>
                 </tr>

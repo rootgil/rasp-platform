@@ -19,30 +19,30 @@ export default async function BackofficeOrgsPage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Organization</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Plan</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Members</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Projects</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Agents</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Created</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Organization</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Plan</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Members</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Projects</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agents</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Created</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {orgs.map(async (org) => {
                 const agentCount = await prisma.agent.count({ where: { project: { organizationId: org.id } } });
                 return (
-                  <tr key={org.id} className="hover:bg-[#f8fafc]">
+                  <tr key={org.id} className="hover:bg-background">
                     <td className="px-4 py-3">
-                      <Link href={`/backoffice/organizations/${org.id}`} className="font-medium text-[#2563eb] hover:underline">
+                      <Link href={`/backoffice/organizations/${org.id}`} className="font-medium text-brand hover:underline">
                         {org.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-xs font-medium uppercase text-[#475569]">{org.plan}</td>
+                    <td className="px-4 py-3 text-xs font-medium uppercase text-text-secondary">{org.plan}</td>
                     <td className="px-4 py-3 text-xs">{org._count.members}</td>
                     <td className="px-4 py-3 text-xs">{org._count.projects}</td>
                     <td className="px-4 py-3 text-xs">{agentCount}</td>
-                    <td className="px-4 py-3 text-xs text-[#94a3b8]">{formatDate(org.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-text-muted">{formatDate(org.createdAt)}</td>
                   </tr>
                 );
               })}

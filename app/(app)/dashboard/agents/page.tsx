@@ -31,39 +31,39 @@ export default async function AgentsPage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Agent ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Language</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Version</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Mode</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Channel</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Last Heartbeat</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Language</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Mode</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Channel</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {agents.map((a) => (
-                <tr key={a.id} className="hover:bg-[#f8fafc] transition-colors">
+                <tr key={a.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/dashboard/agents/${a.id}`} className="font-mono text-xs text-[#2563eb] hover:underline">
+                    <Link href={`/dashboard/agents/${a.id}`} className="font-mono text-xs text-brand hover:underline">
                       {a.id.slice(0, 14)}…
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-[#0f172a]">{a.project.name}</td>
-                  <td className="px-4 py-3 text-xs text-[#475569] capitalize">{a.language}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-text-primary">{a.project.name}</td>
+                  <td className="px-4 py-3 text-xs text-text-secondary capitalize">{a.language}</td>
                   <td className="px-4 py-3 font-mono text-xs">{a.version}</td>
                   <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                   <td className="px-4 py-3"><StatusBadge status={a.mode} /></td>
-                  <td className="px-4 py-3 text-xs text-[#475569] capitalize">{a.channel}</td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">
+                  <td className="px-4 py-3 text-xs text-text-secondary capitalize">{a.channel}</td>
+                  <td className="px-4 py-3 text-xs text-text-muted">
                     {a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}
                   </td>
                 </tr>
               ))}
               {agents.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-text-muted">
                     No agents connected. Install the RASP agent in your application.
                   </td>
                 </tr>

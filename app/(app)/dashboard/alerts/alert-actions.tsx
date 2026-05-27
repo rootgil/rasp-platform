@@ -51,7 +51,7 @@ export function AlertActions({
         {currentStatus !== "resolved" && (
           <DropdownMenuItem
             onClick={() => updateStatus("resolved")}
-            className="text-[#16a34a] focus:text-[#16a34a]"
+            className="text-success focus:text-success"
           >
             Mark as resolved
           </DropdownMenuItem>

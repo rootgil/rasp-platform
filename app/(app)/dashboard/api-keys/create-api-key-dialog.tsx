@@ -87,18 +87,18 @@ export function CreateApiKeyDialog({
           </form>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="rounded-[8px] bg-[#fef2f2] border border-[#fecaca] p-3 text-sm text-[#991b1b]">
+            <div className="rounded-md bg-critical-bg border border-[#fecaca] p-3 text-sm text-critical-text">
               Copy this key now. It will not be shown again.
             </div>
             <div className="relative">
-              <div className="rounded-[8px] bg-[#0f172a] p-3 pr-10 font-mono text-xs text-[#e2e8f0] break-all">
+              <div className="rounded-md bg-text-primary p-3 pr-10 font-mono text-xs text-border break-all">
                 {rawKey}
               </div>
               <button
                 onClick={handleCopy}
-                className="absolute right-2 top-2 rounded-[6px] p-1.5 text-[#94a3b8] hover:text-white transition-colors"
+                className="absolute right-2 top-2 rounded-sm p-1.5 text-text-muted hover:text-white transition-colors"
               >
-                {copied ? <Check size={16} className="text-[#16a34a]" /> : <Copy size={16} />}
+                {copied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
               </button>
             </div>
             <DialogFooter>

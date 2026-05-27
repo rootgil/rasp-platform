@@ -44,8 +44,8 @@ export default async function SystemHealthPage() {
           <Card key={check.name}>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="font-medium text-[#0f172a]">{check.name}</p>
-                <p className="text-xs text-[#94a3b8] mt-0.5">{check.detail}</p>
+                <p className="font-medium text-text-primary">{check.name}</p>
+                <p className="text-xs text-text-muted mt-0.5">{check.detail}</p>
               </div>
               <StatusBadge status={check.status} />
             </CardContent>
@@ -57,7 +57,7 @@ export default async function SystemHealthPage() {
         <Card>
           <CardHeader><CardTitle>Collector Details</CardTitle></CardHeader>
           <CardContent>
-            <pre className="text-xs font-mono text-[#475569] bg-[#f8fafc] p-3 rounded-[8px]">
+            <pre className="text-xs font-mono text-text-secondary bg-background p-3 rounded-md">
               {JSON.stringify(collectorHealth.data, null, 2)}
             </pre>
           </CardContent>

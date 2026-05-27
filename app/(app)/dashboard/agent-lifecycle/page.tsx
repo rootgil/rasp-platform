@@ -52,14 +52,14 @@ export default async function AgentLifecyclePage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-[#0f172a] font-mono">
+                <p className="text-2xl font-bold text-text-primary font-mono">
                   {latest?.version ?? "-"}
                 </p>
-                <p className="text-xs text-[#94a3b8] mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   {CHANNEL_DESCRIPTIONS[channel]}
                 </p>
                 {latest?.releasedAt && (
-                  <p className="text-xs text-[#94a3b8] mt-2">
+                  <p className="text-xs text-text-muted mt-2">
                     Released {formatDate(latest.releasedAt)}
                   </p>
                 )}
@@ -77,25 +77,25 @@ export default async function AgentLifecyclePage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Agent ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Version</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Channel</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Last Heartbeat</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Kill Switch</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Version</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Channel</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Last Heartbeat</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Kill Switch</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {agents.map((agent) => (
-                <tr key={agent.id} className="hover:bg-[#f8fafc]">
-                  <td className="px-4 py-3 font-mono text-xs text-[#475569]">{agent.id.slice(0, 12)}…</td>
+                <tr key={agent.id} className="hover:bg-background">
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{agent.id.slice(0, 12)}…</td>
                   <td className="px-4 py-3 text-sm font-medium">{agent.project.name}</td>
                   <td className="px-4 py-3 font-mono text-xs">{agent.version}</td>
                   <td className="px-4 py-3 text-xs capitalize">{agent.channel}</td>
                   <td className="px-4 py-3"><StatusBadge status={agent.status} /></td>
-                  <td className="px-4 py-3 text-xs text-[#94a3b8]">
+                  <td className="px-4 py-3 text-xs text-text-muted">
                     {agent.lastHeartbeatAt ? formatDate(agent.lastHeartbeatAt) : "Never"}
                   </td>
                   <td className="px-4 py-3">
@@ -112,7 +112,7 @@ export default async function AgentLifecyclePage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Activity size={18} className="text-[#2563eb]" />
+            <Activity size={18} className="text-brand" />
             <CardTitle>Canary Deployment Process</CardTitle>
           </div>
         </CardHeader>
@@ -126,16 +126,16 @@ export default async function AgentLifecyclePage() {
               { stage: "Stage 4", desc: "100% Stable", duration: "24h rolling" },
             ].map((s, i) => (
               <div key={i} className="flex items-center gap-2 shrink-0">
-                <div className="rounded-[8px] border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-center">
-                  <p className="text-xs font-bold text-[#0f172a]">{s.stage}</p>
-                  <p className="text-xs text-[#475569]">{s.desc}</p>
-                  <p className="text-xs text-[#94a3b8]">{s.duration}</p>
+                <div className="rounded-md border border-border bg-background px-3 py-2 text-center">
+                  <p className="text-xs font-bold text-text-primary">{s.stage}</p>
+                  <p className="text-xs text-text-secondary">{s.desc}</p>
+                  <p className="text-xs text-text-muted">{s.duration}</p>
                 </div>
-                {i < 4 && <div className="text-[#94a3b8]">→</div>}
+                {i < 4 && <div className="text-text-muted">→</div>}
               </div>
             ))}
           </div>
-          <p className="text-xs text-[#94a3b8] mt-3">
+          <p className="text-xs text-text-muted mt-3">
             Automatic halt if error rate &gt;0.01% or P99 latency increases &gt;2% at any stage.
           </p>
         </CardContent>

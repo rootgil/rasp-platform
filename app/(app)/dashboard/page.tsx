@@ -155,7 +155,7 @@ export default async function DashboardPage() {
             <CardTitle>Recent Events</CardTitle>
             <Link
               href="/dashboard/events"
-              className="text-xs text-[#2563eb] hover:underline font-medium"
+              className="text-xs text-brand hover:underline font-medium"
             >
               View all →
             </Link>
@@ -163,30 +163,30 @@ export default async function DashboardPage() {
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#e2e8f0]">
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-[#475569] uppercase">Severity</th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-[#475569] uppercase">Type</th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-[#475569] uppercase hidden md:table-cell">Application</th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-[#475569] uppercase hidden lg:table-cell">Endpoint</th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-[#475569] uppercase">When</th>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase">Type</th>
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Application</th>
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Endpoint</th>
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase">When</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0]">
+              <tbody className="divide-y divide-border">
                 {data.recentEvents.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-[#f8fafc] transition-colors">
+                  <tr key={ev.id} className="hover:bg-background transition-colors">
                     <td className="px-5 py-3">
                       <SeverityBadge severity={ev.severity} />
                     </td>
-                    <td className="px-5 py-3 font-mono text-xs text-[#0f172a]">
+                    <td className="px-5 py-3 font-mono text-xs text-text-primary">
                       {ev.type.replace(/_/g, " ")}
                     </td>
-                    <td className="px-5 py-3 text-[#475569] hidden md:table-cell">
+                    <td className="px-5 py-3 text-text-secondary hidden md:table-cell">
                       {ev.project.name}
                     </td>
-                    <td className="px-5 py-3 font-mono text-xs text-[#475569] hidden lg:table-cell truncate max-w-[180px]">
+                    <td className="px-5 py-3 font-mono text-xs text-text-secondary hidden lg:table-cell truncate max-w-[180px]">
                       {ev.method} {ev.path}
                     </td>
-                    <td className="px-5 py-3 text-xs text-[#94a3b8]">
+                    <td className="px-5 py-3 text-xs text-text-muted">
                       {formatRelativeTime(ev.createdAt)}
                     </td>
                   </tr>
@@ -204,23 +204,23 @@ export default async function DashboardPage() {
           <CardContent className="pt-2 space-y-3">
             {data.topEndpoints.map((ep, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-xs font-mono text-[#94a3b8] w-4">{i + 1}</span>
+                <span className="text-xs font-mono text-text-muted w-4">{i + 1}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-mono text-xs text-[#0f172a] truncate">{ep.path ?? "/"}</p>
-                  <div className="mt-1 h-1.5 rounded-full bg-[#f1f5f9] overflow-hidden">
+                  <p className="font-mono text-xs text-text-primary truncate">{ep.path ?? "/"}</p>
+                  <div className="mt-1 h-1.5 rounded-full bg-border-light overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[#2563eb]"
+                      className="h-full rounded-full bg-brand"
                       style={{
                         width: `${Math.round((ep.count / (data.topEndpoints[0]?.count || 1)) * 100)}%`,
                       }}
                     />
                   </div>
                 </div>
-                <span className="text-xs font-semibold text-[#475569] shrink-0">{ep.count}</span>
+                <span className="text-xs font-semibold text-text-secondary shrink-0">{ep.count}</span>
               </div>
             ))}
             {data.topEndpoints.length === 0 && (
-              <p className="text-sm text-[#94a3b8] text-center py-4">No events yet</p>
+              <p className="text-sm text-text-muted text-center py-4">No events yet</p>
             )}
           </CardContent>
         </Card>

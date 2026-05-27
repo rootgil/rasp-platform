@@ -118,7 +118,7 @@ export function DashboardCharts({ chartData, severityData }: ChartProps) {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#94a3b8]">No events yet</p>
+            <p className="text-sm text-text-muted">No events yet</p>
           )}
         </CardContent>
       </Card>

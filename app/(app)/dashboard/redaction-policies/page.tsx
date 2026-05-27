@@ -35,14 +35,14 @@ export default async function RedactionPoliciesPage() {
       />
 
       {/* Privacy principle card */}
-      <Card className="border-[#bfdbfe] bg-[#eff6ff]">
+      <Card className="border-[#bfdbfe] bg-brand-light">
         <CardContent className="p-5 flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-[#2563eb]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand">
             <ShieldCheck size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1e40af]">Scrub at the Source</p>
-            <p className="text-sm text-[#2563eb] mt-0.5">
+            <p className="text-sm font-semibold text-low-text">Scrub at the Source</p>
+            <p className="text-sm text-brand mt-0.5">
               All sensitive data is redacted inside the RASP agent before any telemetry leaves the customer&apos;s environment.
               No PII, credentials, or regulated data transits the network to the control plane in cleartext.
               If redaction fails, the event is dropped - never sent with raw data.
@@ -57,17 +57,17 @@ export default async function RedactionPoliciesPage() {
             <CardHeader className="flex-row items-start justify-between">
               <div>
                 <CardTitle>{policy.project.name}</CardTitle>
-                <p className="text-xs text-[#94a3b8] mt-1">Created {formatDate(policy.createdAt)}</p>
+                <p className="text-xs text-text-muted mt-1">Created {formatDate(policy.createdAt)}</p>
               </div>
               <StatusBadge status={policy.mode} />
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-[#475569] mb-4">
+              <p className="text-sm text-text-secondary mb-4">
                 {MODE_DESCRIPTIONS[policy.mode] ?? policy.mode}
               </p>
               {policy.rules && (
-                <div className="rounded-[8px] bg-[#0f172a] p-3 overflow-auto max-h-32">
-                  <pre className="text-xs text-[#94a3b8] font-mono whitespace-pre-wrap">
+                <div className="rounded-md bg-text-primary p-3 overflow-auto max-h-32">
+                  <pre className="text-xs text-text-muted font-mono whitespace-pre-wrap">
                     {JSON.stringify(policy.rules, null, 2)}
                   </pre>
                 </div>
@@ -83,12 +83,12 @@ export default async function RedactionPoliciesPage() {
             <Card key={mode} className="border-dashed opacity-60">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-[#94a3b8]">{mode}</CardTitle>
-                  <ScrollText size={16} className="text-[#94a3b8]" />
+                  <CardTitle className="text-text-muted">{mode}</CardTitle>
+                  <ScrollText size={16} className="text-text-muted" />
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-[#94a3b8]">{MODE_DESCRIPTIONS[mode]}</p>
+                <p className="text-sm text-text-muted">{MODE_DESCRIPTIONS[mode]}</p>
                 <Button variant="secondary" size="sm" className="mt-4">Configure</Button>
               </CardContent>
             </Card>

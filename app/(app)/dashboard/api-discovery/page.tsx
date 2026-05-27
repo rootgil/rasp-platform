@@ -45,44 +45,44 @@ export default async function ApiDiscoveryPage() {
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Method</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Path</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Application</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Auth</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Sensitive Data</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Risk</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Flags</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[#475569] uppercase">Traffic</th>
+              <tr className="bg-background border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Path</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Application</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Auth</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Sensitive Data</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Risk</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Flags</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Traffic</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0]">
+            <tbody className="divide-y divide-border">
               {endpoints.map((ep) => (
-                <tr key={ep.id} className="hover:bg-[#f8fafc] transition-colors">
-                  <td className="px-4 py-3 font-mono text-xs font-bold text-[#0f172a]">{ep.method}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#475569]">{ep.pathPattern}</td>
+                <tr key={ep.id} className="hover:bg-background transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs font-bold text-text-primary">{ep.method}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{ep.pathPattern}</td>
                   <td className="px-4 py-3 text-xs">{ep.project.name}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       ep.authStatus === "none"
-                        ? "text-[#991b1b] bg-[#fef2f2] border-[#fecaca]"
+                        ? "text-critical-text bg-critical-bg border-[#fecaca]"
                         : ep.authStatus === "unknown"
-                        ? "text-[#92400e] bg-[#fffbeb] border-[#fde68a]"
-                        : "text-[#166534] bg-[#f0fdf4] border-[#bbf7d0]"
+                        ? "text-medium-text bg-medium-bg border-[#fde68a]"
+                        : "text-success-text bg-success-bg border-[#bbf7d0]"
                     }`}>
                       {ep.authStatus}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs">
                     {ep.hasSensitiveData ? (
-                      <span className="text-[#ea580c] font-medium">Yes</span>
+                      <span className="text-high font-medium">Yes</span>
                     ) : (
-                      <span className="text-[#94a3b8]">No</span>
+                      <span className="text-text-muted">No</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full bg-[#f1f5f9] overflow-hidden">
+                      <div className="w-16 h-1.5 rounded-full bg-border-light overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -91,7 +91,7 @@ export default async function ApiDiscoveryPage() {
                           }}
                         />
                       </div>
-                      <span className={`text-xs font-bold ${ep.riskScore >= 70 ? "text-[#dc2626]" : ep.riskScore >= 40 ? "text-[#d97706]" : "text-[#16a34a]"}`}>
+                      <span className={`text-xs font-bold ${ep.riskScore >= 70 ? "text-critical" : ep.riskScore >= 40 ? "text-medium" : "text-success"}`}>
                         {ep.riskScore}
                       </span>
                     </div>
@@ -99,19 +99,19 @@ export default async function ApiDiscoveryPage() {
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
                       {ep.isShadowApi && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-[#fef2f2] text-[#991b1b] border border-[#fecaca] font-medium">Shadow</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-critical-bg text-critical-text border border-[#fecaca] font-medium">Shadow</span>
                       )}
                       {ep.isZombieApi && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-[#fffbeb] text-[#92400e] border border-[#fde68a] font-medium">Zombie</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-medium-bg text-medium-text border border-[#fde68a] font-medium">Zombie</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#475569]">{ep.trafficCount}</td>
+                  <td className="px-4 py-3 text-xs text-text-secondary">{ep.trafficCount}</td>
                 </tr>
               ))}
               {endpoints.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-text-muted">
                     No endpoints discovered yet. Install an agent to start collecting.
                   </td>
                 </tr>
