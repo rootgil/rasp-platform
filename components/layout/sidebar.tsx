@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Boxes,
@@ -10,7 +11,6 @@ import {
   Bell,
   Webhook,
   ScrollText,
-  Shield,
   KeyRound,
   FileSearch,
   Settings,
@@ -32,63 +32,68 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-border flex flex-col z-40">
-      {/* Logo */}
-      <div className="flex h-16 items-center px-5 border-b border-border">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand">
-            <Shield size={16} className="text-white" strokeWidth={2} />
-          </div>
-          <div>
-            <span className="text-sm font-bold text-text-primary">RASP</span>
-            <span className="text-sm font-bold text-brand"> Platform</span>
-          </div>
-        </div>
-      </div>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        <ul className="space-y-0.5">
-          {navItems.map((item) => {
-            const isActive = item.exact
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-light text-brand"
-                      : "text-text-secondary hover:bg-background hover:text-text-primary"
-                  )}
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={2}
-                    className={isActive ? "text-brand" : "text-text-muted"}
-                  />
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-border">
-        <div className="rounded-md bg-background border border-border p-3">
-          <p className="text-xs text-text-muted font-medium">Environment</p>
-          <p className="text-xs font-semibold text-text-primary mt-0.5">Production</p>
+      <aside
+        className={cn(
+          "fixed left-0 top-0 h-full w-[260px] bg-white border-r border-border flex flex-col z-50 transition-transform duration-300",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
+        {/* Logo */}
+        <div className="flex h-16 items-center px-5 border-b border-border">
+          <Image src="/logo.png" alt="queno" width={110} height={32} className="object-contain" style={{ width: "auto" }} />
         </div>
-      </div>
-    </aside>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
+          <ul className="space-y-0.5">
+            {navItems.map((item) => {
+              const isActive = item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-brand-light text-brand"
+                        : "text-text-secondary hover:bg-background hover:text-text-primary"
+                    )}
+                  >
+                    <Icon
+                      size={18}
+                      strokeWidth={2}
+                      className={isActive ? "text-brand" : "text-text-muted"}
+                    />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
+    </>
   );
 }

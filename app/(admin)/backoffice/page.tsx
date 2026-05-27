@@ -30,7 +30,7 @@ export default async function BackofficePage() {
     <div className="space-y-6">
       <PageHeader title="Platform Overview" description="Global platform health and statistics" />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="Organizations" value={totalOrgs} icon={Building2} iconColor="#2563eb" iconBg="#eff6ff" />
         <KpiCard title="Total Agents" value={totalAgents} icon={Server} iconColor="#16a34a" iconBg="#f0fdf4" />
         <KpiCard title="Online Agents" value={onlineAgents} icon={Activity} iconColor="#16a34a" iconBg="#f0fdf4" />
@@ -41,7 +41,8 @@ export default async function BackofficePage() {
         <Card>
           <CardHeader><CardTitle>Recent Organizations</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead>
                 <tr className="bg-background border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
@@ -61,6 +62,7 @@ export default async function BackofficePage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
 

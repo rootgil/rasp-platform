@@ -40,7 +40,8 @@ export default async function ApiKeysPage() {
 
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
@@ -86,6 +87,7 @@ export default async function ApiKeysPage() {
               )}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
 

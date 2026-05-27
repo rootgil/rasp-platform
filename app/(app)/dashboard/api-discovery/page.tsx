@@ -34,7 +34,7 @@ export default async function ApiDiscoveryPage() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="Total Endpoints" value={endpoints.length} icon={Webhook} iconColor="#2563eb" iconBg="#eff6ff" />
         <KpiCard title="Shadow APIs" value={totalShadow} icon={AlertTriangle} iconColor="#dc2626" iconBg="#fef2f2" />
         <KpiCard title="Zombie APIs" value={totalZombie} icon={Clock} iconColor="#d97706" iconBg="#fffbeb" />
@@ -43,7 +43,8 @@ export default async function ApiDiscoveryPage() {
 
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
@@ -118,6 +119,7 @@ export default async function ApiDiscoveryPage() {
               )}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

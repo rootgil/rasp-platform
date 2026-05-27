@@ -29,7 +29,8 @@ export default async function AgentsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
@@ -70,6 +71,7 @@ export default async function AgentsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

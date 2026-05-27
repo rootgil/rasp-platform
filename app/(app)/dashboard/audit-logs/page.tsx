@@ -27,7 +27,8 @@ export default async function AuditLogsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Timestamp</th>
@@ -69,6 +70,7 @@ export default async function AuditLogsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

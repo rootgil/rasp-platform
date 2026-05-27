@@ -16,7 +16,8 @@ export default async function BackofficeCustomersPage() {
       <PageHeader title="Customers" description={`${users.length} users registered`} />
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
@@ -48,6 +49,7 @@ export default async function BackofficeCustomersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

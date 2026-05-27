@@ -37,7 +37,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         description={`${project.language}${project.framework ? ` · ${project.framework}` : ""} · ${project.environment}`}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="Agents" value={project.agents.length} icon={Server} iconColor="#2563eb" iconBg="#eff6ff" />
         <KpiCard title="Events" value={project._count.securityEvents} icon={ShieldAlert} iconColor="#dc2626" iconBg="#fef2f2" />
         <KpiCard title="Open Alerts" value={project._count.alerts} icon={ShieldAlert} iconColor="#ea580c" iconBg="#fff7ed" />
@@ -45,17 +45,20 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <Tabs defaultValue="agents">
+        <div className="overflow-x-auto">
         <TabsList>
           <TabsTrigger value="agents">Agents ({project.agents.length})</TabsTrigger>
           <TabsTrigger value="events">Events ({project._count.securityEvents})</TabsTrigger>
           <TabsTrigger value="endpoints">Endpoints ({project._count.discoveredEndpoints})</TabsTrigger>
           <TabsTrigger value="keys">API Keys ({project.apiKeys.length})</TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="agents">
           <Card>
             <CardContent className="p-0">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[500px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">ID</th>
@@ -77,6 +80,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   ))}
                 </tbody>
               </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -84,7 +88,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <TabsContent value="events">
           <Card>
             <CardContent className="p-0">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
@@ -104,6 +109,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   ))}
                 </tbody>
               </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -111,7 +117,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <TabsContent value="endpoints">
           <Card>
             <CardContent className="p-0">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Method</th>
@@ -132,14 +139,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                           {ep.riskScore}
                         </span>
                       </td>
-                      <td className="px-4 py-3 flex gap-1">
-                        {ep.isShadowApi && <span className="text-xs px-2 py-0.5 rounded-full bg-critical-bg text-critical-text border border-[#fecaca]">Shadow</span>}
-                        {ep.isZombieApi && <span className="text-xs px-2 py-0.5 rounded-full bg-medium-bg text-medium-text border border-[#fde68a]">Zombie</span>}
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          {ep.isShadowApi && <span className="text-xs px-2 py-0.5 rounded-full bg-critical-bg text-critical-text border border-[#fecaca]">Shadow</span>}
+                          {ep.isZombieApi && <span className="text-xs px-2 py-0.5 rounded-full bg-medium-bg text-medium-text border border-[#fde68a]">Zombie</span>}
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -147,7 +157,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <TabsContent value="keys">
           <Card>
             <CardContent className="p-0">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[360px]">
                 <thead>
                   <tr className="bg-background border-b border-border">
                     <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
@@ -165,6 +176,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   ))}
                 </tbody>
               </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

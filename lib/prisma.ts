@@ -12,6 +12,9 @@ function createPrismaClient() {
     ssl: process.env.DATABASE_URL?.includes("neon.tech")
       ? { rejectUnauthorized: false }
       : undefined,
+    max: 3,
+    connectionTimeoutMillis: 20000,
+    idleTimeoutMillis: 30000,
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({

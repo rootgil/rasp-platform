@@ -104,7 +104,7 @@ export default async function DashboardPage() {
       />
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <KpiCard
           title="Protected Apps"
           value={data.projectCount}
@@ -148,7 +148,7 @@ export default async function DashboardPage() {
       <DashboardCharts chartData={data.chartData} severityData={data.severityData} />
 
       {/* Bottom Row: Recent Events + Top Endpoints */}
-      <div className="grid xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Recent Events */}
         <Card className="xl:col-span-2">
           <CardHeader className="flex-row items-center justify-between pb-3">
@@ -161,7 +161,8 @@ export default async function DashboardPage() {
             </Link>
           </CardHeader>
           <CardContent className="p-0">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-5 py-2.5 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
@@ -193,6 +194,7 @@ export default async function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
 

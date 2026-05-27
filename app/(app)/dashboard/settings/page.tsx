@@ -70,7 +70,8 @@ export default async function SettingsPage() {
         <Card className="md:col-span-2">
           <CardHeader><CardTitle>Team Members</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[400px]">
               <thead>
                 <tr className="bg-background border-b border-border">
                   <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
@@ -88,6 +89,7 @@ export default async function SettingsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       </div>

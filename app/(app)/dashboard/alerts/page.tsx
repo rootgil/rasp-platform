@@ -39,7 +39,7 @@ export default async function AlertsPage({
         description={`${open} open alerts`}
       />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {["", "open", "investigating", "resolved"].map((s) => (
           <a
             key={s}
@@ -57,7 +57,8 @@ export default async function AlertsPage({
 
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
@@ -92,6 +93,7 @@ export default async function AlertsPage({
               )}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

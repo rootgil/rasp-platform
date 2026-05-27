@@ -17,7 +17,8 @@ export default async function BackofficeOrgsPage() {
       <PageHeader title="Organizations" description={`${orgs.length} organizations on the platform`} />
       <Card>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Organization</th>
@@ -48,6 +49,7 @@ export default async function BackofficeOrgsPage() {
               })}
             </tbody>
           </table>
+          </div>
         </CardContent>
       </Card>
     </div>

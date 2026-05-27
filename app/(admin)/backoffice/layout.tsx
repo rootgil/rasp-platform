@@ -10,8 +10,8 @@ export default async function BackofficeLayout({ children }: { children: React.R
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar />
-      <main className="ml-[260px]">
-        <div className="p-6 lg:p-8">
+      <main className="lg:ml-[260px] pt-16 lg:pt-0">
+        <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </main>

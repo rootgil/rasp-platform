@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, ChevronDown, LogOut, User, Settings } from "lucide-react";
+import { Bell, Search, ChevronDown, LogOut, User, Settings, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { data: session } = useSession();
   const name = session?.user?.name ?? session?.user?.email ?? "User";
   const initials = name
@@ -24,9 +29,23 @@ export function Topbar() {
     .slice(0, 2);
 
   return (
-    <header className="fixed top-0 left-[260px] right-0 h-16 bg-white border-b border-border flex items-center justify-between px-6 z-30">
-      {/* Search */}
-      <div className="relative max-w-sm w-full">
+    <header className="fixed top-0 left-0 lg:left-[260px] right-0 h-16 bg-white border-b border-border flex items-center justify-between px-4 lg:px-6 z-30">
+      {/* Hamburger (mobile) */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden flex items-center justify-center h-9 w-9 rounded-md hover:bg-border-light transition-colors mr-2 shrink-0"
+        aria-label="Open menu"
+      >
+        <Menu size={20} className="text-text-secondary" />
+      </button>
+
+      {/* Logo — mobile only, centered */}
+      <div className="sm:hidden absolute left-1/2 -translate-x-1/2">
+        <Image src="/logo.png" alt="queno" width={90} height={26} className="object-contain" style={{ width: "auto" }} />
+      </div>
+
+      {/* Search — disabled until implemented */}
+      <div className="relative max-w-sm w-full hidden sm:block opacity-50 cursor-not-allowed">
         <Search
           size={16}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
@@ -34,7 +53,8 @@ export function Topbar() {
         <input
           type="text"
           placeholder="Search events, agents, endpoints..."
-          className="w-full h-9 pl-9 pr-4 text-sm rounded-md border border-border bg-background text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
+          disabled
+          className="w-full h-9 pl-9 pr-4 text-sm rounded-md border border-border bg-background text-text-primary placeholder:text-text-muted cursor-not-allowed"
         />
       </div>
 

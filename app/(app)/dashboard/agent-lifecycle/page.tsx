@@ -6,8 +6,6 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KillSwitchToggle } from "./kill-switch-toggle";
 import { formatDate } from "@/lib/utils";
-import { Activity } from "lucide-react";
-
 const CHANNEL_DESCRIPTIONS: Record<string, string> = {
   stable: "2-week delay after canary. Recommended for production.",
   early: "1-week delay. Early access to improvements.",
@@ -75,7 +73,8 @@ export default async function AgentLifecyclePage() {
           <CardTitle>Active Agents</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Agent ID</th>
@@ -105,39 +104,7 @@ export default async function AgentLifecyclePage() {
               ))}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
-
-      {/* Canary deployment info */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Activity size={18} className="text-brand" />
-            <CardTitle>Canary Deployment Process</CardTitle>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {[
-              { stage: "Stage 0", desc: "Internal dogfood", duration: "24–48h" },
-              { stage: "Stage 1", desc: "1% of Edge agents", duration: "24h" },
-              { stage: "Stage 2", desc: "10% Edge + Early", duration: "48h" },
-              { stage: "Stage 3", desc: "100% Edge + Early", duration: "72h" },
-              { stage: "Stage 4", desc: "100% Stable", duration: "24h rolling" },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center gap-2 shrink-0">
-                <div className="rounded-md border border-border bg-background px-3 py-2 text-center">
-                  <p className="text-xs font-bold text-text-primary">{s.stage}</p>
-                  <p className="text-xs text-text-secondary">{s.desc}</p>
-                  <p className="text-xs text-text-muted">{s.duration}</p>
-                </div>
-                {i < 4 && <div className="text-text-muted">→</div>}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-text-muted mt-3">
-            Automatic halt if error rate &gt;0.01% or P99 latency increases &gt;2% at any stage.
-          </p>
         </CardContent>
       </Card>
     </div>
