@@ -10,18 +10,23 @@ import { CreateGlobalRuleDialog } from "./create-global-rule-dialog";
 import { BackofficeRuleActions } from "./backoffice-rule-actions";
 
 const TYPE_LABELS: Record<string, string> = {
-  sql_injection:      "SQL Injection",
-  nosql_injection:    "NoSQL Injection",
-  path_traversal:     "Path Traversal",
-  command_injection:  "Command Injection",
-  xss:                "XSS",
-  xxe:                "XXE",
-  ssrf:               "SSRF",
-  template_injection: "Template Injection (SSTI)",
-  bola_idor:          "BOLA / IDOR",
-  brute_force:        "Brute Force",
-  deserialization:    "Deserialization",
-  suspicious_payload: "Suspicious Payload",
+  sql_injection:        "SQL Injection",
+  nosql_injection:      "NoSQL Injection",
+  path_traversal:       "Path Traversal",
+  command_injection:    "Command Injection",
+  xss:                  "XSS",
+  xxe:                  "XXE",
+  ssrf:                 "SSRF",
+  template_injection:   "Template Injection (SSTI)",
+  prototype_pollution:  "Prototype Pollution",
+  bola:                 "BOLA / IDOR",
+  bola_idor:            "BOLA / IDOR",
+  suspicious_headers:   "Suspicious Headers",
+  host_header_injection:"Host Header Injection",
+  header_injection:     "Header Injection (CRLF)",
+  brute_force:          "Brute Force",
+  deserialization:      "Deserialization",
+  suspicious_payload:   "Suspicious Payload",
 };
 
 const SEVERITY_VARIANT: Record<string, "destructive" | "secondary" | "outline"> = {
