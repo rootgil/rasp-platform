@@ -1,16 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 const SEVERITY_VARIANT: Record<string, "destructive" | "secondary" | "outline"> = {
@@ -33,6 +23,8 @@ const TYPE_LABELS: Record<string, string> = {
   brute_force:        "Brute Force",
   deserialization:    "Deserialization",
   suspicious_payload: "Suspicious Payload",
+  prototype_pollution: "Prototype Pollution",
+  suspicious_headers: "Suspicious Headers",
 };
 
 type Rule = {
@@ -41,86 +33,36 @@ type Rule = {
   type: string;
   severity: string;
   description: string | null;
-  globalEnabled: boolean;
-  projectEnabled: boolean;
-  effectiveEnabled: boolean;
+  enabled: boolean;
 };
 
-type Project = { id: string; name: string };
-
-export function RulesClient({
-  projects,
-  activeProjectId,
-  rules,
-}: {
-  projects: Project[];
-  activeProjectId: string;
-  rules: Rule[];
-}) {
-  const router = useRouter();
-  const [toggling, setToggling] = useState<string | null>(null);
-
-  function handleProjectChange(projectId: string) {
-    router.push(`?projectId=${projectId}`);
-  }
-
-  async function handleToggle(ruleId: string, enabled: boolean) {
-    setToggling(ruleId);
-    try {
-      await fetch(`/api/projects/${activeProjectId}/rules`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ruleId, enabled }),
-      });
-      router.refresh();
-    } finally {
-      setToggling(null);
-    }
-  }
-
-  const enabledCount = rules.filter((r) => r.effectiveEnabled).length;
+export function RulesClient({ rules }: { rules: Rule[] }) {
+  const activeCount = rules.filter((r) => r.enabled).length;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="w-64">
-          <Select value={activeProjectId} onValueChange={handleProjectChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select application…" />
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <p className="text-sm text-text-secondary">
-          {enabledCount} of {rules.length} rules active
-        </p>
-      </div>
+      <p className="text-sm text-text-secondary">
+        {activeCount} of {rules.length} rules active
+      </p>
 
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[700px]">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="bg-background border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Rule</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Description</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Global</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Enabled for project</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {rules.map((rule) => (
                   <tr
                     key={rule.id}
-                    className={`transition-colors ${!rule.globalEnabled ? "opacity-50" : "hover:bg-background"}`}
+                    className={`transition-colors ${!rule.enabled ? "opacity-50" : "hover:bg-background"}`}
                   >
                     <td className="px-4 py-3">
                       <p className="font-mono text-xs font-medium text-text-primary">{rule.name}</p>
@@ -137,23 +79,15 @@ export function RulesClient({
                       {rule.description ?? "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={rule.globalEnabled ? "secondary" : "outline"}>
-                        {rule.globalEnabled ? "on" : "off"}
+                      <Badge variant={rule.enabled ? "secondary" : "outline"}>
+                        {rule.enabled ? "active" : "disabled"}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Switch
-                        checked={rule.projectEnabled}
-                        disabled={!rule.globalEnabled || toggling === rule.id}
-                        onCheckedChange={(checked) => handleToggle(rule.id, checked)}
-                        aria-label={`Toggle ${rule.name}`}
-                      />
                     </td>
                   </tr>
                 ))}
                 {rules.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-sm text-text-muted">
+                    <td colSpan={5} className="px-4 py-12 text-center text-sm text-text-muted">
                       No rules in the catalogue yet.
                     </td>
                   </tr>

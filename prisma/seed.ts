@@ -49,7 +49,6 @@ async function main() {
   await prisma.securityEvent.deleteMany();
   await prisma.discoveredEndpoint.deleteMany();
   await prisma.redactionPolicy.deleteMany();
-  await prisma.projectRule.deleteMany();
   await prisma.rule.deleteMany();
   await prisma.agent.deleteMany();
   await prisma.apiKey.deleteMany();
@@ -264,169 +263,21 @@ async function main() {
     },
   });
 
-  // Global Rule Catalogue (backoffice-managed, not per-project)
-  const ruleSqli = await prisma.rule.create({
-    data: {
-      name: "SQLI_BASIC_001",
-      type: "sql_injection",
-      severity: "high",
-      description: "Detects common SQL injection patterns in request parameters.",
-      enabled: true,
-      config: { patterns: ["OR 1=1", "' OR '", "UNION SELECT", "DROP TABLE", "SLEEP(", "benchmark(", "--", "/*"] },
-    },
-  });
-
-  const rulePathTraversal = await prisma.rule.create({
-    data: {
-      name: "PATH_TRAVERSAL_001",
-      type: "path_traversal",
-      severity: "high",
-      description: "Detects directory traversal attempts.",
-      enabled: true,
-      config: { patterns: ["../", "..\\", "/etc/passwd", "windows/win.ini", "%2e%2e%2f", "%252e%252e%252f"] },
-    },
-  });
-
-  const ruleCmdInjection = await prisma.rule.create({
-    data: {
-      name: "CMD_INJECTION_001",
-      type: "command_injection",
-      severity: "critical",
-      description: "Detects OS command injection patterns.",
-      enabled: true,
-      config: { patterns: [";", "&&", "||", "`", "$(", "cat /etc/passwd", "curl http", "wget http", "nc -e", "bash -i"] },
-    },
-  });
-
-  const ruleXss = await prisma.rule.create({
-    data: {
-      name: "XSS_BASIC_001",
-      type: "xss",
-      severity: "medium",
-      description: "Detects reflected and stored XSS patterns.",
-      enabled: true,
-      config: { patterns: ["<script>", "javascript:", "onerror=", "onload=", "eval(", "document.cookie"] },
-    },
-  });
-
-  const ruleXxe = await prisma.rule.create({
-    data: {
-      name: "XXE_001",
-      type: "xxe",
-      severity: "high",
-      description: "Detects XML External Entity injection attempts.",
-      enabled: true,
-      config: { patterns: ["<!ENTITY", "SYSTEM \"file://", "SYSTEM 'file://", "%xxe;"] },
-    },
-  });
-
-  const ruleSsrf = await prisma.rule.create({
-    data: {
-      name: "SSRF_001",
-      type: "ssrf",
-      severity: "high",
-      description: "Detects Server-Side Request Forgery patterns targeting internal services.",
-      enabled: true,
-      config: { patterns: ["169.254.169.254", "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"] },
-    },
-  });
-
-  const ruleTemplateInjection = await prisma.rule.create({
-    data: {
-      name: "TEMPLATE_INJECTION_001",
-      type: "template_injection",
-      severity: "critical",
-      description: "Detects Server-Side Template Injection (SSTI) patterns.",
-      enabled: true,
-      config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] },
-    },
-  });
-
-  const ruleBolaIdor = await prisma.rule.create({
-    data: {
-      name: "BOLA_IDOR_001",
-      type: "bola_idor",
-      severity: "high",
-      description: "Detects Broken Object Level Authorization and IDOR patterns.",
-      enabled: true,
-      config: { detectHorizontalEscalation: true, detectVerticalEscalation: true },
-    },
-  });
-
-  const ruleBruteForce = await prisma.rule.create({
-    data: {
-      name: "BRUTE_FORCE_001",
-      type: "brute_force",
-      severity: "medium",
-      description: "Detects credential brute force and stuffing attempts.",
-      enabled: true,
-      config: { maxAttemptsPerMinute: 10, trackByIp: true, trackByUser: true },
-    },
-  });
-
-  const ruleNosqlInjection = await prisma.rule.create({
-    data: {
-      name: "NOSQL_INJECTION_001",
-      type: "nosql_injection",
-      severity: "high",
-      description: "Detects NoSQL injection patterns targeting MongoDB and similar databases.",
-      enabled: true,
-      config: { patterns: ["$where", "$gt", "$ne", "$or", "$regex", "$exists", "{\"$"] },
-    },
-  });
-
-  const ruleDeserialization = await prisma.rule.create({
-    data: {
-      name: "DESERIALIZATION_001",
-      type: "deserialization",
-      severity: "critical",
-      description: "Detects unsafe deserialization patterns.",
-      enabled: true,
-      config: { patterns: ["rO0AB", "aced0005", "__reduce__", "pickle.loads", "java.io.ObjectInputStream"] },
-    },
-  });
-
-  const ruleSuspiciousPayload = await prisma.rule.create({
-    data: {
-      name: "SUSPICIOUS_PAYLOAD_001",
-      type: "suspicious_payload",
-      severity: "low",
-      description: "Catch-all rule for anomalous or oversized payloads.",
-      enabled: true,
-      config: { maxFieldLength: 8192, detectBinaryContent: true },
-    },
-  });
-
-  // ProjectRule overrides - banking-api enables most rules, disables deserialization and suspicious_payload
-  // auth-service enables sqli/cmd/brute_force/bola, disables xss (not relevant for API-only service)
-  await prisma.projectRule.createMany({
+  // Global Rule Catalogue (backoffice-managed, enforced via hardcoded agent detectors)
+  await prisma.rule.createMany({
     data: [
-      // banking-api: all enabled except deserialization (not used) and suspicious_payload
-      { projectId: projectNode.id, ruleId: ruleSqli.id,              enabled: true  },
-      { projectId: projectNode.id, ruleId: rulePathTraversal.id,     enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleCmdInjection.id,      enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleXss.id,               enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleXxe.id,               enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleSsrf.id,              enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleTemplateInjection.id, enabled: false },
-      { projectId: projectNode.id, ruleId: ruleBolaIdor.id,          enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleBruteForce.id,        enabled: true  },
-      { projectId: projectNode.id, ruleId: ruleNosqlInjection.id,    enabled: false },
-      { projectId: projectNode.id, ruleId: ruleDeserialization.id,   enabled: false },
-      { projectId: projectNode.id, ruleId: ruleSuspiciousPayload.id, enabled: true  },
-      // auth-service: focused on auth-related rules
-      { projectId: projectPython.id, ruleId: ruleSqli.id,              enabled: true  },
-      { projectId: projectPython.id, ruleId: rulePathTraversal.id,     enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleCmdInjection.id,      enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleXss.id,               enabled: false },
-      { projectId: projectPython.id, ruleId: ruleXxe.id,               enabled: false },
-      { projectId: projectPython.id, ruleId: ruleSsrf.id,              enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleTemplateInjection.id, enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleBolaIdor.id,          enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleBruteForce.id,        enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleNosqlInjection.id,    enabled: false },
-      { projectId: projectPython.id, ruleId: ruleDeserialization.id,   enabled: true  },
-      { projectId: projectPython.id, ruleId: ruleSuspiciousPayload.id, enabled: false },
+      { name: "SQLI_BASIC_001",          type: "sql_injection",       severity: "high",     description: "Detects common SQL injection patterns in request parameters.",                  enabled: true, config: { patterns: ["OR 1=1", "' OR '", "UNION SELECT", "DROP TABLE", "SLEEP(", "benchmark(", "--", "/*"] } },
+      { name: "PATH_TRAVERSAL_001",      type: "path_traversal",      severity: "high",     description: "Detects directory traversal attempts.",                                         enabled: true, config: { patterns: ["../", "..\\", "/etc/passwd", "windows/win.ini", "%2e%2e%2f", "%252e%252e%252f"] } },
+      { name: "CMD_INJECTION_001",       type: "command_injection",   severity: "critical", description: "Detects OS command injection patterns.",                                         enabled: true, config: { patterns: [";", "&&", "||", "`", "$(", "cat /etc/passwd", "curl http", "wget http", "nc -e", "bash -i"] } },
+      { name: "XSS_BASIC_001",           type: "xss",                 severity: "medium",   description: "Detects reflected and stored XSS patterns.",                                    enabled: true, config: { patterns: ["<script>", "javascript:", "onerror=", "onload=", "eval(", "document.cookie"] } },
+      { name: "XXE_001",                 type: "xxe",                 severity: "high",     description: "Detects XML External Entity injection attempts.",                               enabled: true, config: { patterns: ["<!ENTITY", "SYSTEM \"file://", "SYSTEM 'file://", "%xxe;"] } },
+      { name: "SSRF_001",                type: "ssrf",                severity: "high",     description: "Detects Server-Side Request Forgery patterns targeting internal services.",      enabled: true, config: { patterns: ["169.254.169.254", "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"] } },
+      { name: "TEMPLATE_INJECTION_001",  type: "template_injection",  severity: "critical", description: "Detects Server-Side Template Injection (SSTI) patterns.",                      enabled: true, config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] } },
+      { name: "BOLA_IDOR_001",           type: "bola_idor",           severity: "high",     description: "Detects Broken Object Level Authorization and IDOR patterns.",                  enabled: true, config: { detectHorizontalEscalation: true, detectVerticalEscalation: true } },
+      { name: "BRUTE_FORCE_001",         type: "brute_force",         severity: "medium",   description: "Detects credential brute force and stuffing attempts.",                         enabled: true, config: { maxAttemptsPerMinute: 10, trackByIp: true, trackByUser: true } },
+      { name: "NOSQL_INJECTION_001",     type: "nosql_injection",     severity: "high",     description: "Detects NoSQL injection patterns targeting MongoDB and similar databases.",      enabled: true, config: { patterns: ["$where", "$gt", "$ne", "$or", "$regex", "$exists", "{\"$"] } },
+      { name: "DESERIALIZATION_001",     type: "deserialization",     severity: "critical", description: "Detects unsafe deserialization patterns.",                                       enabled: true, config: { patterns: ["rO0AB", "aced0005", "__reduce__", "pickle.loads", "java.io.ObjectInputStream"] } },
+      { name: "SUSPICIOUS_PAYLOAD_001",  type: "suspicious_payload",  severity: "low",      description: "Catch-all rule for anomalous or oversized payloads.",                           enabled: true, config: { maxFieldLength: 8192, detectBinaryContent: true } },
     ],
   });
 
