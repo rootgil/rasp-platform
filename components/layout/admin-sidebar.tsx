@@ -12,6 +12,7 @@ import {
   HeartPulse,
   FileSearch,
   Inbox,
+  Shield,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/backoffice/organizations", label: "Organizations", icon: Building2 },
   { href: "/backoffice/customers", label: "Customers", icon: Users },
   { href: "/backoffice/contact-leads", label: "Contact Leads", icon: Inbox },
+  { href: "/backoffice/rules", label: "Detection Rules", icon: Shield },
   { href: "/backoffice/agent-versions", label: "Agent Versions", icon: Activity },
   { href: "/backoffice/system-health", label: "System Health", icon: HeartPulse },
   { href: "/backoffice/platform-audit", label: "Platform Audit", icon: FileSearch },

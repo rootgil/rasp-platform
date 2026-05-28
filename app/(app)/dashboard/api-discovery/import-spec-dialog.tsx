@@ -56,7 +56,7 @@ export function ImportSpecDialog() {
       try {
         spec = JSON.parse(text);
       } catch {
-        setError("Could not parse file — make sure it is a valid JSON OpenAPI spec.");
+        setError("Could not parse file - make sure it is a valid JSON OpenAPI spec.");
         return;
       }
 

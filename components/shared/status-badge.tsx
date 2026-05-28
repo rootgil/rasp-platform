@@ -8,6 +8,7 @@ const config: Record<string, { text: string; bg: string; border: string; dot: st
   offline:       { text: "#475569", bg: "#f8fafc", border: "#e2e8f0", dot: "#94a3b8" },
   disconnected:  { text: "#475569", bg: "#f8fafc", border: "#e2e8f0", dot: "#94a3b8" },
   error:         { text: "#991b1b", bg: "#fef2f2", border: "#fecaca", dot: "#dc2626" },
+  block:         { text: "#991b1b", bg: "#fef2f2", border: "#fecaca", dot: "#dc2626" },
   blocked:       { text: "#991b1b", bg: "#fef2f2", border: "#fecaca", dot: "#dc2626" },
   outdated:      { text: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#d97706" },
   investigating: { text: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#d97706" },
