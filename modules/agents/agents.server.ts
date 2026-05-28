@@ -1,5 +1,26 @@
 import { prisma } from "@/lib/prisma";
 
+export async function createAgent(
+  projectId: string,
+  organizationId: string,
+  data: { language: string; framework?: string; mode?: string }
+) {
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, organizationId },
+  });
+  if (!project) return null;
+  return prisma.agent.create({
+    data: {
+      projectId,
+      language: data.language,
+      framework: data.framework ?? null,
+      mode: data.mode ?? "monitor",
+      version: "unknown",
+      status: "offline",
+    },
+  });
+}
+
 export async function getAgents(organizationId: string) {
   return prisma.agent.findMany({
     where: { project: { organizationId } },

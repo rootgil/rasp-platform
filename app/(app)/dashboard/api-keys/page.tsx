@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { KeyRound, Plus } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { CreateApiKeyDialog } from "./create-api-key-dialog";
 import { RevokeKeyButton } from "./revoke-key-button";
 
 export default async function ApiKeysPage() {
@@ -14,28 +12,17 @@ export default async function ApiKeysPage() {
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
-  const [keys, projects] = await Promise.all([
-    prisma.apiKey.findMany({
-      where: { project: { organizationId: membership.organizationId } },
-      include: { project: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.project.findMany({
-      where: { organizationId: membership.organizationId },
-      select: { id: true, name: true },
-    }),
-  ]);
+  const keys = await prisma.apiKey.findMany({
+    where: { project: { organizationId: membership.organizationId } },
+    include: { project: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="API Keys"
         description="Keys used by agents to authenticate with the collector"
-        action={
-          <CreateApiKeyDialog projects={projects}>
-            <Button><Plus size={16} />Generate Key</Button>
-          </CreateApiKeyDialog>
-        }
       />
 
       <Card>

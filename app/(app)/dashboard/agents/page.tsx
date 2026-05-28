@@ -4,19 +4,28 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
+import { CreateAgentDialog } from "./create-agent-dialog";
 
 export default async function AgentsPage() {
   const session = await auth();
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
-  const agents = await prisma.agent.findMany({
-    where: { project: { organizationId: membership.organizationId } },
-    include: { project: { select: { name: true } } },
-    orderBy: { lastHeartbeatAt: "desc" },
-  });
+  const [agents, projects] = await Promise.all([
+    prisma.agent.findMany({
+      where: { project: { organizationId: membership.organizationId } },
+      include: { project: { select: { name: true } } },
+      orderBy: { lastHeartbeatAt: "desc" },
+    }),
+    prisma.project.findMany({
+      where: { organizationId: membership.organizationId },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   const online = agents.filter((a) => a.status === "online").length;
 
@@ -25,6 +34,11 @@ export default async function AgentsPage() {
       <PageHeader
         title="Agents"
         description={`${online} of ${agents.length} online`}
+        action={
+          <CreateAgentDialog projects={projects}>
+            <Button><Plus size={16} />New Agent</Button>
+          </CreateAgentDialog>
+        }
       />
 
       <Card>
