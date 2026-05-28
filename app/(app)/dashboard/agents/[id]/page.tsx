@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { CopyButton } from "@/components/shared/copy-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 
@@ -48,7 +49,10 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
               {rows.map(({ label, value, mono }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <dt className="text-sm text-text-secondary">{label}</dt>
-                  <dd className={`text-sm font-medium text-text-primary ${mono ? "font-mono" : ""}`}>{value}</dd>
+                  <dd className={`text-sm font-medium text-text-primary flex items-center gap-1.5 ${mono ? "font-mono" : ""}`}>
+                    {value}
+                    {label === "Agent ID" && <CopyButton value={value} />}
+                  </dd>
                 </div>
               ))}
             </dl>

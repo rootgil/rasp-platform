@@ -9,6 +9,7 @@ import { Plus, Boxes, Server, ShieldAlert } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import { CreateProjectDialog } from "./create-project-dialog";
+import { CopyButton } from "@/components/shared/copy-button";
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -90,9 +91,15 @@ export default async function ProjectsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-xs text-text-muted">
-                    Created {formatRelativeTime(project.createdAt)}
-                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-xs text-text-muted">
+                      Created {formatRelativeTime(project.createdAt)}
+                    </p>
+                    <span className="flex items-center gap-1 font-mono text-xs text-text-muted">
+                      {project.id.slice(0, 14)}…
+                      <CopyButton value={project.id} />
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </Link>

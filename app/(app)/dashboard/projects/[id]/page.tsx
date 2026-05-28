@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Server, ShieldAlert, Webhook } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { CopyButton } from "@/components/shared/copy-button";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,6 +37,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         title={project.name}
         description={`${project.language}${project.framework ? ` · ${project.framework}` : ""} · ${project.environment}`}
       />
+      <div className="flex items-center gap-1.5 -mt-3 font-mono text-xs text-text-muted">
+        <span>{project.id}</span>
+        <CopyButton value={project.id} />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="Agents" value={project.agents.length} icon={Server} iconColor="#2563eb" iconBg="#eff6ff" />
@@ -71,7 +76,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <tbody className="divide-y divide-border">
                   {project.agents.map((a) => (
                     <tr key={a.id} className="hover:bg-background">
-                      <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">{a.id.slice(0, 12)}…</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">
+                        <span className="flex items-center gap-1">
+                          {a.id.slice(0, 12)}…
+                          <CopyButton value={a.id} />
+                        </span>
+                      </td>
                       <td className="px-4 py-3 font-mono text-xs hidden md:table-cell">{a.version}</td>
                       <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                       <td className="px-4 py-3 hidden md:table-cell"><StatusBadge status={a.mode} /></td>
