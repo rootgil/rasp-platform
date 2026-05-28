@@ -6,6 +6,7 @@ import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventFilters } from "./event-filters";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 
@@ -41,6 +42,7 @@ export default async function EventsPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="Security Events"
         description={`${events.length} events`}

@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KillSwitchToggle } from "./kill-switch-toggle";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { formatDate } from "@/lib/utils";
 const CHANNEL_DESCRIPTIONS: Record<string, string> = {
   stable: "2-week delay after canary. Recommended for production.",
@@ -32,6 +33,7 @@ export default async function AgentLifecyclePage() {
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="Agent Lifecycle"
         description="Version management, channels, and kill-switch controls"

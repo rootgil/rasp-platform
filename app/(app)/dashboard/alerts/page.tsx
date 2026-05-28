@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/utils";
 import { AlertActions } from "./alert-actions";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 export default async function AlertsPage({
   searchParams,
@@ -34,6 +35,7 @@ export default async function AlertsPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="Alerts"
         description={`${open} open alerts`}

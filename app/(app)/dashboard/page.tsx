@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Server, ShieldAlert, Ban, ScrollText, Boxes } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { DashboardCharts } from "./dashboard-charts";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 import Link from "next/link";
 
 async function getDashboardData(organizationId: string) {
@@ -98,6 +99,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="Security Overview"
         description={`${membership.organization.name} · Production`}

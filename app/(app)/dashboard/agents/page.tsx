@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import { CreateAgentDialog } from "./create-agent-dialog";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 export default async function AgentsPage() {
   const session = await auth();
@@ -31,6 +32,7 @@ export default async function AgentsPage() {
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="Agents"
         description={`${online} of ${agents.length} online`}
