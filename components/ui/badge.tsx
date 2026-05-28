@@ -10,6 +10,7 @@ const badgeVariants = cva(
         default: "bg-brand-light text-low-text border border-[#bfdbfe]",
         secondary: "bg-background text-text-secondary border border-border",
         critical: "bg-critical-bg text-critical-text border border-[#fecaca]",
+        destructive: "bg-critical-bg text-critical-text border border-[#fecaca]",
         high: "bg-high-bg text-high-text border border-[#fed7aa]",
         medium: "bg-medium-bg text-medium-text border border-[#fde68a]",
         low: "bg-brand-light text-low-text border border-[#bfdbfe]",

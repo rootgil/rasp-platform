@@ -7,21 +7,44 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Webhook, AlertTriangle, Clock, Shield } from "lucide-react";
 import { ExportButton } from "./export-button";
 import { ImportSpecDialog } from "./import-spec-dialog";
+import { ApiDiscoveryFilters } from "./api-discovery-filters";
+import {
+  recomputeZombieFlags,
+  getAuthCoverage,
+  getDiscoveredEndpoints,
+  getEndpointStats,
+} from "@/modules/api-discovery/api-discovery.server";
 
-export default async function ApiDiscoveryPage() {
+export default async function ApiDiscoveryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string }>;
+}) {
+  const filters = await searchParams;
   const session = await auth();
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
-  const endpoints = await prisma.discoveredEndpoint.findMany({
-    where: { project: { organizationId: membership.organizationId } },
-    include: { project: { select: { name: true } } },
-    orderBy: { riskScore: "desc" },
+  const orgId = membership.organizationId;
+
+  await recomputeZombieFlags(orgId);
+
+  const projects = await prisma.project.findMany({
+    where: { organizationId: orgId },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
   });
 
-  const totalShadow = endpoints.filter((e) => e.isShadowApi).length;
-  const totalZombie = endpoints.filter((e) => e.isZombieApi).length;
-  const unauthenticated = endpoints.filter((e) => e.authStatus === "none").length;
+  const projectId =
+    filters.projectId && projects.some((p) => p.id === filters.projectId)
+      ? filters.projectId
+      : undefined;
+
+  const [endpoints, coverage, stats] = await Promise.all([
+    getDiscoveredEndpoints(orgId, projectId),
+    getAuthCoverage(orgId, projectId),
+    getEndpointStats(orgId, projectId),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -36,12 +59,32 @@ export default async function ApiDiscoveryPage() {
         }
       />
 
+      <ApiDiscoveryFilters projects={projects} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard title="Total Endpoints" value={endpoints.length} icon={Webhook} iconColor="#2563eb" iconBg="#eff6ff" />
-        <KpiCard title="Shadow APIs" value={totalShadow} icon={AlertTriangle} iconColor="#dc2626" iconBg="#fef2f2" />
-        <KpiCard title="Zombie APIs" value={totalZombie} icon={Clock} iconColor="#d97706" iconBg="#fffbeb" />
-        <KpiCard title="No Auth" value={unauthenticated} icon={Shield} iconColor="#ea580c" iconBg="#fff7ed" />
+        <KpiCard title="Total Endpoints" value={stats.total} icon={Webhook} iconColor="#2563eb" iconBg="#eff6ff" />
+        <KpiCard title="Shadow APIs" value={stats.shadow} icon={AlertTriangle} iconColor="#dc2626" iconBg="#fef2f2" />
+        <KpiCard title="Zombie APIs" value={stats.zombie} icon={Clock} iconColor="#d97706" iconBg="#fffbeb" />
+        <KpiCard title="No Auth" value={stats.unauthenticated} icon={Shield} iconColor="#ea580c" iconBg="#fff7ed" />
       </div>
+
+      {/* Auth coverage map (Addendum A.5) */}
+      <Card>
+        <CardContent className="p-5">
+          <p className="text-sm font-semibold text-text-primary mb-4">Auth Coverage Map</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <CoverageBar label="Authentication" pct={coverage.authPct} count={coverage.authenticated} total={coverage.total} />
+            <CoverageBar label="Authorization" pct={coverage.authzPct} count={coverage.authorized} total={coverage.total} />
+            <div className="rounded-md border border-border p-3">
+              <p className="text-xs text-text-secondary uppercase">Sensitive · No Auth</p>
+              <p className={`mt-1 text-2xl font-bold ${coverage.sensitiveNoAuth > 0 ? "text-critical" : "text-success"}`}>
+                {coverage.sensitiveNoAuth}
+              </p>
+              <p className="text-xs text-text-muted">endpoints handling PII without authentication</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="p-0">
@@ -57,6 +100,7 @@ export default async function ApiDiscoveryPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Risk</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden sm:table-cell">Flags</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Traffic</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Latency</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -109,12 +153,20 @@ export default async function ApiDiscoveryPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">{ep.trafficCount}</td>
+                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">
+                    {ep.trafficCount}
+                    {ep.errorCount > 0 && (
+                      <span className="ml-1 text-critical">({ep.errorCount} err)</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-text-secondary hidden lg:table-cell">
+                    {ep.avgResponseMs > 0 ? `${ep.avgResponseMs} ms` : "-"}
+                  </td>
                 </tr>
               ))}
               {endpoints.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-text-muted">
+                  <td colSpan={9} className="px-4 py-12 text-center text-sm text-text-muted">
                     No endpoints discovered yet. Install an agent to start collecting.
                   </td>
                 </tr>
@@ -124,6 +176,32 @@ export default async function ApiDiscoveryPage() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function CoverageBar({
+  label,
+  pct,
+  count,
+  total,
+}: {
+  label: string;
+  pct: number;
+  count: number;
+  total: number;
+}) {
+  const color = pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
+  return (
+    <div className="rounded-md border border-border p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-text-secondary uppercase">{label}</p>
+        <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
+      </div>
+      <div className="mt-2 h-2 w-full rounded-full bg-border-light overflow-hidden">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <p className="mt-1 text-xs text-text-muted">{count} / {total} endpoints</p>
     </div>
   );
 }

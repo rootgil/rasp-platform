@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ScrollText, ShieldCheck, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { RedactionPolicyDialog } from "./redaction-policy-dialog";
 
 const MODE_DESCRIPTIONS: Record<string, string> = {
   denylist: "Strips known-sensitive patterns (email, passwords, tokens). Passes everything else. Maximizes forensic value.",
@@ -20,18 +21,29 @@ export default async function RedactionPoliciesPage() {
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
-  const policies = await prisma.redactionPolicy.findMany({
-    where: { project: { organizationId: membership.organizationId } },
-    include: { project: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [policies, projects] = await Promise.all([
+    prisma.redactionPolicy.findMany({
+      where: { project: { organizationId: membership.organizationId } },
+      include: { project: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.project.findMany({
+      where: { organizationId: membership.organizationId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Redaction Policies"
         description="Control what data leaves the customer environment"
-        action={<Button><Plus size={16} />New Policy</Button>}
+        action={
+          <RedactionPolicyDialog projects={projects}>
+            <Button><Plus size={16} />New Policy</Button>
+          </RedactionPolicyDialog>
+        }
       />
 
       {/* Privacy principle card */}
@@ -80,16 +92,18 @@ export default async function RedactionPoliciesPage() {
         {["allowlist", "metadata-only", "local-only"]
           .filter((mode) => !policies.find((p) => p.mode === mode))
           .map((mode) => (
-            <Card key={mode} className="border-dashed opacity-60">
+            <Card key={mode} className="border-dashed">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-text-muted">{mode}</CardTitle>
-                  <ScrollText size={16} className="text-text-muted" />
+                  <CardTitle className="capitalize">{mode}</CardTitle>
+                  <ScrollText size={16} className="text-text-secondary" />
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-text-muted">{MODE_DESCRIPTIONS[mode]}</p>
-                <Button variant="secondary" size="sm" className="mt-4">Configure</Button>
+                <p className="text-sm text-text-secondary">{MODE_DESCRIPTIONS[mode]}</p>
+                <RedactionPolicyDialog projects={projects} initial={{ mode }}>
+                  <Button variant="secondary" size="sm" className="mt-4">Configure</Button>
+                </RedactionPolicyDialog>
               </CardContent>
             </Card>
           ))}

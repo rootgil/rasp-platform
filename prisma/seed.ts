@@ -1,8 +1,10 @@
 import "dotenv/config";
+import { createCipheriv, randomBytes } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import bcrypt from "bcryptjs";
+import { getSigningKeyId, signPolicy, type SignablePolicy } from "../lib/policy-signing";
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -40,22 +42,71 @@ function daysAgo(days: number) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 }
 
+function wrapDek(dek: Buffer, kek: Buffer): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", kek, iv);
+  const ct = Buffer.concat([cipher.update(dek), cipher.final()]);
+  return [iv.toString("base64"), cipher.getAuthTag().toString("base64"), ct.toString("base64")].join(".");
+}
+
+async function seedTenantKey(projectId: string) {
+  const b64 = process.env.KEK_MASTER_KEY;
+  if (!b64) return;
+  try {
+    const kek = Buffer.from(b64, "base64");
+    if (kek.length !== 32) return;
+    const dek = randomBytes(32);
+    await prisma.tenantKey.create({
+      data: { projectId, version: 1, wrappedDek: wrapDek(dek, kek), active: true },
+    });
+  } catch {
+    // Encryption disabled or invalid KEK — skip silently in dev seed.
+  }
+}
+
+async function createSignedPolicy(
+  projectId: string,
+  version: number,
+  input: Omit<SignablePolicy, "projectId" | "version">
+) {
+  const signable: SignablePolicy = { projectId, version, ...input };
+  return prisma.policy.create({
+    data: {
+      projectId,
+      version,
+      channel: input.channel,
+      mode: input.mode,
+      detectionRules: input.detectionRules ?? undefined,
+      redactionConfig: input.redactionConfig ?? undefined,
+      dataResidency: input.dataResidency ?? undefined,
+      targetAgentVersion: input.targetAgentVersion,
+      signature: signPolicy(signable),
+      signingKeyId: getSigningKeyId(),
+    },
+  });
+}
+
 async function main() {
   console.log("Seeding database...");
 
   // Clean up (order respects FK constraints)
   await prisma.auditLog.deleteMany();
+  await prisma.approvalRequest.deleteMany();
   await prisma.alert.deleteMany();
   await prisma.securityEvent.deleteMany();
   await prisma.discoveredEndpoint.deleteMany();
   await prisma.redactionPolicy.deleteMany();
+  await prisma.policy.deleteMany();
+  await prisma.tenantKey.deleteMany();
   await prisma.rule.deleteMany();
   await prisma.agent.deleteMany();
   await prisma.apiKey.deleteMany();
   await prisma.project.deleteMany();
   await prisma.organizationMember.deleteMany();
   await prisma.organization.deleteMany();
+  await prisma.rolloutMetric.deleteMany();
   await prisma.agentVersion.deleteMany();
+  await prisma.platformSetting.deleteMany();
   await prisma.contactLead.deleteMany();
   await prisma.user.deleteMany();
 
@@ -111,6 +162,8 @@ async function main() {
     },
   });
 
+  await seedTenantKey(projectNode.id);
+
   // API Keys
   const apiKeyHash = await bcrypt.hash("rasp_demo_key_abc123", 10);
   await prisma.apiKey.create({
@@ -132,6 +185,10 @@ async function main() {
       status: "online",
       channel: "stable",
       mode: "monitor",
+      hmacSecret: randomBytes(32).toString("base64"),
+      targetVersion: "0.3.1",
+      upgradeStatus: "succeeded",
+      lastUpgradeAt: daysAgo(7),
       lastHeartbeatAt: new Date(Date.now() - 45 * 1000),
     },
   });
@@ -145,6 +202,10 @@ async function main() {
       status: "outdated",
       channel: "stable",
       mode: "monitor",
+      hmacSecret: randomBytes(32).toString("base64"),
+      targetVersion: "0.3.1",
+      previousVersion: "0.2.8",
+      upgradeStatus: "upgrading",
       lastHeartbeatAt: daysAgo(1),
     },
   });
@@ -158,6 +219,9 @@ async function main() {
       status: "offline",
       channel: "early",
       mode: "block",
+      killSwitch: true,
+      hmacSecret: randomBytes(32).toString("base64"),
+      targetVersion: "0.3.2",
       lastHeartbeatAt: daysAgo(2),
     },
   });
@@ -221,16 +285,16 @@ async function main() {
 
   // Discovered Endpoints
   const endpointDefs = [
-    { method: "GET",    path: "/api/users/:id",             authStatus: "jwt",     hasSensitiveData: true,  riskScore: 45 },
-    { method: "POST",   path: "/api/auth/login",            authStatus: "none",    hasSensitiveData: true,  riskScore: 80 },
-    { method: "GET",    path: "/api/accounts/:id/balance",  authStatus: "jwt",     hasSensitiveData: true,  riskScore: 60 },
-    { method: "GET",    path: "/api/transactions",          authStatus: "jwt",     hasSensitiveData: true,  riskScore: 55 },
-    { method: "DELETE", path: "/api/admin/users/:id",       authStatus: "jwt",     hasSensitiveData: false, riskScore: 70 },
-    { method: "GET",    path: "/api/documents/:filename",   authStatus: "jwt",     hasSensitiveData: true,  riskScore: 50 },
-    { method: "GET",    path: "/api/internal/metrics",      authStatus: "none",    hasSensitiveData: false, riskScore: 90, isShadowApi: true },
-    { method: "POST",   path: "/api/v1/legacy/transfer",    authStatus: "unknown", hasSensitiveData: true,  riskScore: 75, isShadowApi: true },
-    { method: "GET",    path: "/api/v1/reports/export",     authStatus: "jwt",     hasSensitiveData: false, riskScore: 20, isZombieApi: true },
-    { method: "GET",    path: "/health",                    authStatus: "none",    hasSensitiveData: false, riskScore: 5 },
+    { method: "GET",    path: "/api/users/:id",             authStatus: "jwt",     authorization: "owner",   hasSensitiveData: true,  riskScore: 45 },
+    { method: "POST",   path: "/api/auth/login",            authStatus: "none",    authorization: "public",  hasSensitiveData: true,  riskScore: 80 },
+    { method: "GET",    path: "/api/accounts/:id/balance",  authStatus: "jwt",     authorization: "owner",   hasSensitiveData: true,  riskScore: 60 },
+    { method: "GET",    path: "/api/transactions",          authStatus: "jwt",     authorization: "member",  hasSensitiveData: true,  riskScore: 55 },
+    { method: "DELETE", path: "/api/admin/users/:id",       authStatus: "jwt",     authorization: "admin",   hasSensitiveData: false, riskScore: 70 },
+    { method: "GET",    path: "/api/documents/:filename",   authStatus: "jwt",     authorization: "member",  hasSensitiveData: true,  riskScore: 50 },
+    { method: "GET",    path: "/api/internal/metrics",      authStatus: "none",    authorization: "unknown", hasSensitiveData: false, riskScore: 90, isShadowApi: true },
+    { method: "POST",   path: "/api/v1/legacy/transfer",    authStatus: "unknown", authorization: "unknown", hasSensitiveData: true,  riskScore: 75, isShadowApi: true },
+    { method: "GET",    path: "/api/v1/reports/export",     authStatus: "jwt",     authorization: "admin",   hasSensitiveData: false, riskScore: 20, isZombieApi: true },
+    { method: "GET",    path: "/health",                    authStatus: "none",    authorization: "public",  hasSensitiveData: false, riskScore: 5 },
   ];
 
   for (const ep of endpointDefs) {
@@ -240,8 +304,11 @@ async function main() {
         method: ep.method,
         pathPattern: ep.path,
         authStatus: ep.authStatus,
+        authorization: ep.authorization,
         hasSensitiveData: ep.hasSensitiveData,
         riskScore: ep.riskScore,
+        errorCount: Math.floor(Math.random() * 20),
+        avgResponseMs: Math.floor(Math.random() * 200) + 20,
         trafficCount: Math.floor(Math.random() * 500) + 10,
         isShadowApi: (ep as { isShadowApi?: boolean }).isShadowApi ?? false,
         isZombieApi: (ep as { isZombieApi?: boolean }).isZombieApi ?? false,
@@ -251,17 +318,34 @@ async function main() {
     });
   }
 
+  const redactionRules = {
+    patterns: ["email", "credit_card", "sin", "password", "api_key", "authorization"],
+    ipHandling: "mask_last_octet",
+  };
+
   // Redaction Policy
   await prisma.redactionPolicy.create({
     data: {
       projectId: projectNode.id,
       mode: "denylist",
-      rules: {
-        patterns: ["email", "credit_card", "sin", "password", "api_key", "authorization"],
-        ipHandling: "mask_last_octet",
-      },
+      rules: redactionRules,
     },
   });
+
+  // Signed policy distributed to agents (matches redaction policy above)
+  try {
+    await createSignedPolicy(projectNode.id, 1, {
+      channel: "stable",
+      mode: "monitor",
+      detectionRules: null,
+      redactionConfig: { mode: "denylist", ...redactionRules },
+      dataResidency: null,
+      targetAgentVersion: "0.3.1",
+    });
+  } catch (err) {
+    console.warn("  ⚠ Skipped signed policy (POLICY_SIGNING_PRIVATE_KEY not set?)");
+    console.warn(`    ${err instanceof Error ? err.message : err}`);
+  }
 
   // Global Rule Catalogue (backoffice-managed, enforced via hardcoded agent detectors)
   await prisma.rule.createMany({
@@ -281,14 +365,100 @@ async function main() {
     ],
   });
 
-  // Agent Versions
+  // Agent Versions (with rollout/canary demo state)
+  const version031 = await prisma.agentVersion.create({
+    data: {
+      version: "0.3.1",
+      channel: "stable",
+      status: "published",
+      releasedAt: daysAgo(7),
+      changelog: "Improved SQLi detection, reduced false positives.",
+      impact: "Low — detection-only changes, no breaking API surface.",
+      rolloutStage: 4,
+      rolloutPercent: 100,
+      rolloutStartedAt: daysAgo(14),
+    },
+  });
+
+  const version032 = await prisma.agentVersion.create({
+    data: {
+      version: "0.3.2",
+      channel: "early",
+      status: "published",
+      releasedAt: daysAgo(3),
+      changelog: "Path traversal improvements, Node 22 support.",
+      impact: "Medium — requires Node 18+; monitor error rate during rollout.",
+      rolloutStage: 2,
+      rolloutPercent: 10,
+      rolloutStartedAt: daysAgo(2),
+    },
+  });
+
   await prisma.agentVersion.createMany({
     data: [
-      { version: "0.3.1", channel: "stable",  status: "published", releasedAt: daysAgo(7),  changelog: "Improved SQLi detection, reduced false positives." },
-      { version: "0.3.2", channel: "early",   status: "published", releasedAt: daysAgo(3),  changelog: "Path traversal improvements, Node 22 support." },
-      { version: "0.4.0", channel: "edge",    status: "candidate", releasedAt: null,         changelog: "BOLA/IDOR detection alpha, new telemetry format." },
-      { version: "0.2.8", channel: "stable",  status: "published", releasedAt: daysAgo(30), changelog: "Bug fixes for Express 5 compatibility." },
+      {
+        version: "0.4.0",
+        channel: "edge",
+        status: "candidate",
+        releasedAt: null,
+        changelog: "BOLA/IDOR detection alpha, new telemetry format.",
+        impact: "High — alpha feature set; not recommended for production.",
+      },
+      {
+        version: "0.2.8",
+        channel: "stable",
+        status: "published",
+        releasedAt: daysAgo(30),
+        changelog: "Bug fixes for Express 5 compatibility.",
+      },
     ],
+  });
+
+  // Rollout metrics for the in-progress canary (0.3.2)
+  await prisma.rolloutMetric.createMany({
+    data: [
+      {
+        versionId: version032.id,
+        stage: 1,
+        agentsTargeted: 3,
+        agentsSucceeded: 3,
+        agentsFailed: 0,
+        errorEvents: 0,
+      },
+      {
+        versionId: version032.id,
+        stage: 2,
+        agentsTargeted: 12,
+        agentsSucceeded: 11,
+        agentsFailed: 1,
+        errorEvents: 2,
+      },
+      {
+        versionId: version031.id,
+        stage: 4,
+        agentsTargeted: 48,
+        agentsSucceeded: 47,
+        agentsFailed: 1,
+        errorEvents: 0,
+        rolledBackAt: null,
+      },
+    ],
+  });
+
+  // Platform-wide incident controls
+  await prisma.platformSetting.create({
+    data: { id: "global", killSwitch: false },
+  });
+
+  // Dual-authorization demo: kill-switch enable awaiting second admin
+  await prisma.approvalRequest.create({
+    data: {
+      action: "platform.kill_switch.enable",
+      target: "global",
+      payload: { reason: "Scheduled incident-response drill" },
+      status: "pending",
+      requestedById: adminUser.id,
+    },
   });
 
   // Audit Logs

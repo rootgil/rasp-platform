@@ -1,16 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ExportButton() {
   const [loading, setLoading] = useState(false);
+  const sp = useSearchParams();
 
   async function handleExport() {
     setLoading(true);
     try {
-      const res = await fetch("/api/api-discovery/export", { method: "POST" });
+      const projectId = sp.get("projectId");
+      const res = await fetch("/api/api-discovery/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(projectId ? { projectId } : {}),
+      });
       if (!res.ok) throw new Error("Export failed");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

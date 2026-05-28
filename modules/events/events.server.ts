@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { decryptForProject } from "@/lib/envelope";
 
 export interface EventFilters {
   severity?: string;
@@ -46,17 +47,26 @@ export async function getEvents(
     }),
   ]);
 
-  return { total, items };
+  const decrypted = await Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      payload: await decryptForProject(item.projectId, item.payload),
+    }))
+  );
+
+  return { total, items: decrypted };
 }
 
 export async function getEvent(id: string, organizationId: string) {
-  return prisma.securityEvent.findFirst({
+  const event = await prisma.securityEvent.findFirst({
     where: { id, project: { organizationId } },
     include: {
       project: true,
       agent: true,
     },
   });
+  if (!event) return null;
+  return { ...event, payload: await decryptForProject(event.projectId, event.payload) };
 }
 
 export async function getRecentEvents(organizationId: string, limit = 10) {

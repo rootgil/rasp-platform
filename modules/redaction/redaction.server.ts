@@ -1,5 +1,54 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { createPolicy } from "@/modules/policies/policies.server";
+
+/**
+ * Translate a dashboard redaction policy (mode + rules) into the policy payload
+ * pushed to agents. `metadata-only` and `local-only` modes map to data
+ * residency directives; the redaction engine itself stays in denylist/allowlist.
+ */
+export function buildPolicyFromRedaction(
+  mode: string,
+  rules: unknown
+): { redactionConfig: Record<string, unknown>; dataResidency: Record<string, unknown> | null } {
+  const r = (rules ?? {}) as Record<string, unknown>;
+  const base = {
+    customKeyPatterns: r.customKeyPatterns ?? [],
+    allowKeyPatterns: r.allowKeyPatterns ?? [],
+    valueRedaction: r.valueRedaction ?? true,
+    ipMode: r.ipMode ?? "hash",
+  };
+
+  if (mode === "metadata-only") {
+    return { redactionConfig: { ...base, mode: "denylist" }, dataResidency: { metadataOnly: true } };
+  }
+  if (mode === "local-only") {
+    return { redactionConfig: { ...base, mode: "denylist" }, dataResidency: { localOnly: true } };
+  }
+  return { redactionConfig: { ...base, mode }, dataResidency: null };
+}
+
+/**
+ * Persist the editable redaction policy AND publish a signed policy so the
+ * change is distributed to agents. Publishing is best-effort: a missing signing
+ * key does not lose the saved record.
+ */
+export async function createAndPublishRedactionPolicy(
+  projectId: string,
+  organizationId: string,
+  data: { mode: string; rules?: unknown }
+) {
+  const record = await createRedactionPolicy(projectId, organizationId, data);
+  if (!record) return null;
+
+  const { redactionConfig, dataResidency } = buildPolicyFromRedaction(data.mode, data.rules);
+  try {
+    await createPolicy(projectId, organizationId, { redactionConfig, dataResidency });
+  } catch {
+    // Signing key may be unconfigured; the editable record is still saved.
+  }
+  return record;
+}
 
 export async function getRedactionPolicies(organizationId: string) {
   return prisma.redactionPolicy.findMany({

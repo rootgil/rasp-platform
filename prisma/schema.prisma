@@ -12,9 +12,14 @@ model User {
   name           String?
   passwordHash   String
   role           String               @default("user")
+  // TOTP MFA (Addendum E.4.3). `totpSecret` is base32; enabled once confirmed.
+  totpSecret     String?
+  mfaEnabled     Boolean              @default(false)
   createdAt      DateTime             @default(now())
   memberships    OrganizationMember[]
   auditLogs      AuditLog[]
+  approvalsMade  ApprovalRequest[]    @relation("approver")
+  approvalsRaised ApprovalRequest[]   @relation("requester")
 }
 
 model Organization {
@@ -55,6 +60,7 @@ model Project {
   alerts              Alert[]
   discoveredEndpoints DiscoveredEndpoint[]
   redactionPolicies   RedactionPolicy[]
+  policies            Policy[]
 }
 
 model ApiKey {
@@ -79,19 +85,72 @@ model Agent {
   mode            String          @default("monitor")
   lastHeartbeatAt DateTime?
   killSwitch      Boolean         @default(false)
+  // Per-agent HMAC secret for payload integrity (Addendum E.5). Issued at
+  // registration; the agent signs every batch with it.
+  hmacSecret      String?
+  // Version lifecycle (Addendum D).
+  pinnedVersion   String?         // Customer-pinned version; overrides canary.
+  targetVersion   String?         // Last target advertised to this agent.
+  previousVersion String?         // For self-rollback / rollback metrics.
+  upgradeStatus   String          @default("idle") // idle|upgrading|succeeded|failed|rolledback
+  lastUpgradeAt   DateTime?
+  // Maintenance window controlling WHEN upgrades may be advertised (Addendum
+  // D.2). Shape: { startHour, endHour, days?: number[] } in UTC.
+  maintenanceWindow Json?
   createdAt       DateTime        @default(now())
   project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   securityEvents  SecurityEvent[]
 }
 
 model AgentVersion {
-  id         String    @id @default(cuid())
-  version    String
-  channel    String
-  status     String    @default("candidate")
-  changelog  String?
-  releasedAt DateTime?
-  createdAt  DateTime  @default(now())
+  id              String    @id @default(cuid())
+  version         String
+  channel         String
+  status          String    @default("candidate") // candidate|published|deprecated
+  changelog       String?
+  // Expected impact / risk notes shown to customers before upgrade (Addendum D.2).
+  impact          String?
+  releasedAt      DateTime?
+  // Canary state machine (Addendum D.3): stage 0..4 -> 0/1/10/50/100 %.
+  rolloutStage    Int       @default(0)
+  rolloutPercent  Int       @default(0)
+  rolloutStartedAt DateTime?
+  halted          Boolean   @default(false)
+  haltReason      String?
+  // Incident response (Addendum E.6): quarantined versions are never served.
+  quarantined     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@index([channel, status])
+}
+
+// Platform-wide controls (Addendum E.6). Single-row table (id = "global").
+// `killSwitch` instructs ALL agents to enter passive/disabled mode regardless
+// of per-agent settings; used during a confirmed platform-wide incident.
+model PlatformSetting {
+  id          String   @id @default("global")
+  killSwitch  Boolean  @default(false)
+  killReason  String?
+  killedAt    DateTime?
+  updatedAt   DateTime @updatedAt
+}
+
+// Per-version, per-stage outcome metrics for canary health + rollback KPIs
+// (Addendum D.5: MTTR, success rate, uptime, canary catch-rate).
+model RolloutMetric {
+  id              String   @id @default(cuid())
+  versionId       String
+  stage           Int
+  agentsTargeted  Int      @default(0)
+  agentsSucceeded Int      @default(0)
+  agentsFailed    Int      @default(0)
+  errorEvents     Int      @default(0)
+  haltedAt        DateTime?
+  rolledBackAt    DateTime?
+  mttrSeconds     Int?
+  createdAt       DateTime @default(now())
+
+  @@index([versionId])
 }
 
 model SecurityEvent {
@@ -146,6 +205,11 @@ model DiscoveredEndpoint {
   hasSensitiveData Boolean  @default(false)
   riskScore        Int      @default(0)
   trafficCount     Int      @default(0)
+  // Traffic profile (Addendum A.2).
+  errorCount       Int      @default(0)
+  avgResponseMs    Int      @default(0)
+  // Inferred OpenAPI-like schema from observed traffic (param names -> types).
+  schema           Json?
   isShadowApi      Boolean  @default(false)
   isZombieApi      Boolean  @default(false)
   firstSeenAt      DateTime @default(now())
@@ -164,6 +228,58 @@ model RedactionPolicy {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
+// Envelope-encryption key material per tenant (project). The DEK is wrapped by
+// the master KEK (env) and stored here; payloads at rest are encrypted with the
+// DEK (Addendum E.6). Rotation adds a new version; tenant deletion sets
+// `destroyed` and nulls `wrappedDek` (crypto-shredding — data becomes
+// unrecoverable without re-encryption).
+model TenantKey {
+  id         String    @id @default(cuid())
+  projectId  String
+  version    Int
+  wrappedDek String?
+  active     Boolean   @default(true)
+  destroyed  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  rotatedAt  DateTime?
+
+  @@unique([projectId, version])
+  @@index([projectId, active])
+}
+
+// Signed, versioned policy distributed to agents. One immutable row per
+// version (never updated/deleted) so any version can be re-served for rollback.
+// `signature` is an Ed25519 signature over the canonical policy bytes (see
+// lib/policy-signing.ts). Agents verify it before applying any change.
+model Policy {
+  id                 String   @id @default(cuid())
+  projectId          String
+  version            Int
+  channel            String   @default("stable")
+  mode               String   @default("monitor")
+  // Custom detection rules pushed to the agent (JSON array of rule specs).
+  detectionRules     Json?
+  // Redaction configuration: mode (denylist/allowlist/metadata-only/local-only),
+  // custom field/value rules, IP handling, etc.
+  redactionConfig    Json?
+  // Data residency directives (metadata-only, local-only, selective export).
+  dataResidency      Json?
+  // Target agent package version for canary/rollback orchestration (section D).
+  targetAgentVersion String?
+  // Ed25519 signature (base64) over the canonical policy bytes.
+  signature          String
+  // Identifier/fingerprint of the signing key used (supports rotation).
+  signingKeyId       String?
+  createdAt          DateTime @default(now())
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+  @@index([projectId, channel])
+}
+
+// Tamper-evident audit log (Addendum E.4.4). Each row carries the hash of the
+// previous row plus its own hash, forming a chain: any retroactive edit or
+// deletion breaks verification (see lib/auth-helpers.createAuditLog).
 model AuditLog {
   id             String        @id @default(cuid())
   actorId        String?
@@ -171,9 +287,33 @@ model AuditLog {
   action         String
   target         String?
   metadata       Json?
+  prevHash       String?
+  hash           String?
   createdAt      DateTime      @default(now())
   actor          User?         @relation(fields: [actorId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([createdAt])
+}
+
+// Dual-authorization for sensitive actions (Addendum E.4.3). A request is
+// raised by one admin and must be approved by a different admin before the
+// action is executed.
+model ApprovalRequest {
+  id             String    @id @default(cuid())
+  action         String
+  target         String?
+  payload        Json?
+  status         String    @default("pending") // pending|approved|rejected|executed
+  requestedById  String
+  approvedById   String?
+  reason         String?
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
+  requestedBy    User      @relation("requester", fields: [requestedById], references: [id])
+  approvedBy     User?     @relation("approver", fields: [approvedById], references: [id])
+
+  @@index([status])
 }
 
 model ContactLead {

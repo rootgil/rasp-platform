@@ -3,10 +3,15 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 async function checkCollectorHealth() {
   const collectorUrl = process.env.COLLECTOR_INTERNAL_URL ?? "http://localhost:4000";
   try {
-    const res = await fetch(`${collectorUrl}/health`, { next: { revalidate: 30 } });
+    const res = await fetch(`${collectorUrl}/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
     if (res.ok) {
       const data = await res.json();
       return { status: "healthy", data };
