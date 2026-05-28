@@ -1,11 +1,11 @@
 /**
- * Production seed — safe to run on every deploy.
+ * Production seed - safe to run on every deploy.
  * Creates only the platform admin user and the agent version catalog.
  * Uses upsert / findFirst so it is fully idempotent.
  *
  * Required env vars:
  *   SEED_ADMIN_EMAIL    e.g. admin@rasp.io
- *   SEED_ADMIN_PASSWORD strong password — never commit a real value
+ *   SEED_ADMIN_PASSWORD strong password - never commit a real value
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -60,7 +60,7 @@ async function main() {
       });
       console.log(`   ✓ agent version: ${v.version} (${v.channel})`);
     } else {
-      console.log(`   · agent version: ${v.version} (${v.channel}) — already exists, skipped`);
+      console.log(`   · agent version: ${v.version} (${v.channel}) - already exists, skipped`);
     }
   }
 

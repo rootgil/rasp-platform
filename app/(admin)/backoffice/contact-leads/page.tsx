@@ -13,7 +13,7 @@ export default async function ContactLeadsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Contact Leads"
-        description={`${leads.length} total — ${pending} pending`}
+        description={`${leads.length} total - ${pending} pending`}
       />
       <ContactLeadsTable leads={leads} />
     </div>

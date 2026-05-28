@@ -39,12 +39,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <Menu size={20} className="text-text-secondary" />
       </button>
 
-      {/* Logo — mobile only, centered */}
+      {/* Logo - mobile only, centered */}
       <div className="sm:hidden absolute left-1/2 -translate-x-1/2">
         <Image src="/logo.png" alt="queno" width={90} height={26} className="object-contain" style={{ width: "auto" }} />
       </div>
 
-      {/* Search — disabled until implemented */}
+      {/* Search - disabled until implemented */}
       <div className="relative max-w-sm w-full hidden sm:block opacity-50 cursor-not-allowed">
         <Search
           size={16}
