@@ -33,13 +33,9 @@ const SEVERITY_VARIANT: Record<string, "destructive" | "secondary" | "outline"> 
 
 export default async function BackofficeRulesPage() {
   const rules = await prisma.rule.findMany({
-    include: {
-      _count: { select: { projectRules: { where: { enabled: true } } } },
-    },
     orderBy: { createdAt: "asc" },
   });
 
-  const blocking  = 0; // mode lives on Agent, not Rule
   const active    = rules.filter((r) => r.enabled).length;
   const inactive  = rules.filter((r) => !r.enabled).length;
 
@@ -87,7 +83,6 @@ export default async function BackofficeRulesPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Severity</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Description</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Active in projects</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden lg:table-cell">Created</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actions</th>
                 </tr>
@@ -114,9 +109,6 @@ export default async function BackofficeRulesPage() {
                         <StatusBadge status="offline" />
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium">
-                      {rule._count.projectRules}
-                    </td>
                     <td className="px-4 py-3 text-xs text-text-muted hidden lg:table-cell">
                       {formatDate(rule.createdAt)}
                     </td>
@@ -127,7 +119,7 @@ export default async function BackofficeRulesPage() {
                 ))}
                 {rules.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-sm text-text-muted">
+                    <td colSpan={7} className="px-4 py-12 text-center text-sm text-text-muted">
                       No rules in the catalogue. Add the first one.
                     </td>
                   </tr>

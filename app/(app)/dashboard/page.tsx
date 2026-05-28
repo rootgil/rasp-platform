@@ -93,7 +93,8 @@ export default async function DashboardPage() {
     where: { userId: session?.user?.id },
     include: { organization: true },
   });
-  if (!membership) redirect("/login");
+
+  if (!membership) redirect("/api/auth/force-signout");
 
   const data = await getDashboardData(membership.organizationId);
 
