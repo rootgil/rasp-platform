@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/shared/page-header";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Webhook, AlertTriangle, Clock, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ExportButton } from "./export-button";
+import { ImportSpecDialog } from "./import-spec-dialog";
 
 export default async function ApiDiscoveryPage() {
   const session = await auth();
@@ -28,9 +29,10 @@ export default async function ApiDiscoveryPage() {
         title="API Discovery"
         description="Runtime endpoint inventory - observed from live traffic"
         action={
-          <Button variant="secondary">
-            Export OpenAPI spec
-          </Button>
+          <div className="flex items-center gap-2">
+            <ImportSpecDialog />
+            <ExportButton />
+          </div>
         }
       />
 
