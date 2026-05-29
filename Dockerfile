@@ -23,6 +23,10 @@ COPY . .
 RUN pnpm db:generate
 RUN pnpm build
 
+# ── migrator: one-shot prisma migrate deploy ────────────────────────────────
+FROM builder AS migrator
+CMD ["pnpm", "db:deploy"]
+
 # ── runner: minimal production image ────────────────────────────────────────
 FROM node:22-alpine AS runner
 WORKDIR /app

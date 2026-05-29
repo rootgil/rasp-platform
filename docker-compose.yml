@@ -1,13 +1,55 @@
 services:
+
+  # ── migrate: run prisma migrate deploy once before app/collector start ──────
+  migrate:
+    build:
+      context: .
+      target: migrator
+    env_file: .env.production
+    restart: "no"
+    networks:
+      - rasp-net
+
+  # ── app: Next.js rasp platform ───────────────────────────────────────────────
   app:
-    build: .
+    build:
+      context: .
+    env_file: .env.production
     ports:
       - "3000:3000"
-    env_file: .env.production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - rasp-net
 
-  adminer:
-    image: adminer
+  # ── collector: Fastify telemetry collector ───────────────────────────────────
+  collector:
+    build:
+      context: ../collector
+    env_file: ../collector/.env
     ports:
-      - "8080:8080"
+      - "4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - rasp-net
+
+networks:
+  rasp-net:
+    driver: bridge

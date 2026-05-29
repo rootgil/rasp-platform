@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RASP Platform - Dossier Technique</title>
+<style>
+/* ── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+
+/* ── Design tokens ────────────────────────────────────── */
+:root {
+  --bg:       #f8f9fa;
+  --surface:  #ffffff;
+  --border:   #e2e8f0;
+  --text:     #1a202c;
+  --muted:    #64748b;
+  --accent:   #2563eb;
+  --accent-l: #dbeafe;
+  --code-bg:  #1e293b;
+  --code-txt: #e2e8f0;
+  --green:    #16a34a;
+  --green-l:  #dcfce7;
+  --amber:    #d97706;
+  --amber-l:  #fef3c7;
+  --red:      #dc2626;
+  --red-l:    #fee2e2;
+  --purple:   #7c3aed;
+  --purple-l: #ede9fe;
+  --sidebar-w: 272px;
+  --header-h:  52px;
+}
+[data-theme="dark"] {
+  --bg:       #0f172a;
+  --surface:  #1e293b;
+  --border:   #334155;
+  --text:     #e2e8f0;
+  --muted:    #94a3b8;
+  --accent:   #60a5fa;
+  --accent-l: #1e3a5f;
+  --code-bg:  #0d1117;
+  --code-txt: #e2e8f0;
+  --green-l:  #14532d;
+  --amber-l:  #451a03;
+  --red-l:    #450a0a;
+  --purple-l: #2e1065;
+}
+
+/* ── Layout ───────────────────────────────────────────── */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  line-height: 1.65;
+}
+
+/* Top bar */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  gap: 1rem;
+  z-index: 100;
+}
+#topbar .logo {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+#topbar .subtitle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#topbar .spacer { flex: 1; }
+#topbar .meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#theme-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+#theme-btn:hover { background: var(--accent-l); }
+
+/* Sidebar */
+#sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1rem 0 2rem;
+  z-index: 90;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.nav-group { padding: 0.5rem 0; }
+.nav-group-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.5rem 1.25rem 0.25rem;
+}
+.nav-link {
+  display: block;
+  padding: 0.3rem 1.25rem 0.3rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--accent); background: var(--accent-l); }
+.nav-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-l); font-weight: 500; }
+.nav-link.sub { padding-left: 2.25rem; font-size: 0.75rem; }
+
+/* Main content */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  padding: 2.5rem 3rem 4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Sections */
+.section { margin-bottom: 4rem; }
+.section-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-l);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+h2 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; margin: 2rem 0 1rem; padding-top: 0.5rem; }
+h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+h4 { font-size: 0.9rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+p { margin-bottom: 0.9rem; }
+.lead { font-size: 1.05rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+/* Divider */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+thead tr { background: var(--bg); }
+th { padding: 0.6rem 0.9rem; text-align: left; font-weight: 600; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--accent-l); }
+
+/* Code blocks */
+pre {
+  background: var(--code-bg);
+  color: var(--code-txt);
+  padding: 1.1rem 1.25rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 0.75rem 0 1.25rem;
+  position: relative;
+}
+pre .lang-tag {
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 0.62rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: inherit;
+}
+code { font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace; }
+pre code { font-size: inherit; }
+:not(pre) > code {
+  background: var(--accent-l);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.82em;
+  font-family: "JetBrains Mono", Consolas, monospace;
+}
+
+/* Syntax coloring inside pre */
+.k { color: #c792ea; }   /* keyword */
+.s { color: #c3e88d; }   /* string */
+.c { color: #546e7a; font-style: italic; } /* comment */
+.n { color: #82aaff; }   /* name/ident */
+.t { color: #ffcb6b; }   /* type */
+.p { color: #89ddff; }   /* punctuation */
+.v { color: #f78c6c; }   /* value/number */
+.f { color: #80cbc4; }   /* function */
+
+/* Callout boxes */
+.callout {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; line-height: 1.4; }
+.callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; }
+.callout.choice  { background: var(--purple-l); border-left: 3px solid var(--purple); }
+.callout.choice  .callout-icon::before { content: "⚡"; }
+.callout.choice  .callout-body strong { color: var(--purple); }
+.callout.justif  { background: var(--accent-l); border-left: 3px solid var(--accent); }
+.callout.justif  .callout-icon::before { content: "💡"; }
+.callout.justif  .callout-body strong { color: var(--accent); }
+.callout.reco    { background: var(--green-l); border-left: 3px solid var(--green); }
+.callout.reco    .callout-icon::before { content: "✅"; }
+.callout.reco    .callout-body strong { color: var(--green); }
+.callout.warning { background: var(--amber-l); border-left: 3px solid var(--amber); }
+.callout.warning .callout-icon::before { content: "⚠️"; }
+.callout.warning .callout-body strong { color: var(--amber); }
+.callout.danger  { background: var(--red-l); border-left: 3px solid var(--red); }
+.callout.danger  .callout-icon::before { content: "🔴"; }
+.callout.danger  .callout-body strong { color: var(--red); }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.badge-blue   { background: var(--accent-l);  color: var(--accent); }
+.badge-green  { background: var(--green-l);   color: var(--green); }
+.badge-amber  { background: var(--amber-l);   color: var(--amber); }
+.badge-red    { background: var(--red-l);     color: var(--red); }
+.badge-purple { background: var(--purple-l);  color: var(--purple); }
+.badge-gray   { background: var(--border);    color: var(--muted); }
+
+/* Card grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem;
+}
+.card-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }
+.card-body  { font-size: 0.78rem; color: var(--muted); }
+
+/* Feature list */
+ul.features { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; margin: 0.5rem 0 1rem; }
+ul.features li { font-size: 0.85rem; padding-left: 1.4rem; position: relative; }
+ul.features li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+/* Regular lists */
+ul.std { padding-left: 1.5rem; margin-bottom: 1rem; }
+ul.std li { margin-bottom: 0.3rem; font-size: 0.88rem; }
+
+/* Inline tags */
+.tag-monitor { color: var(--green);  background: var(--green-l);  border-radius: 3px; padding: 1px 6px; font-size: 0.75rem; font-weight: 600; }
+.tag-block   { color: var(--red);    background: var(--red-l);    border-radius: 3px; padding: 1px 6px; font-size: 0.75rem; font-weight: 600; }
+.tag-critical{ color: var(--red);    background: var(--red-l);    border-radius: 3px; padding: 1px 6px; font-size: 0.75rem; font-weight: 600; }
+.tag-high    { color: var(--amber);  background: var(--amber-l);  border-radius: 3px; padding: 1px 6px; font-size: 0.75rem; font-weight: 600; }
+.tag-medium  { color: var(--purple); background: var(--purple-l); border-radius: 3px; padding: 1px 6px; font-size: 0.75rem; font-weight: 600; }
+
+/* Architecture diagram */
+.arch-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+.arch-diagram svg { display: block; margin: 0 auto; }
+
+/* Flow steps */
+.flow-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.78rem;
+}
+.flow-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.flow-step.red    { border-color: var(--red);    background: var(--red-l);    color: var(--red); }
+.flow-step.green  { border-color: var(--green);  background: var(--green-l);  color: var(--green); }
+.flow-step.blue   { border-color: var(--accent); background: var(--accent-l); color: var(--accent); }
+.flow-step.purple { border-color: var(--purple); background: var(--purple-l); color: var(--purple); }
+.flow-arrow { padding: 0 0.35rem; color: var(--muted); font-size: 1rem; }
+
+/* Section anchors */
+.anchor-offset { scroll-margin-top: calc(var(--header-h) + 1.5rem); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 0px; }
+  #sidebar { transform: translateX(-100%); }
+  #main { margin-left: 0; padding: 1.5rem 1.25rem 3rem; }
+}
+
+/* Print */
+@media print {
+  #topbar, #sidebar { display: none; }
+  #main { margin: 0; padding: 1.5rem; max-width: none; }
+  pre { background: #f8f9fa; color: #1a202c; border: 1px solid #e2e8f0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top bar ──────────────────────────────────────────── -->
+<header id="topbar">
+  <span class="logo">RASP Platform</span>
+  <span class="subtitle">Dossier Technique &amp; Guide d'Intégration</span>
+  <div class="spacer"></div>
+  <span class="meta">v0.1.x · Mai 2026</span>
+  <button id="theme-btn" onclick="toggleTheme()">🌙 Thème sombre</button>
+</header>
+
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="nav-group">
+    <div class="nav-group-title">Vue d'ensemble</div>
+    <a class="nav-link" href="#resume">Résumé exécutif</a>
+    <a class="nav-link" href="#architecture">Architecture globale</a>
+    <a class="nav-link" href="#stack">Stack technique</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Composants</div>
+    <a class="nav-link" href="#platform">Plateforme rasp</a>
+    <a class="nav-link sub" href="#platform-auth">Auth &amp; Comptes</a>
+    <a class="nav-link sub" href="#platform-tenancy">Multi-tenant</a>
+    <a class="nav-link sub" href="#platform-agents">Agents &amp; Lifecycle</a>
+    <a class="nav-link sub" href="#platform-events">Événements &amp; Alertes</a>
+    <a class="nav-link sub" href="#platform-policies">Policies &amp; Rules</a>
+    <a class="nav-link sub" href="#platform-discovery">API Discovery</a>
+    <a class="nav-link sub" href="#platform-audit">Audit &amp; Gouvernance</a>
+    <a class="nav-link" href="#collector">Collector</a>
+    <a class="nav-link sub" href="#collector-endpoints">Endpoints</a>
+    <a class="nav-link sub" href="#collector-security">Mécanismes de sécurité</a>
+    <a class="nav-link sub" href="#collector-ingestion">Ingestion</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Agent Node</div>
+    <a class="nav-link" href="#agent-integration">Guide d'intégration</a>
+    <a class="nav-link sub" href="#agent-install">Installation</a>
+    <a class="nav-link sub" href="#agent-config">Configuration</a>
+    <a class="nav-link sub" href="#agent-express">Express</a>
+    <a class="nav-link sub" href="#agent-fastify">Fastify</a>
+    <a class="nav-link sub" href="#agent-nestjs">NestJS</a>
+    <a class="nav-link sub" href="#agent-modes">Modes &amp; Lifecycle</a>
+    <a class="nav-link sub" href="#agent-ext">Extension</a>
+    <a class="nav-link" href="#agent-internals">Architecture interne</a>
+    <a class="nav-link sub" href="#agent-detectors">Détecteurs</a>
+    <a class="nav-link sub" href="#agent-redaction">Redaction Engine</a>
+    <a class="nav-link sub" href="#agent-transport">Transport</a>
+    <a class="nav-link sub" href="#agent-policy">Policy signée</a>
+    <a class="nav-link sub" href="#agent-discovery">API Discovery</a>
+    <a class="nav-link sub" href="#agent-dbhooks">DB Hooks</a>
+    <a class="nav-link sub" href="#agent-selfprotect">Self-Protect</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Analyse</div>
+    <a class="nav-link" href="#security">Sécurité de bout en bout</a>
+    <a class="nav-link" href="#choices">Choix techniques</a>
+    <a class="nav-link" href="#recommendations">Recommandations</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Référence</div>
+    <a class="nav-link" href="#annexe-endpoints">Endpoints collector</a>
+    <a class="nav-link" href="#annexe-env">Variables d'env</a>
+    <a class="nav-link" href="#annexe-prisma">Modèle de données</a>
+    <a class="nav-link" href="#glossaire">Glossaire</a>
+  </div>
+</nav>
+
+<!-- ── Main content ─────────────────────────────────────── -->
+<main id="main">
+
+<!-- ═══════════════════════════════════════════════════════
+     1. RESUME EXECUTIF
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="resume">
+  <div class="anchor-offset" id="resume-anchor"></div>
+  <div class="section-tag">Résumé</div>
+  <h1>Document Technique RASP Platform</h1>
+  <p class="lead">Runtime Application Self-Protection - Plateforme de détection, redaction, audit et blocage des attaques applicatives en temps réel.</p>
+
+  <p>Ce document présente l'architecture complète, les choix techniques justifiés et le guide d'intégration de la plateforme RASP, composée de trois repos distincts développés à partir d'un cahier des charges technique exigeant. Il est destiné à un tech lead ou un responsable sécurité souhaitant auditer l'implémentation ou intégrer l'agent dans une application Node.js.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">🏗 rasp-platform</div>
+      <div class="card-body">Control plane Next.js 16. Dashboard, backoffice, gestion des orgs/projets/agents, policies signées, API discovery, audit log, approvals, kill-switch.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📥 rasp-collector</div>
+      <div class="card-body">Service Fastify 5 d'ingestion. Reçoit les événements des agents, authentifie (bcrypt + HMAC), valide, persiste en PostgreSQL partagé.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡 agent-node</div>
+      <div class="card-body">Package npm <code>@rasp/agent-node</code>. Middleware Express/Fastify/NestJS. 10 détecteurs, redaction locale, transport sécurisé, policy signée Ed25519.</div>
+    </div>
+  </div>
+
+  <div class="callout justif">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Positionnement</strong>
+      Un agent RASP s'installe dans le processus de l'application cliente et inspecte les requêtes HTTP à l'exécution, au plus près du code applicatif - contrairement à un WAF réseau qui opère à l'extérieur. Cela permet de détecter des attaques contextualisées (BOLA via JWT, injections dans des corps de requête chiffrés) que les solutions périmètriques ne voient pas.
+    </div>
+  </div>
+
+  <h2>Ce qui est livré (MVP fonctionnel)</h2>
+  <ul class="features">
+    <li>10 détecteurs d'attaques : SQLi, XSS, Command Injection, Path Traversal, NoSQLi, SSRF, Prototype Pollution, Template Injection, Suspicious Headers, BOLA</li>
+    <li>Moteur de redaction avec audit JSONL local - les données sensibles ne quittent jamais le processus client en clair</li>
+    <li>Intégrations Express, Fastify et NestJS prêtes à l'emploi</li>
+    <li>Distribution de policy Ed25519 signée depuis le dashboard (mode, rules custom, redaction config)</li>
+    <li>Collector avec auth bcrypt, HMAC-SHA256, rate-limiting par tenant, mTLS optionnel</li>
+    <li>Dashboard : lifecycle agents, canary rollout (0→1→10→50→100%), kill-switch global, approvals dual-auth</li>
+    <li>API Discovery passive avec heatmap auth, export OpenAPI, détection d'APIs shadow</li>
+    <li>Audit log à chaîne de hash + encryption au repos par tenant (AES-256-GCM)</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     2. ARCHITECTURE GLOBALE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="architecture">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Architecture</div>
+  <h2>Architecture globale</h2>
+
+  <div class="arch-diagram">
+    <svg viewBox="0 0 820 400" width="780" height="380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+        </marker>
+        <marker id="arrowG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
+        </marker>
+        <marker id="arrowA" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/>
+        </marker>
+        <style>
+          text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+          .box { rx:8; ry:8; }
+        </style>
+      </defs>
+
+      <!-- Customer App box -->
+      <rect x="20" y="60" width="195" height="130" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="117" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">App Cliente</text>
+      <rect x="38" y="94" width="160" height="42" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+      <text x="118" y="112" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">@rasp/agent-node</text>
+      <text x="118" y="127" text-anchor="middle" font-size="9" fill="#15803d">middleware Express/Fastify/NestJS</text>
+      <rect x="38" y="148" width="160" height="28" rx="5" fill="#bbf7d0" stroke="#86efac" stroke-width="1"/>
+      <text x="118" y="166" text-anchor="middle" font-size="9" fill="#166534">audit local (rasp-audit.log)</text>
+
+      <!-- Arrow: agent → collector -->
+      <line x1="215" y1="150" x2="295" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowB)" stroke-dasharray="4,3"/>
+      <text x="255" y="143" text-anchor="middle" font-size="8" fill="#64748b">events / heartbeat</text>
+      <text x="255" y="161" text-anchor="middle" font-size="8" fill="#64748b">Bearer + HMAC</text>
+
+      <!-- Collector box -->
+      <rect x="295" y="60" width="175" height="130" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="382" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8">rasp-collector</text>
+      <text x="382" y="98" text-anchor="middle" font-size="9" fill="#3b82f6">Fastify 5</text>
+      <text x="382" y="116" text-anchor="middle" font-size="9" fill="#1e40af">POST /v1/events</text>
+      <text x="382" y="130" text-anchor="middle" font-size="9" fill="#1e40af">POST /v1/heartbeat</text>
+      <text x="382" y="144" text-anchor="middle" font-size="9" fill="#1e40af">POST /v1/discovery</text>
+      <text x="382" y="158" text-anchor="middle" font-size="9" fill="#1e40af">GET  /v1/policy</text>
+      <text x="382" y="176" text-anchor="middle" font-size="9" fill="#3b82f6">auth bcrypt · HMAC · rate-limit</text>
+
+      <!-- Arrow: collector → postgres -->
+      <line x1="382" y1="190" x2="382" y2="255" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowB)"/>
+      <text x="395" y="226" font-size="8" fill="#64748b">persist</text>
+
+      <!-- PostgreSQL -->
+      <rect x="295" y="255" width="175" height="70" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="382" y="278" text-anchor="middle" font-size="11" font-weight="700" fill="#6d28d9">PostgreSQL</text>
+      <text x="382" y="295" text-anchor="middle" font-size="9" fill="#7c3aed">DB partagée (18 modèles)</text>
+      <text x="382" y="309" text-anchor="middle" font-size="9" fill="#7c3aed">SecurityEvent · Agent · Policy</text>
+
+      <!-- Arrow: platform → postgres -->
+      <line x1="575" y1="290" x2="470" y2="290" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowB)"/>
+      <text x="522" y="283" text-anchor="middle" font-size="8" fill="#64748b">Prisma 7 (read/write)</text>
+
+      <!-- Platform box -->
+      <rect x="575" y="60" width="220" height="280" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.5"/>
+      <text x="685" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#b45309">rasp-platform</text>
+      <text x="685" y="97" text-anchor="middle" font-size="9" fill="#d97706">Next.js 16 · NextAuth v5</text>
+      <text x="685" y="116" text-anchor="middle" font-size="9.5" fill="#92400e">Dashboard</text>
+      <text x="685" y="131" text-anchor="middle" font-size="9" fill="#78350f">Agents · Events · Alerts · Rules</text>
+      <text x="685" y="148" text-anchor="middle" font-size="9" fill="#78350f">API Discovery · Redaction Policies</text>
+      <text x="685" y="166" text-anchor="middle" font-size="9.5" fill="#92400e">Backoffice Admin</text>
+      <text x="685" y="181" text-anchor="middle" font-size="9" fill="#78350f">Canary Rollout · Kill-switch</text>
+      <text x="685" y="195" text-anchor="middle" font-size="9" fill="#78350f">Version Exposure · Approvals</text>
+      <text x="685" y="213" text-anchor="middle" font-size="9.5" fill="#92400e">Sécurité</text>
+      <text x="685" y="228" text-anchor="middle" font-size="9" fill="#78350f">TOTP · Audit chain SHA-256</text>
+      <text x="685" y="242" text-anchor="middle" font-size="9" fill="#78350f">Envelope encryption (AES-GCM)</text>
+      <text x="685" y="256" text-anchor="middle" font-size="9" fill="#78350f">Policy Ed25519 signée</text>
+      <text x="685" y="274" text-anchor="middle" font-size="9.5" fill="#92400e">APIs (48 route handlers)</text>
+      <text x="685" y="290" text-anchor="middle" font-size="9" fill="#78350f">Prisma · Zod · bcrypt</text>
+      <text x="685" y="325" text-anchor="middle" font-size="9" fill="#78350f">app/api/** · modules/*.server.ts</text>
+
+      <!-- Arrow: platform → collector (policy relay) -->
+      <path d="M575 180 Q530 180 530 150 Q530 120 470 120" stroke="#16a34a" stroke-width="1.5" fill="none" marker-end="url(#arrowG)" stroke-dasharray="5,3"/>
+      <text x="520" y="108" text-anchor="middle" font-size="8" fill="#15803d">policy (Ed25519)</text>
+
+      <!-- Arrow: agent ← collector (heartbeat response: policy + mode + kill-switch) -->
+      <line x1="295" y1="165" x2="215" y2="165" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowA)" stroke-dasharray="4,3"/>
+
+      <!-- Legend -->
+      <rect x="20" y="310" width="240" height="70" rx="6" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="30" y="328" font-size="9" font-weight="700" fill="#64748b">Légende</text>
+      <line x1="30" y1="342" x2="60" y2="342" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="65" y="346" font-size="8.5" fill="#64748b">Télémétrie agent (events, heartbeat, discovery)</text>
+      <line x1="30" y1="358" x2="60" y2="358" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="65" y="362" font-size="8.5" fill="#64748b">Réponse heartbeat (kill-switch, policy version, mode)</text>
+      <line x1="30" y1="374" x2="60" y2="374" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="65" y="378" font-size="8.5" fill="#64748b">Distribution policy signée (Ed25519)</text>
+    </svg>
+  </div>
+
+  <h3>Flux de requête : de la détection à l'ingestion</h3>
+  <div class="flow-steps">
+    <div class="flow-step">Requête HTTP</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step blue">Middleware RASP<br><small>inspect()</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Détecteurs (×10)<br><small>first-match</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step purple">Redaction Engine<br><small>fail-closed</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Audit JSONL local<br><small>rasp-audit.log</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step blue">Event Buffer<br><small>batch 50/5s</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step green">POST /v1/events<br><small>HMAC + Bearer</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Collector<br><small>202 Accepted</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">SecurityEvent<br><small>PostgreSQL</small></div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Invariant fondamental</strong>
+      La redaction s'exécute <em>avant</em> l'entrée dans le buffer de transport. Un événement dont la redaction échoue est <strong>abandonné</strong> (fail-closed) et journalisé localement. Aucun payload brut ne quitte le processus client.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     3. STACK TECHNIQUE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="stack">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Stack</div>
+  <h2>Stack technique par repo</h2>
+
+  <h3>rasp-platform (control plane)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Catégorie</th><th>Package</th><th>Version</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>Framework</td><td><code>next</code></td><td><span class="badge badge-blue">16.2.6</span></td><td>App Router, RSC, server routes</td></tr>
+        <tr><td>UI</td><td><code>react</code> / <code>react-dom</code></td><td><span class="badge badge-blue">19.2.4</span></td><td>Concurrent mode</td></tr>
+        <tr><td>Auth</td><td><code>next-auth</code></td><td><span class="badge badge-amber">5.0.0-beta.31</span></td><td>Credentials + JWT sessions</td></tr>
+        <tr><td>ORM</td><td><code>prisma</code> / <code>@prisma/client</code></td><td><span class="badge badge-blue">^7.8.0</span></td><td>PostgreSQL via driver adapter</td></tr>
+        <tr><td>DB driver</td><td><code>@prisma/adapter-pg</code> + <code>pg</code></td><td>^7.8.0 / ^8.21.0</td><td>Pool + Neon SSL auto-detect</td></tr>
+        <tr><td>Validation</td><td><code>zod</code></td><td><span class="badge badge-blue">^4.4.3</span></td><td>Validation body/query partout</td></tr>
+        <tr><td>Hachage</td><td><code>bcryptjs</code></td><td>^3.0.3</td><td>API keys, mots de passe</td></tr>
+        <tr><td>UI primitives</td><td><code>@radix-ui/react-*</code></td><td>1–2.x</td><td>Composants accessibles</td></tr>
+        <tr><td>Styles</td><td><code>tailwindcss</code></td><td>^4</td><td>CSS utility-first</td></tr>
+        <tr><td>Charts</td><td><code>recharts</code></td><td>^3.8.1</td><td>KPIs dashboard</td></tr>
+        <tr><td>Tests</td><td><code>vitest</code></td><td>^4.1.7</td><td>Guards auth unitaires</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>rasp-collector (ingestion)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Catégorie</th><th>Package</th><th>Version</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>Framework HTTP</td><td><code>fastify</code></td><td><span class="badge badge-blue">^5.4.0</span></td><td>Serveur HTTP hautes perf.</td></tr>
+        <tr><td>Sécurité</td><td><code>@fastify/helmet</code></td><td>^13.0.1</td><td>Headers HTTP sécurisés</td></tr>
+        <tr><td>Rate-limit</td><td><code>@fastify/rate-limit</code></td><td>^10.2.2</td><td>Par tenant (API key hash)</td></tr>
+        <tr><td>Docs</td><td><code>@fastify/swagger</code> + <code>swagger-ui</code></td><td>^9 / ^5</td><td>OpenAPI auto-généré</td></tr>
+        <tr><td>ORM</td><td><code>prisma</code> / <code>@prisma/client</code></td><td>^7.8.0</td><td>DB partagée avec platform</td></tr>
+        <tr><td>Logs</td><td><code>pino</code></td><td>^9.7.0</td><td>Structuré + redaction secrets</td></tr>
+        <tr><td>Hachage</td><td><code>bcryptjs</code></td><td>^3.0.3</td><td>Vérification API keys</td></tr>
+        <tr><td>Validation</td><td><code>zod</code></td><td>^4.4.3</td><td>Schemas payloads agents</td></tr>
+        <tr><td>Env</td><td><code>dotenv</code></td><td>^17.4.2</td><td>Chargement variables d'env</td></tr>
+        <tr><td>Runtime cible</td><td>Node.js</td><td>22 (Docker), 18/20/22 (CI)</td><td>-</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>agent-node (SDK client)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Catégorie</th><th>Package</th><th>Version</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>Dépendance runtime</td><td><code>zod</code></td><td>^4.4.3</td><td><strong>Seule</strong> dépendance runtime</td></tr>
+        <tr><td>Peer dep (optionnel)</td><td><code>express</code></td><td>≥4</td><td>Si intégration Express</td></tr>
+        <tr><td>Peer dep (optionnel)</td><td><code>fastify</code></td><td>≥4</td><td>Si intégration Fastify</td></tr>
+        <tr><td>Peer dep (optionnel)</td><td><code>@nestjs/common</code></td><td>≥10</td><td>Si intégration NestJS</td></tr>
+        <tr><td>Node.js min.</td><td>-</td><td>≥18</td><td>Crypto natif, fetch, ALS</td></tr>
+        <tr><td>Module system</td><td>ESM natif</td><td><code>"type": "module"</code></td><td>Import/export ES standard</td></tr>
+        <tr><td>TypeScript</td><td><code>typescript</code></td><td>^5 (dev)</td><td>Typings distribués dans dist/</td></tr>
+        <tr><td>Tests</td><td><code>vitest</code></td><td>^4.1.7 (dev)</td><td>Redaction, policy, self-protect…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout choice">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Choix : dépendance unique (<code>zod</code>)</strong>
+      L'agent est installé dans <em>des milliers</em> d'applications clientes. Minimiser la surface d'attaque de la supply chain est une priorité de sécurité : une seule dépendance runtime, utilisée uniquement pour la validation de configuration au démarrage. Crypto, buffer, fetch - tout est fourni par Node.js ≥18.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     4. PLATEFORME RASP
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="platform">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Composant</div>
+  <h2>Plateforme <code>rasp</code> - Control Plane</h2>
+  <p>Monolithe Next.js 16 app router. Toute la logique métier est encapsulée dans <code>modules/*.server.ts</code> ; les routes <code>app/api/**</code> ne font que parser, authentifier, appeler le module et répondre. Aucune requête Prisma directe dans les composants UI.</p>
+
+  <h3 id="platform-auth">Authentification &amp; Comptes</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Implémentation</th><th>Fichiers clés</th></tr></thead>
+      <tbody>
+        <tr><td>Login</td><td>NextAuth v5 Credentials provider. Zod validation email/mot de passe, bcrypt compare.</td><td><code>lib/auth.ts</code>, <code>app/(auth)/login/</code></td></tr>
+        <tr><td>Sessions JWT</td><td>Stateless JWT : <code>id</code>, <code>role</code>, <code>organizationId</code>, <code>mustChangePassword</code>. Pas de sessions DB.</td><td><code>lib/auth.config.ts</code></td></tr>
+        <tr><td>Protection routes</td><td>3 couches : proxy edge (<code>proxy.ts</code>), layout guards RSC, <code>requireSession()</code>/<code>requireAdmin()</code> dans chaque handler.</td><td><code>proxy.ts</code>, <code>lib/auth-helpers.ts</code></td></tr>
+        <tr><td>Force password change</td><td>Drapeau <code>mustChangePassword</code> en DB → proxy redirige vers <code>/change-password</code> à chaque requête.</td><td><code>proxy.ts</code>, <code>app/api/account/change-password/</code></td></tr>
+        <tr><td>TOTP / MFA</td><td>RFC 6238 custom (zéro dépendance externe), timing-safe, ±1 step, QR URL. Enrollment / confirm / disable.</td><td><code>lib/totp.ts</code>, <code>modules/admin/mfa.server.ts</code></td></tr>
+        <tr><td>Onboarding</td><td>Tour guidé ; <code>onboardedAt</code> persisté en DB.</td><td><code>app/api/account/onboarding/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Point de vigilance : <code>requireMfa()</code> non câblé</strong>
+      L'infrastructure TOTP est complète (<code>modules/admin/mfa.server.ts</code>) mais <code>requireMfa()</code> n'est appelé dans aucun route handler sensible. À intégrer avant mise en production pour les actions critiques (kill-switch, quarantine, provision).
+    </div>
+  </div>
+
+  <h3 id="platform-tenancy">Multi-tenancy (Organisations / Projets)</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Entité</th><th>Description</th><th>Isolation</th></tr></thead>
+      <tbody>
+        <tr><td><code>Organization</code></td><td>Tenant racine. <code>name</code>, <code>plan</code> (free/pro/enterprise).</td><td>Toutes les requêtes filtrent via <code>getOrgId(userId)</code></td></tr>
+        <tr><td><code>OrganizationMember</code></td><td>Table de jointure User↔Org. Rôle <code>owner</code>/<code>member</code>.</td><td>Rôle stocké, non encore enforced en API</td></tr>
+        <tr><td><code>Project</code></td><td>Application cliente. Hub de toutes les données de sécurité.</td><td>FK <code>organizationId</code> sur chaque query</td></tr>
+        <tr><td>API Keys</td><td>Clés bearer pour les agents. Hashées bcrypt, préfixe affiché.</td><td>FK <code>projectId</code> ; jamais de clé brute en DB</td></tr>
+        <tr><td>Rotation DEK</td><td>Clé de chiffrement par projet. KEK master en variable d'env.</td><td><code>lib/envelope.ts</code>, <code>TenantKey</code> model</td></tr>
+        <tr><td>Purge RGPD</td><td>Suppression événements + crypto-shred DEK (right-to-deletion).</td><td><code>app/api/projects/[id]/purge/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="platform-agents">Agents &amp; Lifecycle</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th><th>Fichiers</th></tr></thead>
+      <tbody>
+        <tr><td>Inventaire agents</td><td>Création (+ API key auto), statut online/offline, mode, channel, version.</td><td><code>modules/agents/agents.server.ts</code></td></tr>
+        <tr><td>Mode monitor/block</td><td>Publier un mode déclenche la création d'une policy signée Ed25519.</td><td><code>app/api/agents/[id]/mode/</code>, <code>modules/policies/</code></td></tr>
+        <tr><td>Kill-switch agent</td><td>Par agent. Relayé au prochain heartbeat.</td><td><code>app/api/agents/[id]/kill-switch/</code></td></tr>
+        <tr><td>Version pin + fenêtre maintenance</td><td>Le client peut verrouiller la version ou définir une plage horaire UTC pour les upgrades.</td><td><code>app/api/agents/[id]/version/</code></td></tr>
+        <tr><td>Canary rollout</td><td>State machine 0→1→10→50→100%. Cohort FNV-1a sur <code>agentId</code>. Auto-halt si budget d'erreur dépassé.</td><td><code>modules/rollout/rollout.server.ts</code>, <code>app/api/backoffice/agent-versions/[id]/canary/</code></td></tr>
+        <tr><td>Quarantine version</td><td>Incident response. Requiert une <code>ApprovalRequest</code> approuvée par un second admin.</td><td><code>modules/admin/incident.server.ts</code></td></tr>
+        <tr><td>Kill-switch global</td><td><code>PlatformSetting.killSwitch</code>. Requiert approbation dual-auth.</td><td><code>app/api/backoffice/kill-switch/</code></td></tr>
+        <tr><td>Version exposure map</td><td>"Quels agents/orgs tournent sur la version X ?" - forensique.</td><td><code>app/api/backoffice/version-exposure/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="platform-events">Événements de Sécurité &amp; Alertes</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Liste événements</td><td>Paginée, filtrée par type/sévérité/agent/projet. Payload déchiffré à la lecture (DEK par tenant).</td></tr>
+        <tr><td>Détail événement</td><td>Contexte complet : type, sévérité, path, method, action (monitor/block), payload redacté déchiffré.</td></tr>
+        <tr><td>Alertes auto</td><td>Créées par le collector pour tout événement <code>critical</code> ou <code>high</code>. Workflow open→investigating→resolved.</td></tr>
+        <tr><td>Assignation</td><td>Alerte assignable à un membre de l'org.</td></tr>
+        <tr><td>KPIs dashboard</td><td>Tendances 7 jours, top endpoints, répartition par sévérité.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="platform-policies">Policies, Rules &amp; Redaction Policies</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Entité</th><th>Comportement</th><th>Fichiers</th></tr></thead>
+      <tbody>
+        <tr><td><code>Rule</code></td><td>Règles de détection globales (non per-project). Admin CRUD. Lecture seule pour tenants.</td><td><code>modules/rules/rules.server.ts</code>, <code>app/api/rules/</code></td></tr>
+        <tr><td><code>Policy</code></td><td>Version <strong>immuable</strong> signée Ed25519. Porte mode, detectionRules, redactionConfig, dataResidency, targetAgentVersion. Append-only. Rollback = nouvelle version signée.</td><td><code>modules/policies/policies.server.ts</code>, <code>lib/policy-signing.ts</code></td></tr>
+        <tr><td><code>RedactionPolicy</code></td><td>Enregistrement éditable dashboard. À la création : crée ET publie une Policy signée. Mise à jour (PATCH) met à jour l'enregistrement seulement (ne re-publie pas).</td><td><code>modules/redaction/redaction.server.ts</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout choice">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Choix : Policy immuable + signature Ed25519</strong>
+      Les policies sont des versions append-only. Un rollback crée une nouvelle version signée - jamais d'écrasement. Cela garantit un audit trail complet et empêche qu'une compromission du collector puisse modifier silencieusement la configuration des agents (seul le control plane détient la clé privée).
+    </div>
+  </div>
+
+  <h3 id="platform-discovery">API Discovery</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Inventaire <code>DiscoveredEndpoint</code></td><td>Observé passivement par l'agent. Methode, pathPattern normalisé, isAuthenticated, isSensitive, riskScore (0-100).</td></tr>
+        <tr><td>Shadow API flag</td><td>Endpoint vu par l'agent mais absent de la spec importée.</td></tr>
+        <tr><td>Zombie API flag</td><td>Aucun trafic depuis 30 jours - heuristique recomputable.</td></tr>
+        <tr><td>Auth coverage heatmap</td><td>% endpoints authentifiés, autorisés, sensibles sans auth.</td></tr>
+        <tr><td>Export OpenAPI</td><td>Génère un spec OpenAPI 3.0 depuis le trafic observé.</td></tr>
+        <tr><td>Import spec</td><td>Compare la spec fournie avec les endpoints découverts → marque les shadow APIs.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="platform-audit">Audit Log &amp; Gouvernance</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th><th>Fichiers</th></tr></thead>
+      <tbody>
+        <tr><td>Audit log à chaîne de hash</td><td>Chaque <code>AuditLog</code> porte le SHA-256 de l'entrée précédente. Toute modification de l'historique est détectable.</td><td><code>lib/auth-helpers.ts</code> (<code>verifyAuditChain</code>)</td></tr>
+        <tr><td>Vérification &amp; acknowledge</td><td>Admin peut vérifier l'intégrité de la chaîne et confirmer une rupture après incident.</td><td><code>app/api/admin/audit/verify/</code>, <code>acknowledge/</code></td></tr>
+        <tr><td>Approvals (dual-auth)</td><td>Actions sensibles (kill-switch global, quarantine version) nécessitent qu'un second admin approuve la demande.</td><td><code>modules/admin/approvals.server.ts</code></td></tr>
+        <tr><td>Provisionnement clients</td><td>Admin crée org + user + mot de passe temporaire via backoffice.</td><td><code>app/api/backoffice/provision/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     5. COLLECTOR
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="collector">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Composant</div>
+  <h2>Collector <code>rasp-collector</code></h2>
+  <p>Service Fastify 5 stateless d'ingestion de télémétrie. N'inclut aucune logique dashboard. Pattern route handler : <strong>auth → validate → enforce → business module → respond</strong>.</p>
+
+  <h3 id="collector-endpoints">Endpoints</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Route</th><th>Auth</th><th>Validation</th><th>Retourne</th><th>Codes HTTP</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>GET /health</code></td>
+          <td>Aucune</td>
+          <td>-</td>
+          <td><code>{ status, service, version, timestamp }</code></td>
+          <td><span class="badge badge-green">200</span></td>
+        </tr>
+        <tr>
+          <td><code>POST /v1/events</code></td>
+          <td>Bearer bcrypt<br>HMAC optionnel</td>
+          <td>Zod <code>EventSchema</code><br><code>metadata.redacted===true</code></td>
+          <td><code>{ accepted: true, eventId }</code></td>
+          <td><span class="badge badge-green">202</span> <span class="badge badge-amber">400 401 403 413 429 500</span></td>
+        </tr>
+        <tr>
+          <td><code>POST /v1/heartbeat</code></td>
+          <td>Bearer bcrypt<br>HMAC optionnel</td>
+          <td>Zod <code>HeartbeatSchema</code></td>
+          <td>kill-switch, policyVersion, mode, targetVersion…</td>
+          <td><span class="badge badge-green">200</span> <span class="badge badge-amber">400 401 403 404 429</span></td>
+        </tr>
+        <tr>
+          <td><code>POST /v1/discovery</code></td>
+          <td>Bearer bcrypt<br>HMAC optionnel</td>
+          <td>Zod <code>DiscoveryPayloadSchema</code><br>1–500 endpoints/batch</td>
+          <td><code>{ accepted: true, count }</code></td>
+          <td><span class="badge badge-green">202</span> <span class="badge badge-amber">400 401 403 429</span></td>
+        </tr>
+        <tr>
+          <td><code>GET /v1/policy</code></td>
+          <td>Bearer bcrypt</td>
+          <td>Query <code>agentId?</code>, <code>channel?</code></td>
+          <td>Payload policy signé verbatim (relais, pas de re-signature)</td>
+          <td><span class="badge badge-green">200</span> <span class="badge badge-amber">401 404</span></td>
+        </tr>
+        <tr>
+          <td><code>GET /docs</code></td>
+          <td>Aucune</td>
+          <td>-</td>
+          <td>Swagger UI auto-généré</td>
+          <td><span class="badge badge-green">200</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Réponse heartbeat (200)</h4>
+  <pre><code><span class="p">{</span>
+  <span class="s">"ok"</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>
+  <span class="s">"killSwitch"</span><span class="p">:</span> <span class="k">false</span><span class="p">,</span>          <span class="c">// agent.killSwitch OR platform.killSwitch</span>
+  <span class="s">"policyVersion"</span><span class="p">:</span> <span class="s">"3"</span><span class="p">,</span>
+  <span class="s">"mode"</span><span class="p">:</span> <span class="s">"monitor"</span><span class="p">,</span>
+  <span class="s">"targetVersion"</span><span class="p">:</span> <span class="s">"1.2.0"</span><span class="p">,</span>   <span class="c">// upgrade disponible</span>
+  <span class="s">"upgradeAvailable"</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>
+  <span class="s">"changelog"</span><span class="p">:</span> <span class="s">"Security patch for SSRF detector"</span><span class="p">,</span>
+  <span class="s">"impact"</span><span class="p">:</span> <span class="s">"low"</span>
+<span class="p">}</span></code><span class="lang-tag">JSON</span></pre>
+
+  <h3 id="collector-security">Mécanismes de Sécurité</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mécanisme</th><th>Implémentation</th><th>Fichier</th></tr></thead>
+      <tbody>
+        <tr><td>Auth Bearer (bcrypt)</td><td>Extraction préfixe regex, requête DB candidates, <code>bcrypt.compare</code>. Clé brute jamais stockée.</td><td><code>src/modules/auth/api-key.ts</code></td></tr>
+        <tr><td>HMAC-SHA256</td><td>Header <code>X-RASP-Signature: sha256=&lt;hex&gt;</code> calculé sur <code>req.rawBody</code> (bytes exacts, pas re-sérialisé). <code>crypto.timingSafeEqual</code>. Secret par agent en priorité, sinon global <code>HMAC_SECRET</code>.</td><td><code>src/modules/auth/hmac.ts</code></td></tr>
+        <tr><td>Limite payload</td><td>Fastify <code>bodyLimit</code> = 64 KB par défaut. 413 → <code>{ error: "Payload too large" }</code>.</td><td><code>src/app.ts</code></td></tr>
+        <tr><td>Rate-limit par tenant</td><td>600 req/min par défaut. Bucket = hash SHA-256 du Bearer token (jamais la clé brute en mémoire). Fallback IP si pas de token.</td><td><code>src/app.ts</code> (rate-limit plugin)</td></tr>
+        <tr><td>Gate redaction</td><td><code>metadata.redacted !== true</code> → 400. Enforced avant persistence.</td><td><code>src/routes/events.route.ts</code></td></tr>
+        <tr><td>Logs Pino redactés</td><td>Chemins redactés : <code>req.headers.authorization</code>, <code>*.password</code>, <code>*.secret</code>, <code>*.apiKey</code>, <code>*.token</code>. Sérialiseur request custom : method, url, remoteAddress seulement.</td><td><code>src/lib/logger.ts</code></td></tr>
+        <tr><td>mTLS (optionnel)</td><td><code>MTLS_REQUIRED=true</code> : valide l'empreinte SHA-256 du cert client contre <code>MTLS_ALLOWED_FINGERPRINTS</code>.</td><td><code>src/app.ts</code></td></tr>
+        <tr><td>Encryption au repos</td><td>Métadonnées events chiffrées AES-256-GCM avec DEK par projet avant insertion. KEK master en env <code>KEK_MASTER_KEY</code>.</td><td><code>src/lib/envelope.ts</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="collector-ingestion">Logique d'Ingestion</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Module</th><th>Comportement</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>persist-event.ts</code></td>
+          <td>① Chiffre metadata (si KEK) → ② Crée <code>SecurityEvent</code> (<code>redacted=true</code>) → ③ Si severity ∈ {critical, high} : crée <code>Alert</code> automatiquement.</td>
+        </tr>
+        <tr>
+          <td><code>persist-heartbeat.ts</code></td>
+          <td>① Charge agent → ② Lit en parallèle : policyVersion, targetVersion, kill-switch global, mode → ③ Met à jour <code>Agent</code> (heartbeat, status, version) → ④ Répond avec payload de contrôle.</td>
+        </tr>
+        <tr>
+          <td><code>resolve-target-version.ts</code></td>
+          <td>Priorité upgrade : pin > canary FNV-1a > maintenance window UTC. Persiste <code>upgradeStatus=upgrading</code> à la transition.</td>
+        </tr>
+        <tr>
+          <td><code>persist-discovery.ts</code></td>
+          <td>Upsert <code>DiscoveredEndpoint</code> sur <code>(projectId, method, pathPattern)</code>. Cumule traffic/error counts, calcule riskScore, marque <code>isShadowApi</code> à la création.</td>
+        </tr>
+        <tr>
+          <td><code>volume-monitor.ts</code></td>
+          <td>Fenêtre glissante 60s par <code>projectId:agentId</code>. Si count > seuil → crée événement <code>abnormal_volume</code> + Alert. Cooldown 5 min. Swallows ses propres erreurs.</td>
+        </tr>
+        <tr>
+          <td><code>get-policy.ts</code></td>
+          <td>Lecture seule. Retourne verbatim la <code>Policy</code> signée la plus récente pour le channel. Le collector ne signe jamais.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout justif">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Justification : 202 Accepted pour l'ingestion</strong>
+      Le pattern 202 signale "accepté pour traitement" même si la persistence est aujourd'hui synchrone. Il découple contractuellement le protocole agent de l'implémentation interne du collector : une migration vers un bus asynchrone (Redis/BullMQ) ne changera pas le contrat HTTP des agents.
+    </div>
+  </div>
+
+  <div class="callout justif">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Justification : collector comme relais de policy</strong>
+      Le collector sert les policies signées verbatim sans re-signer. La compromission du collector ne peut pas forger une nouvelle policy : seul le control plane (rasp-platform) détient la clé privée Ed25519.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     6. AGENT-NODE : GUIDE D'INTÉGRATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="agent-integration">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Guide d'intégration</div>
+  <h2>Agent Node - <code>@rasp/agent-node</code></h2>
+
+  <h3 id="agent-install">Installation</h3>
+  <pre><code><span class="c"># npm</span>
+npm install @rasp/agent-node
+
+<span class="c"># pnpm</span>
+pnpm add @rasp/agent-node
+
+<span class="c"># yarn</span>
+yarn add @rasp/agent-node</code><span class="lang-tag">bash</span></pre>
+
+  <p>Seule dépendance runtime : <code>zod</code>. Les peer dependencies (<code>express</code>, <code>fastify</code>, <code>@nestjs/common</code>) sont optionnelles - installez uniquement ce qui est utilisé.</p>
+
+  <div class="callout warning">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Node.js ≥ 18 requis</strong>
+      L'agent utilise <code>crypto</code> (AES-GCM, HMAC, Ed25519), <code>fetch</code> natif, <code>AsyncLocalStorage</code> et ESM natif. Node.js 16 et antérieur ne sont pas supportés.
+    </div>
+  </div>
+
+  <h3 id="agent-config">Configuration - <code>RaspConfig</code></h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Type</th><th>Défaut</th><th>Min</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>apiKey</code> *</td><td>string</td><td>-</td><td>-</td><td>Clé API générée par la plateforme.</td></tr>
+        <tr><td><code>projectId</code> *</td><td>string</td><td>-</td><td>-</td><td>ID du projet dans la plateforme.</td></tr>
+        <tr><td><code>agentId</code> *</td><td>string</td><td>-</td><td>-</td><td>ID de l'agent enregistré dans la plateforme.</td></tr>
+        <tr><td><code>agentVersion</code></td><td>string</td><td>-</td><td>-</td><td>Optionnel. Reporté dans les heartbeats.</td></tr>
+        <tr><td><code>mode</code></td><td><code>"monitor" | "block"</code></td><td><code>"monitor"</code></td><td>-</td><td>Mode initial. Peut être surchargé par policy signée.</td></tr>
+        <tr><td><code>channel</code></td><td><code>"stable" | "early" | "edge"</code></td><td><code>"stable"</code></td><td>-</td><td>Canal de distribution des policies et versions.</td></tr>
+        <tr><td><code>heartbeatIntervalMs</code></td><td>number</td><td>30 000</td><td>5 000</td><td>Intervalle entre heartbeats.</td></tr>
+        <tr><td><code>flushIntervalMs</code></td><td>number</td><td>5 000</td><td>1 000</td><td>Flush périodique du buffer d'événements.</td></tr>
+        <tr><td><code>bufferMaxSize</code></td><td>number</td><td>50</td><td>1</td><td>Flush déclenché aussi si le buffer atteint cette taille.</td></tr>
+        <tr><td><code>transportTimeoutMs</code></td><td>number</td><td>5 000</td><td>500</td><td>Timeout HTTP vers le collector.</td></tr>
+        <tr><td><code>auditLog</code></td><td>boolean</td><td><code>true</code></td><td>-</td><td>Active l'audit JSONL local.</td></tr>
+        <tr><td><code>auditLogPath</code></td><td>string</td><td><code>"./rasp-audit.log"</code></td><td>-</td><td>Chemin du fichier d'audit local.</td></tr>
+        <tr><td><code>auditLogMaxBytes</code></td><td>number</td><td>10 485 760</td><td>1</td><td>Taille max avant rotation (10 MB par défaut).</td></tr>
+        <tr><td><code>framework</code></td><td>string</td><td>-</td><td>-</td><td>Tag libre reporté dans les heartbeats.</td></tr>
+        <tr><td><code>discoveryFlushIntervalMs</code></td><td>number</td><td>60 000</td><td>5 000</td><td>Flush API discovery vers le collector.</td></tr>
+        <tr><td><code>hmacSecret</code></td><td>string</td><td>-</td><td>-</td><td>Secret HMAC-SHA256 si <code>HMAC_REQUIRED=true</code> côté collector.</td></tr>
+        <tr><td><code>instrumentDb</code></td><td>boolean</td><td><code>false</code></td><td>-</td><td>Active le monkey-patch des drivers DB (pg, mysql2, mongoose, knex, sequelize, Prisma) pour corrélation BOLA.</td></tr>
+        <tr><td><code>selfProtect</code></td><td>boolean</td><td><code>false</code></td><td>-</td><td>Active anti-debug, hook integrity, <code>SecureStore</code> étendu.</td></tr>
+        <tr><td><code>policyPublicKey</code></td><td>string</td><td>Clé dev embarquée</td><td>-</td><td>Clé publique Ed25519 PEM de confiance. Surcharger en production.</td></tr>
+        <tr><td><code>tls</code></td><td>object</td><td>-</td><td>-</td><td>TLS/mTLS : <code>caCert</code>, <code>clientCert</code>, <code>clientKey</code>, <code>collectorFingerprints</code>, <code>rejectUnauthorized</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Variables d'environnement lues par <code>src/config.ts</code> :</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Effet</th></tr></thead>
+      <tbody>
+        <tr><td><code>RASP_COLLECTOR_URL</code></td><td>Override l'URL du collector (défaut : <code>https://collector.rasp.dev</code>).</td></tr>
+        <tr><td><code>RASP_POLICY_PUBLIC_KEY</code></td><td>Override la clé publique de confiance pour les policies signées.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <h3 id="agent-express">Intégration Express</h3>
+  <pre><code><span class="k">import</span> express <span class="k">from</span> <span class="s">"express"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createExpressMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+
+<span class="c">// 1. Instancier et démarrer l'agent AVANT app.use()</span>
+<span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
+  <span class="n">apiKey</span><span class="p">:</span>    process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_API_KEY</span><span class="p">!,</span>
+  <span class="n">projectId</span><span class="p">:</span> process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_PROJECT_ID</span><span class="p">!,</span>
+  <span class="n">agentId</span><span class="p">:</span>   process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_AGENT_ID</span><span class="p">!,</span>
+  <span class="n">framework</span><span class="p">:</span> <span class="s">"express"</span><span class="p">,</span>
+  <span class="n">mode</span><span class="p">:</span>      <span class="s">"monitor"</span><span class="p">,</span>  <span class="c">// ou "block"</span>
+<span class="p">});</span>
+agent<span class="p">.</span><span class="f">start</span><span class="p">();</span>
+
+<span class="k">const</span> <span class="n">app</span> <span class="p">=</span> <span class="f">express</span><span class="p">();</span>
+app<span class="p">.</span><span class="f">use</span><span class="p">(</span>express<span class="p">.</span><span class="f">json</span><span class="p">());</span>
+app<span class="p">.</span><span class="f">use</span><span class="p">(</span>express<span class="p">.</span><span class="f">urlencoded</span><span class="p">({</span> <span class="n">extended</span><span class="p">:</span> <span class="k">false</span> <span class="p">}));</span>
+
+<span class="c">// 2. Monter le middleware APRÈS les body parsers</span>
+app<span class="p">.</span><span class="f">use</span><span class="p">(</span><span class="f">createExpressMiddleware</span><span class="p">(</span>agent<span class="p">));</span>
+
+<span class="c">// 3. Vos routes</span>
+app<span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="s">"/api/users/:id"</span><span class="p">,</span> <span class="p">(</span>req<span class="p">,</span> res<span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="c">// Si mode block et attaque détectée, le middleware a déjà répondu 403</span>
+  res<span class="p">.</span><span class="f">json</span><span class="p">({</span> <span class="n">id</span><span class="p">:</span> req<span class="p">.</span>params<span class="p">.</span><span class="n">id</span> <span class="p">});</span>
+<span class="p">});</span>
+
+<span class="c">// 4. Drain propre à l'arrêt</span>
+process<span class="p">.</span><span class="f">on</span><span class="p">(</span><span class="s">"SIGTERM"</span><span class="p">,</span> <span class="k">async</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="k">await</span> agent<span class="p">.</span><span class="f">stop</span><span class="p">();</span>  <span class="c">// flush buffer + ferme audit log</span>
+  process<span class="p">.</span><span class="f">exit</span><span class="p">(</span><span class="v">0</span><span class="p">);</span>
+<span class="p">});</span>
+
+app<span class="p">.</span><span class="f">listen</span><span class="p">(</span><span class="v">3000</span><span class="p">);</span></code><span class="lang-tag">TypeScript</span></pre>
+
+  <div class="callout warning">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Ordre critique : body parsers avant le middleware RASP</strong>
+      Le middleware doit être monté <em>après</em> <code>express.json()</code> / <code>express.urlencoded()</code> pour que le corps de la requête soit disponible lors de l'inspection. Monter l'agent avant les parsers ne plante pas l'application (fail-open) mais le corps ne sera pas inspecté.
+    </div>
+  </div>
+
+  <h3 id="agent-fastify">Intégration Fastify</h3>
+  <pre><code><span class="k">import</span> Fastify <span class="k">from</span> <span class="s">"fastify"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createFastifyPlugin</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+
+<span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
+  <span class="n">apiKey</span><span class="p">:</span>    process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_API_KEY</span><span class="p">!,</span>
+  <span class="n">projectId</span><span class="p">:</span> process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_PROJECT_ID</span><span class="p">!,</span>
+  <span class="n">agentId</span><span class="p">:</span>   process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_AGENT_ID</span><span class="p">!,</span>
+  <span class="n">framework</span><span class="p">:</span> <span class="s">"fastify"</span><span class="p">,</span>
+<span class="p">});</span>
+agent<span class="p">.</span><span class="f">start</span><span class="p">();</span>
+
+<span class="k">const</span> <span class="n">fastify</span> <span class="p">=</span> <span class="f">Fastify</span><span class="p">({</span> <span class="n">logger</span><span class="p">:</span> <span class="k">true</span> <span class="p">});</span>
+
+<span class="c">// Enregistrement en tant que plugin Fastify</span>
+<span class="k">await</span> fastify<span class="p">.</span><span class="f">register</span><span class="p">(</span><span class="f">createFastifyPlugin</span><span class="p">(</span>agent<span class="p">));</span>
+
+fastify<span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="s">"/api/items"</span><span class="p">,</span> <span class="k">async</span> <span class="p">(</span>request<span class="p">,</span> reply<span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span> <span class="n">items</span><span class="p">:</span> <span class="p">[]</span> <span class="p">};</span>
+<span class="p">});</span>
+
+<span class="k">await</span> fastify<span class="p">.</span><span class="f">listen</span><span class="p">({</span> <span class="n">port</span><span class="p">:</span> <span class="v">3000</span> <span class="p">});</span>
+
+process<span class="p">.</span><span class="f">on</span><span class="p">(</span><span class="s">"SIGTERM"</span><span class="p">,</span> <span class="k">async</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="k">await</span> fastify<span class="p">.</span><span class="f">close</span><span class="p">();</span>
+  <span class="k">await</span> agent<span class="p">.</span><span class="f">stop</span><span class="p">();</span>
+<span class="p">});</span></code><span class="lang-tag">TypeScript</span></pre>
+
+  <div class="callout warning">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Inspection du corps avec Fastify</strong>
+      Le plugin utilise le hook <code>onRequest</code> (avant parsing). Pour inspecter le corps JSON, ajouter un hook <code>preHandler</code> ou utiliser <code>addHook("preHandler", ...)</code> après l'enregistrement du plugin.
+    </div>
+  </div>
+
+  <h3 id="agent-nestjs">Intégration NestJS</h3>
+  <pre><code><span class="c">// rasp.module.ts</span>
+<span class="k">import</span> <span class="p">{</span> <span class="t">Module</span><span class="p">,</span> <span class="t">NestModule</span><span class="p">,</span> <span class="t">MiddlewareConsumer</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@nestjs/common"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createNestMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+
+<span class="k">export const</span> <span class="n">raspAgent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
+  <span class="n">apiKey</span><span class="p">:</span>    process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_API_KEY</span><span class="p">!,</span>
+  <span class="n">projectId</span><span class="p">:</span> process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_PROJECT_ID</span><span class="p">!,</span>
+  <span class="n">agentId</span><span class="p">:</span>   process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_AGENT_ID</span><span class="p">!,</span>
+  <span class="n">framework</span><span class="p">:</span> <span class="s">"nestjs"</span><span class="p">,</span>
+<span class="p">});</span>
+raspAgent<span class="p">.</span><span class="f">start</span><span class="p">();</span>
+
+<span class="p">@</span><span class="f">Module</span><span class="p">({</span> <span class="n">imports</span><span class="p">:</span> <span class="p">[</span><span class="c">/* vos modules */</span><span class="p">]</span> <span class="p">})</span>
+<span class="k">export class</span> <span class="t">AppModule</span> <span class="k">implements</span> <span class="t">NestModule</span> <span class="p">{</span>
+  <span class="f">configure</span><span class="p">(</span><span class="n">consumer</span><span class="p">:</span> <span class="t">MiddlewareConsumer</span><span class="p">)</span> <span class="p">{</span>
+    consumer
+      <span class="p">.</span><span class="f">apply</span><span class="p">(</span><span class="f">createNestMiddleware</span><span class="p">(</span>raspAgent<span class="p">))</span>
+      <span class="p">.</span><span class="f">forRoutes</span><span class="p">(</span><span class="s">"*"</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c">// main.ts - arrêt propre</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">raspAgent</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"./rasp.module"</span><span class="p">;</span>
+
+process<span class="p">.</span><span class="f">on</span><span class="p">(</span><span class="s">"SIGTERM"</span><span class="p">,</span> <span class="k">async</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+  <span class="k">await</span> raspAgent<span class="p">.</span><span class="f">stop</span><span class="p">();</span>
+<span class="p">});</span></code><span class="lang-tag">TypeScript</span></pre>
+
+  <h3 id="agent-modes">Modes, Lifecycle &amp; Kill-switch</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujet</th><th>Comportement</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-monitor">monitor</span></td>
+          <td>Mode par défaut. Les attaques sont détectées et reportées. Toutes les requêtes passent - le middleware appelle toujours <code>next()</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="tag-block">block</span></td>
+          <td>Si une attaque est détectée, le middleware répond <code>HTTP 403 { "error": "Request blocked by RASP", "eventType": "..." }</code> et n'appelle pas <code>next()</code>.</td>
+        </tr>
+        <tr>
+          <td>Lire le mode courant</td>
+          <td>Utiliser <strong><code>agent.mode</code></strong> (pas la config de démarrage). Le mode peut changer via policy signée depuis le dashboard.</td>
+        </tr>
+        <tr>
+          <td><code>agent.start()</code></td>
+          <td>Démarre le heartbeat (immédiat puis périodique), l'instrumentation DB si activée, self-protect si activé.</td>
+        </tr>
+        <tr>
+          <td><code>agent.stop()</code></td>
+          <td>Async. Arrête heartbeat + self-protect, drain le buffer d'événements, drain la discovery, ferme le fd d'audit log.</td>
+        </tr>
+        <tr>
+          <td>Kill-switch</td>
+          <td>Si <code>killSwitch: true</code> dans la réponse heartbeat : <code>inspect()</code> et <code>beginRequest()</code> deviennent des no-ops immédiats. L'heartbeat continue (pour détecter la levée du kill-switch). Récupération automatique si <code>killSwitch</code> repasse à <code>false</code>.</td>
+        </tr>
+        <tr>
+          <td>Fail-open</td>
+          <td>Toute exception dans <code>inspect()</code>, détecteurs, transport, audit log est swallowée. L'agent ne peut jamais faire crasher l'application hôte.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="agent-ext">Extensions</h3>
+
+  <h4>Détecteur personnalisé</h4>
+  <pre><code><span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="t">Detector</span><span class="p">,</span> <span class="t">NormalizedRequest</span><span class="p">,</span> <span class="t">DetectionResult</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+
+<span class="k">const</span> <span class="n">myDetector</span><span class="p">:</span> <span class="t">Detector</span> <span class="p">=</span> <span class="p">{</span>
+  <span class="n">name</span><span class="p">:</span> <span class="s">"my-custom-detector"</span><span class="p">,</span>
+  <span class="f">detect</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="t">NormalizedRequest</span><span class="p">):</span> <span class="t">DetectionResult</span> <span class="p">|</span> <span class="k">null</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span>req<span class="p">.</span>path<span class="p">.</span><span class="f">includes</span><span class="p">(</span><span class="s">"/internal"</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span>
+        <span class="n">eventType</span><span class="p">:</span>    <span class="s">"unauthorized_internal_access"</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span>     <span class="s">"high"</span><span class="p">,</span>
+        <span class="n">detectorName</span><span class="p">:</span> <span class="s">"my-custom-detector"</span><span class="p">,</span>
+        <span class="n">matchedValue</span><span class="p">:</span> req<span class="p">.</span>path<span class="p">,</span>
+        <span class="n">matchedField</span><span class="p">:</span> <span class="s">"path"</span><span class="p">,</span>
+      <span class="p">};</span>
+    <span class="p">}</span>
+    <span class="k">return null</span><span class="p">;</span>
+  <span class="p">},</span>
+<span class="p">};</span>
+
+<span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
+  <span class="c">// ... config ...</span>
+<span class="p">},</span> <span class="p">{</span> <span class="n">extraDetectors</span><span class="p">:</span> <span class="p">[</span>myDetector<span class="p">]</span> <span class="p">});</span></code><span class="lang-tag">TypeScript</span></pre>
+
+  <h4>Instrumentation Prisma (corrélation BOLA DB)</h4>
+  <pre><code><span class="k">import</span> <span class="p">{</span> <span class="t">PrismaClient</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@prisma/client"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">instrumentPrismaClient</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+
+<span class="k">const</span> <span class="n">prisma</span> <span class="p">=</span> <span class="k">new</span> <span class="t">PrismaClient</span><span class="p">({</span>
+  <span class="n">log</span><span class="p">:</span> <span class="p">[{</span> <span class="n">emit</span><span class="p">:</span> <span class="s">"event"</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="s">"query"</span> <span class="p">}],</span>  <span class="c">// requis pour l'instrumentation</span>
+<span class="p">});</span>
+<span class="f">instrumentPrismaClient</span><span class="p">(</span>prisma<span class="p">);</span>
+
+<span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
+  <span class="c">// ...</span>
+  <span class="n">instrumentDb</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>
+<span class="p">});</span></code><span class="lang-tag">TypeScript</span></pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     7. AGENT-NODE : ARCHITECTURE INTERNE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="agent-internals">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Architecture interne</div>
+  <h2>Agent Node - Architecture Interne</h2>
+
+  <h3 id="agent-detectors">Détecteurs (src/detectors/)</h3>
+
+  <p>Contrat <code>Detector</code> : <code>{ name: string; detect(req: NormalizedRequest): DetectionResult | null }</code>. Premier détecteur qui renvoie un résultat non-null gagne (first-match). Les exceptions par détecteur sont swallowées.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Détecteur</th><th>eventType</th><th>Sévérité</th><th>Cibles</th><th>Ce qu'il détecte</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>sql-injection</code></td><td>sql_injection</td><td><span class="tag-critical">critical</span></td><td>query, body, path</td><td>UNION SELECT, tautologies, DDL/DML stackés, xp_cmdshell, WAITFOR DELAY, SLEEP, INFORMATION_SCHEMA, commentaires SQL</td></tr>
+        <tr><td>2</td><td><code>xss</code></td><td>xss</td><td><span class="tag-high">high</span></td><td>query, body</td><td><code>&lt;script&gt;</code>, <code>javascript:</code>, handlers DOM (onerror, onload…), iframe/svg, <code>expression()</code>, img-onerror</td></tr>
+        <tr><td>3</td><td><code>command-injection</code></td><td>command_injection</td><td><span class="tag-critical">critical</span></td><td>query, body, path</td><td>Métacaractères shell (;|&amp;&amp;), binaires recon (/etc/passwd, cat, wget), <code>$()</code>, backticks, exec/eval/system</td></tr>
+        <tr><td>4</td><td><code>path-traversal</code></td><td>path_traversal</td><td><span class="tag-high">high</span></td><td>query, body, path</td><td><code>../</code>, variantes encodées (%2F, %00), NUL byte, <code>/etc/passwd</code>, <code>win.ini</code> (+ passe URL decode)</td></tr>
+        <tr><td>5</td><td><code>nosql-injection</code></td><td>nosql_injection</td><td><span class="tag-high">high</span></td><td>query, body</td><td>Opérateurs MongoDB en valeurs (<code>$where</code>, <code>$gt</code>…) et comme clés d'objet JSON</td></tr>
+        <tr><td>6</td><td><code>ssrf</code></td><td>ssrf</td><td><span class="tag-high">high</span></td><td>query, body</td><td>Loopback, RFC1918, métadonnées cloud (169.254.169.254), <code>file://</code>, <code>gopher://</code></td></tr>
+        <tr><td>7</td><td><code>prototype-pollution</code></td><td>prototype_pollution</td><td><span class="tag-critical">critical</span></td><td>query, body</td><td>Clés/valeurs <code>__proto__</code>, <code>constructor</code>, <code>prototype</code></td></tr>
+        <tr><td>8</td><td><code>template-injection</code></td><td>template_injection</td><td><span class="tag-high">high</span></td><td>query, body</td><td><code>&#123;&#123; &#125;&#125;</code>, <code>&#123;% %&#125;</code>, <code>&lt;% %&gt;</code>, <code>${}</code>, probes <code>7*7</code></td></tr>
+        <tr><td>9</td><td><code>suspicious-headers</code></td><td>suspicious_headers / host_header_injection / header_injection</td><td><span class="tag-medium">medium</span>/<span class="tag-high">high</span></td><td>headers</td><td>Flood headers (&gt;100), valeurs surdimensionnées (&gt;8KB), chars injection Host, IP privée dans X-Forwarded-For, CRLF en valeur</td></tr>
+        <tr><td>10</td><td><code>bola</code></td><td>bola</td><td><span class="tag-high">high</span></td><td>path, JWT</td><td>JWT <code>sub</code> ≠ resource ID dans l'URL ; enumération &gt;20 IDs distincts en 60s par IP</td></tr>
+        <tr><td>*</td><td><code>custom-rule</code></td><td>(configurable)</td><td>(configurable)</td><td>(configurable)</td><td>Règles custom depuis policy signée. Insérées après les détecteurs de base.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="agent-redaction">Moteur de Redaction (<code>src/redaction/</code>)</h3>
+
+  <h4>engine.ts - deux passes</h4>
+  <ul class="features">
+    <li><strong>Key-based (denylist) :</strong> clés d'objet correspondant aux patterns → sous-arbre remplacé par <code>[REDACTED]</code>. Profondeur max 6 niveaux.</li>
+    <li><strong>Value-based :</strong> les valeurs string sont scannées par <code>redactValueString()</code>. Configurable via <code>valueRedaction</code> (défaut <code>true</code>).</li>
+    <li><strong>Mode allowlist :</strong> redacte tout sauf les clés structurelles autorisées + <code>allowKeyPatterns</code>.</li>
+  </ul>
+
+  <h4>patterns.ts - redaction de valeurs (priorité ordre)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>Résultat</th></tr></thead>
+      <tbody>
+        <tr><td>Littéraux SQL (si mots-clés SQL présents)</td><td><code>[STRING]</code>, <code>[INT]</code></td></tr>
+        <tr><td>Email</td><td><code>[EMAIL:&lt;sha256-16-chars&gt;]</code></td></tr>
+        <tr><td>Carte bancaire (Luhn valide)</td><td><code>****-****-****-XXXX</code> (last 4 conservés)</td></tr>
+        <tr><td>RAMQ / OHIP (numéro santé)</td><td><code>[HEALTH_ID REDACTED]</code></td></tr>
+        <tr><td>NAS canadien (SIN)</td><td><code>[SIN REDACTED]</code></td></tr>
+        <tr><td>IP v4</td><td>Hash <code>[IP:…]</code>, masque dernier octet, ou passthrough (selon <code>ipMode</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Clés denylist par défaut (20 règles) : <code>authorization</code>, <code>cookie</code>, <code>password</code>, <code>secret</code>, <code>token</code>, <code>api_key</code>, <code>ssn</code>, <code>credit_card</code>, <code>cvv</code>, <code>pin</code>, <code>x-api-key</code>…</p>
+
+  <h4>audit-log.ts - journal JSONL local</h4>
+  <ul class="features">
+    <li>Format JSONL. Chaque ligne : <code>ts</code>, <code>agentId</code>, <code>projectId</code>, <code>eventType</code>, <code>severity</code>, <code>detectorName</code>, <code>redactedFields[]</code>, <code>dropped</code>, <code>dropReason</code>. Jamais de valeur brute.</li>
+    <li>Rotation : quand <code>currentBytes + lineBytes &gt; auditLogMaxBytes</code> → rename en <code>&lt;path&gt;.&lt;n&gt;</code>, nouveau fichier.</li>
+    <li>Toutes les erreurs FS sont swallowées. L'application hôte continue toujours.</li>
+  </ul>
+
+  <h3 id="agent-transport">Transport (<code>src/transport/</code>)</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Module</th><th>Comportement</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>buffer.ts</code></td>
+          <td>File mémoire in-process. Flush : périodique (<code>flushIntervalMs</code> = 5s) OU taille (<code>bufferMaxSize</code> = 50). Timer <code>unref()</code> - n'empêche pas l'exit process. <code>stop()</code> drain final. <code>Promise.allSettled</code> par batch (fail-open par événement).</td>
+        </tr>
+        <tr>
+          <td><code>client.ts</code></td>
+          <td>4 endpoints : POST /v1/events, POST /v1/heartbeat, POST /v1/discovery, GET /v1/policy. Auth <code>Bearer apiKey</code> (secret depuis <code>SecureStore</code>). AbortController timeout = <code>transportTimeoutMs</code> (5s). HMAC optionnel : <code>X-RASP-Signature: sha256=&lt;hex&gt;</code>.</td>
+        </tr>
+        <tr>
+          <td><code>heartbeat.ts</code></td>
+          <td>Beat immédiat au <code>start()</code> puis périodique (30s, min 5s). Timer <code>unref()</code>. Réagit aux changements de kill-switch, policyVersion, mode, targetVersion.</td>
+        </tr>
+        <tr>
+          <td><code>secure-request.ts</code></td>
+          <td>Activé quand <code>cfg.tls</code> défini. Node <code>https</code> avec CA custom, mTLS (cert + key), <strong>certificate pinning</strong> via SHA-256 DER (<code>collectorFingerprints</code>). Rejet immédiat si empreinte non reconnue.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="agent-policy">Distribution de Policy Signée (<code>src/policy/</code>)</h3>
+
+  <div class="flow-steps">
+    <div class="flow-step">Heartbeat → policyVersion changée</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step blue">GET /v1/policy<br>(channel, agentId)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step purple">verify.ts<br>Ed25519 + canonical bytes</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step green">PolicyManager.accept()<br>version monotone</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">applyPolicy()<br>rebuild détecteurs</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Rollback si erreur<br>self-rollback</div>
+  </div>
+
+  <ul class="features">
+    <li><strong>Ed25519 :</strong> <code>crypto.verify(null, canonicalBytes, publicKey, signature)</code>. Clé publique PEM configurable (<code>policyPublicKey</code>).</li>
+    <li><strong>Canonical bytes (<code>canonical.ts</code>) :</strong> <code>stableStringify()</code> avec clés triées. Doit correspondre exactement à la sérialisation côté platform (<code>lib/policy-signing.ts</code>).</li>
+    <li><strong>Monotonie :</strong> refus de toute version ≤ version courante (prévention rejoue).</li>
+    <li><strong>Self-rollback :</strong> si <code>applyPolicy()</code> throw (ex: regex invalide), rollback à la dernière policy connue-bonne.</li>
+    <li><strong>Channels :</strong> <code>"stable" | "early" | "edge"</code> - passé en query string au collector.</li>
+    <li><strong>Sécurisation mode :</strong> si trust anchor présent, le mode du heartbeat non signé est <strong>ignoré</strong>. Seule une policy vérifiée peut changer le mode (prévient downgrade monitor→block via heartbeat forgé).</li>
+  </ul>
+
+  <h3 id="agent-discovery">API Discovery Passive (<code>src/api-discovery/</code>)</h3>
+
+  <ul class="features">
+    <li><strong><code>endpoint-observer.ts</code> :</strong> agrégation in-memory par <code>METHOD:normalizedPath</code>. Inférence auth (header Authorization), données sensibles (clés body matching denylist), schéma JSON (top-level fields → types).</li>
+    <li><strong><code>route-normalizer.ts</code> :</strong> remplace les segments ID (numériques 1–12 chiffres, UUID, CUID/NanoID 20–32 chars) par <code>:id</code>. Préserve <code>/me</code>.</li>
+    <li><strong><code>discovery-buffer.ts</code> :</strong> flush toutes les 60s (configurable) en batches de 500 endpoints max vers POST /v1/discovery. Démarré dans le constructeur. Fail-open sur erreur transport.</li>
+  </ul>
+
+  <h3 id="agent-dbhooks">DB Hooks &amp; Corrélation BOLA (<code>src/db-hooks/</code>)</h3>
+
+  <ul class="features">
+    <li><strong><code>instrument.ts</code> :</strong> monkey-patch optionnel des drivers : <code>pg</code>, <code>mysql2</code>, <code>sequelize</code>, <code>mongoose</code>, <code>knex</code>. Pour Prisma : <code>instrumentPrismaClient(client)</code> via <code>$on("query")</code>.</li>
+    <li><strong>Intégrité des hooks :</strong> <code>verifyHookIntegrity()</code> compare la référence wrapper installée + <code>Symbol.for("rasp.dbHook.patched")</code>. Retourne la liste des hooks altérés.</li>
+    <li><strong><code>correlate.ts</code> :</strong> heuristiques BOLA niveau réponse via <code>AsyncLocalStorage</code> (max 200 queries/req) : fan-out (&gt;25 IDs distincts → bola high), cross-object (utilisateur auth + query touche un ID ≠ JWT sub et ≠ path ID → bola medium).</li>
+  </ul>
+
+  <h3 id="agent-selfprotect">Self-Protection (<code>src/self-protect.ts</code>)</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Toujours actif</th><th>Nécessite <code>selfProtect: true</code></th></tr></thead>
+      <tbody>
+        <tr><td><code>SecureStore</code></td><td>✅ Oui</td><td>-</td></tr>
+        <tr><td>Anti-debug (inspect/debug arg + V8 inspector)</td><td>-</td><td>✅</td></tr>
+        <tr><td>Hook integrity polling (30s)</td><td>-</td><td>✅ (+ <code>instrumentDb: true</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="features">
+    <li><strong><code>SecureStore</code> :</strong> clé AES-256-GCM aléatoire par processus. <code>apiKey</code> et <code>hmacSecret</code> stockés chiffrés en mémoire - jamais en clair dans un heap dump. Actif dès que des secrets sont configurés, indépendamment de <code>selfProtect</code>.</li>
+    <li><strong>Anti-debug :</strong> détecte <code>--inspect</code>/<code>--debug</code> dans les args process ou un V8 inspector attaché → <code>console.warn</code> unique. Fail-open.</li>
+    <li>Stop automatique sur kill-switch et <code>agent.stop()</code>.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     8. SECURITE DE BOUT EN BOUT
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="security">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Sécurité</div>
+  <h2>Sécurité de Bout en Bout</h2>
+
+  <h3>Défense en profondeur : couches de sécurité</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Couche</th><th>Mécanisme</th><th>Localisation</th></tr></thead>
+      <tbody>
+        <tr><td>Transport agent → collector</td><td>TLS 1.2+ (HTTPS). Optionnel : mTLS client, certificate pinning (SHA-256 DER).</td><td><code>src/transport/secure-request.ts</code></td></tr>
+        <tr><td>Auth collector</td><td>Bearer API key vérifiée par <code>bcrypt.compare</code>. Clé brute jamais en DB.</td><td><code>collector/src/modules/auth/api-key.ts</code></td></tr>
+        <tr><td>Intégrité payload</td><td>HMAC-SHA256 sur raw body (<code>X-RASP-Signature</code>). <code>timingSafeEqual</code>. Actif si <code>HMAC_REQUIRED=true</code>.</td><td><code>collector/src/modules/auth/hmac.ts</code></td></tr>
+        <tr><td>Redaction avant transport</td><td>Moteur de redaction exécuté AVANT enqueue. Fail-closed : échec = abandon de l'événement.</td><td><code>agent/src/agent.ts</code>, <code>src/redaction/engine.ts</code></td></tr>
+        <tr><td>Attestation redaction</td><td>Le collector rejette tout événement sans <code>metadata.redacted === true</code> (400).</td><td><code>collector/src/routes/events.route.ts</code></td></tr>
+        <tr><td>Encryption au repos</td><td>Métadonnées events : AES-256-GCM, DEK par projet wrappé par KEK master. Déchiffrement uniquement pour affichage dashboard.</td><td><code>collector/src/lib/envelope.ts</code>, <code>rasp/lib/envelope.ts</code></td></tr>
+        <tr><td>Crypto-shred (RGPD)</td><td>Suppression du DEK → données inviolables sans re-chiffrement. Purge projectId.</td><td><code>rasp/app/api/projects/[id]/purge/</code></td></tr>
+        <tr><td>Policy signée Ed25519</td><td>Agents vérifient la signature avant d'appliquer toute policy. Version monotone (anti-replay). Seul le control plane détient la clé privée.</td><td><code>agent/src/policy/verify.ts</code>, <code>rasp/lib/policy-signing.ts</code></td></tr>
+        <tr><td>Lockdown du mode</td><td>Si trust anchor présent, mode du heartbeat non signé ignoré. Seule une policy vérifiée change le mode.</td><td><code>agent/src/agent.ts:128–140</code></td></tr>
+        <tr><td>Secrets en mémoire</td><td><code>SecureStore</code> AES-256-GCM : <code>apiKey</code> et <code>hmacSecret</code> chiffrés dans le heap.</td><td><code>agent/src/self-protect.ts</code></td></tr>
+        <tr><td>Audit trail plateforme</td><td>Chaîne de hash SHA-256 sur tous les <code>AuditLog</code>. Toute modification détectable.</td><td><code>rasp/lib/auth-helpers.ts</code></td></tr>
+        <tr><td>Dual authorization</td><td>Actions critiques (kill-switch global, quarantine) nécessitent deux admins distincts.</td><td><code>rasp/modules/admin/approvals.server.ts</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Invariants de sécurité de l'agent</h3>
+
+  <div class="callout danger">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Invariant 1 - Redaction avant buffer</strong>
+      Aucun payload n'entre dans le buffer de transport avant d'avoir passé la redaction. Si la redaction throw, l'événement est <strong>abandonné</strong> (pas envoyé). Le fait est journalisé localement avec <code>dropped: true</code>.
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Invariant 2 - Fail-open ≠ fail-closed</strong>
+      Fail-open s'applique à l'impact sur l'<em>application hôte</em> (une exception dans l'agent ne crash jamais l'hôte). Fail-closed s'applique à la <em>fuite de données</em> (échec redaction = abandon événement). Ce sont deux garanties orthogonales.
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Invariant 3 - Audit local ≠ télémétrie distante</strong>
+      L'audit JSONL (<code>rasp-audit.log</code>) reste dans l'environnement client. Il n'est jamais transmis au collector. Il ne contient que des métadonnées de redaction (champs redactés, type d'événement) - jamais les valeurs brutes.
+    </div>
+  </div>
+
+  <h3>Ce que l'agent ne fait jamais</h3>
+  <ul class="std">
+    <li>N'envoie jamais de mots de passe, tokens, clés API ou headers Authorization en clair.</li>
+    <li>N'envoie jamais de corps de requête brut par défaut.</li>
+    <li>Ne fait jamais d'appels réseau arbitraires - uniquement vers l'URL collector configurée.</li>
+    <li>Ne stocke jamais la clé API en clair dans le heap (SecureStore AES-GCM).</li>
+    <li>Ne fait jamais crasher l'application hôte quelle que soit l'erreur interne.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     9. CHOIX TECHNIQUES & JUSTIFICATIONS
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="choices">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Tech Lead</div>
+  <h2>Choix Techniques &amp; Justifications</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Alternative écartée</th><th>Justification</th><th>Localisation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Monolithe Next.js + couche <code>/modules</code></strong></td>
+          <td>Microservices, API séparée</td>
+          <td>MVP sur 3 jours. La couche modules isole la logique métier sans surcoût opérationnel. Migration vers service séparé possible sans changer les modules.</td>
+          <td><code>rasp/modules/*.server.ts</code>, <code>AGENTS.md</code></td>
+        </tr>
+        <tr>
+          <td><strong>Route handlers uniquement (pas de Server Actions)</strong></td>
+          <td>Server Actions Next.js</td>
+          <td>L'API REST est consommable par le UI ET exposée dans <code>/docs</code> (OpenAPI/Swagger). Les server actions ne sont pas documentables et ne supportent pas les clients non-Next.</td>
+          <td>Tous <code>app/api/**/route.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>Zod pour toutes les validations</strong></td>
+          <td>Joi, class-validator, AJV</td>
+          <td>Inférence TypeScript native (<code>z.infer</code>), partage types entre client/serveur/agent. Zod v4 est la seule dépendance runtime de l'agent.</td>
+          <td>3 repos</td>
+        </tr>
+        <tr>
+          <td><strong>bcrypt pour les API keys</strong></td>
+          <td>SHA-256, argon2</td>
+          <td>Standard de l'industrie pour les secrets comparés à la demande. SHA-256 serait trop rapide (bruteforce). Argon2 acceptable mais bcrypt suffisant et plus ubiquitaire en Node.js.</td>
+          <td><code>rasp/modules/api-keys/</code>, <code>collector/src/modules/auth/</code></td>
+        </tr>
+        <tr>
+          <td><strong>JWT stateless (pas de sessions DB)</strong></td>
+          <td>Sessions DB (next-auth adapter)</td>
+          <td>Scalabilité horizontale sans état partagé. Le JWT porte <code>organizationId</code> - évite une requête DB par requête. Trade-off : révocation de session impossible sans blacklist.</td>
+          <td><code>rasp/lib/auth.config.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>Policy immuable + signature Ed25519</strong></td>
+          <td>Config DB mutable, policy non signée</td>
+          <td>Prévient le downgrade silencieux (monitor → block sans consentement). Même en cas de compromission du collector, aucune policy forgée ne sera acceptée par les agents. Ed25519 est rapide, clés courtes.</td>
+          <td><code>rasp/lib/policy-signing.ts</code>, <code>agent/src/policy/</code></td>
+        </tr>
+        <tr>
+          <td><strong>Collector comme relais (ne signe pas)</strong></td>
+          <td>Collector signe les policies</td>
+          <td>Séparation des responsabilités : le collector est un service de données, pas un service de confiance. La compromission du collector n'élève pas ses privilèges sur les agents.</td>
+          <td><code>collector/src/modules/ingestion/get-policy.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>DB partagée (Prisma mirror schema)</strong></td>
+          <td>DB séparée + pipeline de sync</td>
+          <td>Simplicité MVP. Le collector écrit directement les tables que la plateforme lit (<code>SecurityEvent</code>, <code>Agent</code>…). Trade-off : couplage schema fort - migrations gérées par la plateforme.</td>
+          <td><code>collector/prisma/schema.prisma</code></td>
+        </tr>
+        <tr>
+          <td><strong>202 Accepted pour l'ingestion</strong></td>
+          <td>200 OK</td>
+          <td>Découple le contrat HTTP de l'implémentation interne. Prépare la migration vers bus async (Redis/BullMQ) sans changer le protocole agent. L'agent ne doit pas attendre la fin de la persistence.</td>
+          <td><code>collector/src/routes/events.route.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>200 synchrone pour heartbeat</strong></td>
+          <td>202 Async</td>
+          <td>Le heartbeat est un aller-retour de contrôle : l'agent a besoin du kill-switch, de la version de policy et des directives d'upgrade <em>immédiatement</em>. La latence est acceptable (30s de cadence).</td>
+          <td><code>collector/src/routes/heartbeat.route.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>Dépendance unique <code>zod</code> dans l'agent</strong></td>
+          <td>Librairies de validation tierces, axios, winston…</td>
+          <td>L'agent est installé dans des milliers d'applications. Surface d'attaque supply chain minimale. Node.js ≥18 fournit crypto, fetch, ALS, streams natifs - tout le reste est inutile.</td>
+          <td><code>agent-node/package.json</code></td>
+        </tr>
+        <tr>
+          <td><strong>Peer deps optionnelles</strong></td>
+          <td>Peer deps obligatoires, bundling</td>
+          <td>Un projet Express n'installe pas Fastify. Un projet NestJS n'installe pas Express. <code>peerDependenciesMeta.optional: true</code> signale clairement cette intention à npm/pnpm.</td>
+          <td><code>agent-node/package.json</code></td>
+        </tr>
+        <tr>
+          <td><strong>Mode monitor par défaut</strong></td>
+          <td>Block par défaut</td>
+          <td>Un faux positif en mode block interrompt le service. En monitor, l'équipe observe les alertes avant d'activer le block en connaissance de cause. Exigé par <code>AGENTS.md</code>.</td>
+          <td><code>agent/src/config.ts</code>, <code>AGENTS.md</code></td>
+        </tr>
+        <tr>
+          <td><strong>Détecteurs pattern-based (regex)</strong></td>
+          <td>ML/NLP, moteur de règles externe</td>
+          <td>Déterministes, testables unitairement, zero dépendance, zero latence GPU. Les limites d'évasion (obfuscation avancée) sont documentées dans chaque fichier détecteur. Pour un RASP embarqué, la prédictibilité prime.</td>
+          <td><code>agent/src/detectors/</code></td>
+        </tr>
+        <tr>
+          <td><strong>Canary rollout FNV-1a</strong></td>
+          <td>Rollout aléatoire, feature flags tiers</td>
+          <td>FNV-1a sur <code>agentId</code> est déterministe et cohérent : un agent dans le cohort y reste jusqu'à 100%. Pas d'état partagé entre le collector et la plateforme pour le bucketing.</td>
+          <td><code>rasp/modules/rollout/rollout.server.ts</code>, <code>collector/src/modules/ingestion/resolve-target-version.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>TOTP custom sans dépendance</strong></td>
+          <td>speakeasy, otplib</td>
+          <td>RFC 6238 est simple à implémenter correctement (SHA1-HOTP, base32, ±1 step, timingSafeEqual). Évite une dépendance supplémentaire dans le control plane critique.</td>
+          <td><code>rasp/lib/totp.ts</code></td>
+        </tr>
+        <tr>
+          <td><strong>Audit log à chaîne de hash</strong></td>
+          <td>Audit log simple</td>
+          <td>Toute modification rétroactive de l'historique brise la chaîne et est détectable via <code>verifyAuditChain()</code>. Requis pour la conformité SOC2/ISO27001.</td>
+          <td><code>rasp/lib/auth-helpers.ts</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     10. RECOMMANDATIONS
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="recommendations">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Recommandations</div>
+  <h2>Recommandations Standard &amp; Production-Grade</h2>
+
+  <h3>Priorité haute - sécurité &amp; fiabilité</h3>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Câbler <code>requireMfa()</code> sur les actions critiques</strong>
+      L'infrastructure TOTP est complète (<code>modules/admin/mfa.server.ts</code>, <code>lib/totp.ts</code>) mais <code>requireMfa()</code> n'est pas appelé. À intégrer sur : kill-switch global, quarantine version, provisionnement client, modification de policy. Délai estimé : &lt; 1 jour.
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Enforcer les rôles <code>owner</code>/<code>member</code></strong>
+      <code>OrganizationMember.role</code> est stocké mais non vérifié en API. Actuellement, tout membre d'une org peut effectuer toutes les actions dashboard. Ajouter des gardes <code>requireOrgOwner()</code> pour les actions destructives (suppression projet, rotation DEK, révocation API key).
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Planifier <code>pruneVolumeCounters()</code> et <code>BolaDetector.prune()</code></strong>
+      Côté collector, <code>pruneVolumeCounters()</code> existe mais n'est pas appelé périodiquement - la map grandit jusqu'au restart. Côté agent, <code>BolaDetector.prune()</code> n'est jamais appelé par l'agent. Ajouter un <code>setInterval</code> (ou <code>setInterval().unref()</code>) dans les deux cas.
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Rotation de clés de signature Ed25519</strong>
+      Implémenter un mécanisme de rotation : publier une nouvelle paire, distribuer la nouvelle clé publique aux agents (via <code>addTrustedKey()</code> - la méthode existe dans <code>PolicyManager</code>), puis révoquer l'ancienne après transition complète. Définir une procédure documentée (key ceremony).
+    </div>
+  </div>
+
+  <h3>Architecture &amp; Scalabilité</h3>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>File d'attente asynchrone côté collector</strong>
+      La persistence des événements est aujourd'hui synchrone dans le path HTTP. Pour absorber des pics de charge sans affecter les agents : ajouter Redis + BullMQ entre la validation et la persistence. Le contrat 202 Accepted est déjà en place - aucun changement côté agent. Pattern recommandé : validation → enqueue → 202 → worker → persist.
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Observabilité (OpenTelemetry + métriques)</strong>
+      Instrumenter les trois repos avec OpenTelemetry (traces, métriques, logs corrélés). Métriques prioritaires : latence P99 du collector, taux de rejet HMAC, taux de detection par type, events_dropped_redaction_failure (agent). Exporter vers Prometheus/Grafana ou une solution SIEM.
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Support multi-memberships par utilisateur</strong>
+      <code>getOrgId()</code> utilise <code>findFirst</code> - un utilisateur dans plusieurs organisations verra toujours la première. Implémenter un sélecteur d'organisation dans le JWT refresh ou via un en-tête <code>X-RASP-Org-Id</code> pour les clients API.
+    </div>
+  </div>
+
+  <h3>Tests &amp; Qualité</h3>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Couverture de tests manquante</strong>
+      Tests existants : redaction engine, policy rejection, canonical bytes, custom rules, self-protect, hook integrity (agent) ; auth, events, heartbeat (collector). Manquant :
+      <ul class="std" style="margin-top:0.5rem">
+        <li>Tests E2E des 10 détecteurs individuels (SQLi payloads, XSS, etc.)</li>
+        <li>Tests d'intégration Express/Fastify/NestJS middleware (agent)</li>
+        <li>Tests transport : HMAC signing, TLS pinning, timeout behavior</li>
+        <li>Tests API discovery : flush, normalizer edge cases</li>
+        <li>Tests collector : discovery route, policy route, volume monitor, mTLS</li>
+        <li>Tests platform : route handlers, modules (agents, events, policies…)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Conformité &amp; Sécurité</h3>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Alignement OWASP ASVS / Top 10</strong>
+      Réaliser un gap analysis par rapport à l'OWASP Application Security Verification Standard (ASVS) niveau 2. Points d'attention déjà identifiés : ASVS 2.8 (MFA non câblé), ASVS 4.1 (rôles non enforced), ASVS 7.3 (rotation des clés de signing), ASVS 9.2 (mTLS optionnel).
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Politique de rétention des données (RGPD)</strong>
+      L'infrastructure de purge et crypto-shred existe (<code>projects/[id]/purge/</code>). À documenter formellement dans une politique de rétention : durée de conservation des <code>SecurityEvent</code>, des <code>AuditLog</code>, des <code>DiscoveredEndpoint</code>. Automatiser avec un job périodique de nettoyage.
+    </div>
+  </div>
+
+  <div class="callout reco">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>CI/CD + SBOM + Supply-chain</strong>
+      Générer un SBOM (CycloneDX ou SPDX) à chaque build. Activer Dependabot ou Renovate. Ajouter un step <code>npm audit --audit-level=high</code> dans le CI. Pour l'agent : publier sur npm registry privé avec signature de package (<code>npm publish --provenance</code> via GitHub Actions).
+    </div>
+  </div>
+
+  <h3>Documentation &amp; Alignement doc/code</h3>
+
+  <div class="callout warning">
+    <div class="callout-icon"></div>
+    <div class="callout-body">
+      <strong>Drifts identifiés entre documentation et code</strong>
+      <ul class="std" style="margin-top:0.5rem">
+        <li><strong>Collector README</strong> indique rate-limit "per-IP" - le code clé par hash du Bearer token quand il est présent (<code>src/app.ts:93-99</code>). Plus précis et plus correct.</li>
+        <li><strong>Collector README</strong> dit que <code>ABNORMAL_VOLUME_PER_MINUTE</code> est "unset (off)" par défaut - le config.ts a un défaut de 300. Il est <em>désactivé</em> si env vide → coerce 0.</li>
+        <li><strong>Heartbeat OpenAPI schema</strong> (dans route) omet <code>targetVersion</code>, <code>upgradeAvailable</code>, <code>changelog</code>, <code>impact</code> du body de réponse réel.</li>
+        <li><strong><code>KEK_MASTER_KEY</code></strong> n'est pas parsé dans <code>config.ts</code> - lu directement dans <code>envelope.ts</code>. À intégrer dans le schema Zod de config pour une validation explicite au démarrage.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     11. ANNEXES
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="annexe-endpoints">
+  <div class="anchor-offset"></div>
+  <div class="section-tag">Référence</div>
+  <h2>Annexe A - Référence Endpoints Collector</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Route</th><th>Method</th><th>Auth</th><th>200/202</th><th>400</th><th>401</th><th>403</th><th>404</th><th>413</th><th>429</th><th>500</th></tr></thead>
+      <tbody>
+        <tr><td><code>/health</code></td><td>GET</td><td>-</td><td>✅</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+        <tr><td><code>/v1/events</code></td><td>POST</td><td>Bearer + HMAC opt.</td><td>202</td><td>✅</td><td>✅</td><td>✅</td><td>-</td><td>✅</td><td>✅</td><td>HMAC mal configuré</td></tr>
+        <tr><td><code>/v1/heartbeat</code></td><td>POST</td><td>Bearer + HMAC opt.</td><td>200</td><td>✅</td><td>✅</td><td>✅</td><td>Agent inconnu</td><td>-</td><td>✅</td><td>-</td></tr>
+        <tr><td><code>/v1/discovery</code></td><td>POST</td><td>Bearer + HMAC opt.</td><td>202</td><td>✅</td><td>✅</td><td>✅</td><td>-</td><td>-</td><td>✅</td><td>-</td></tr>
+        <tr><td><code>/v1/policy</code></td><td>GET</td><td>Bearer</td><td>200</td><td>-</td><td>✅</td><td>-</td><td>No policy</td><td>-</td><td>-</td><td>-</td></tr>
+        <tr><td><code>/docs</code></td><td>GET</td><td>-</td><td>✅</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Causes de rejet communes</h4>
+  <ul class="std">
+    <li><strong>400 :</strong> payload Zod invalide, <code>metadata.redacted !== true</code>, <code>projectId</code> ne correspond pas à la clé API.</li>
+    <li><strong>401 :</strong> token absent ou clé révoquée, signature HMAC invalide ou absente (quand <code>HMAC_REQUIRED=true</code>).</li>
+    <li><strong>403 :</strong> <code>projectId</code> payload ≠ <code>projectId</code> de la clé API authentifiée, fingerprint mTLS non reconnu.</li>
+    <li><strong>413 :</strong> corps &gt; 64 KB (configurable via <code>MAX_EVENT_SIZE_BYTES</code>).</li>
+    <li><strong>429 :</strong> &gt; 600 req/min par bucket tenant (configurable via <code>RATE_LIMIT_PER_MINUTE</code>).</li>
+    <li><strong>500 :</strong> <code>HMAC_REQUIRED=true</code> mais aucun secret configuré pour l'agent (misconfiguration serveur).</li>
+  </ul>
+</section>
+
+<section class="section" id="annexe-env">
+  <div class="anchor-offset"></div>
+  <h2>Annexe B - Variables d'Environnement</h2>
+
+  <h3>rasp-platform</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Requis</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td>✅</td><td>URL PostgreSQL partagée (format <code>postgresql://...</code>)</td></tr>
+        <tr><td><code>AUTH_SECRET</code> / <code>NEXTAUTH_SECRET</code></td><td>✅</td><td>Secret JWT NextAuth (min 32 chars)</td></tr>
+        <tr><td><code>NEXTAUTH_URL</code></td><td>✅</td><td>URL publique de la plateforme (ex: <code>https://rasp.example.com</code>)</td></tr>
+        <tr><td><code>COLLECTOR_INTERNAL_URL</code></td><td>✅</td><td>URL interne du collector (ex: <code>http://collector:4000</code>)</td></tr>
+        <tr><td><code>POLICY_SIGNING_PRIVATE_KEY</code></td><td>✅</td><td>Clé privée Ed25519 PEM pour signer les policies</td></tr>
+        <tr><td><code>POLICY_SIGNING_PUBLIC_KEY</code></td><td>✅</td><td>Clé publique Ed25519 PEM (distribuée aux agents)</td></tr>
+        <tr><td><code>KEK_MASTER_KEY</code></td><td>Optionnel</td><td>Base64 32 bytes - active l'encryption au repos des events. Si absent : passthrough (dev).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>rasp-collector</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Défaut</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td>-</td><td>✅ Requis. Même DB que la plateforme.</td></tr>
+        <tr><td><code>PORT</code></td><td>4000</td><td>Port d'écoute</td></tr>
+        <tr><td><code>HOST</code></td><td>0.0.0.0</td><td>Adresse d'écoute</td></tr>
+        <tr><td><code>NODE_ENV</code></td><td>development</td><td><code>production</code> active les optimisations Fastify</td></tr>
+        <tr><td><code>MAX_EVENT_SIZE_BYTES</code></td><td>65536</td><td>Limite taille payload (64 KB)</td></tr>
+        <tr><td><code>RATE_LIMIT_PER_MINUTE</code></td><td>600</td><td>Requêtes par minute par bucket tenant</td></tr>
+        <tr><td><code>ABNORMAL_VOLUME_PER_MINUTE</code></td><td>300</td><td>Seuil détection volume anormal. 0 = désactivé.</td></tr>
+        <tr><td><code>HMAC_REQUIRED</code></td><td>false</td><td><code>"true"</code> pour rendre HMAC obligatoire</td></tr>
+        <tr><td><code>HMAC_SECRET</code></td><td>-</td><td>Secret HMAC global (fallback si agent sans secret propre)</td></tr>
+        <tr><td><code>MTLS_REQUIRED</code></td><td>false</td><td>Active la validation du cert client</td></tr>
+        <tr><td><code>MTLS_ALLOWED_FINGERPRINTS</code></td><td>""</td><td>Empreintes SHA-256 autorisées, séparées par virgule</td></tr>
+        <tr><td><code>LOG_LEVEL</code></td><td>info</td><td>Niveau Pino</td></tr>
+        <tr><td><code>KEK_MASTER_KEY</code></td><td>-</td><td>Base64 32 bytes - doit correspondre à celui de la plateforme</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>agent-node (variables d'env, pas <code>RaspConfig</code>)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Défaut code</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>RASP_COLLECTOR_URL</code></td><td><code>https://collector.rasp.dev</code></td><td>Override URL collector (dev/staging)</td></tr>
+        <tr><td><code>RASP_POLICY_PUBLIC_KEY</code></td><td>Clé dev embarquée</td><td>Override clé publique Ed25519 de production</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="annexe-prisma">
+  <div class="anchor-offset"></div>
+  <h2>Annexe C - Modèle de Données Prisma (18 modèles)</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Modèle</th><th>FK principales</th><th>Description</th><th>Écrit par</th></tr></thead>
+      <tbody>
+        <tr><td><code>User</code></td><td>-</td><td>Compte utilisateur. <code>passwordHash</code>, <code>role</code> (user/admin), TOTP fields, <code>mustChangePassword</code>, <code>onboardedAt</code>.</td><td>Platform</td></tr>
+        <tr><td><code>Organization</code></td><td>-</td><td>Tenant racine. <code>name</code>, <code>plan</code> (free/pro/enterprise).</td><td>Platform</td></tr>
+        <tr><td><code>OrganizationMember</code></td><td>User, Organization</td><td>Jointure. <code>role</code> owner/member.</td><td>Platform</td></tr>
+        <tr><td><code>Project</code></td><td>Organization</td><td>Application cliente. Hub des données de sécurité. <code>language</code>, <code>framework</code>, <code>environment</code>, <code>collectorUrl</code>.</td><td>Platform</td></tr>
+        <tr><td><code>ApiKey</code></td><td>Project</td><td><code>keyHash</code> bcrypt, <code>prefix</code>, <code>revoked</code>. Clé brute jamais stockée.</td><td>Platform</td></tr>
+        <tr><td><code>Agent</code></td><td>Project</td><td>Instance agent. <code>status</code>, <code>channel</code>, <code>mode</code>, <code>killSwitch</code>, <code>hmacSecret</code>, <code>lastHeartbeatAt</code>, upgrade fields, <code>maintenanceWindow</code>.</td><td>Platform + Collector</td></tr>
+        <tr><td><code>AgentVersion</code></td><td>-</td><td>Catalogue global des versions. <code>channel</code>, <code>status</code>, canary <code>rolloutStage</code>/<code>rolloutPercent</code>, <code>quarantined</code>.</td><td>Platform (backoffice)</td></tr>
+        <tr><td><code>RolloutMetric</code></td><td>AgentVersion</td><td>KPIs par version (MTTR, error counts, success rate).</td><td>Platform</td></tr>
+        <tr><td><code>PlatformSetting</code></td><td>-</td><td>Singleton <code>id="global"</code>. Kill-switch global.</td><td>Platform</td></tr>
+        <tr><td><code>SecurityEvent</code></td><td>Project, Agent</td><td><code>type</code>, <code>severity</code>, <code>payload</code> (Json, chiffré), <code>action</code> (monitor/block), <code>redacted</code>.</td><td>Collector</td></tr>
+        <tr><td><code>Alert</code></td><td>Project, SecurityEvent</td><td>Workflow open/investigating/resolved. Assignee.</td><td>Collector (auto) + Platform</td></tr>
+        <tr><td><code>Rule</code></td><td>-</td><td>Règles de détection globales (non per-project). <code>name</code> unique, <code>config</code> Json.</td><td>Platform (backoffice)</td></tr>
+        <tr><td><code>RedactionPolicy</code></td><td>Project</td><td>Enregistrement éditable dashboard. Déclenche publish Policy.</td><td>Platform</td></tr>
+        <tr><td><code>Policy</code></td><td>Project</td><td>Version immuable signée. <code>detectionRules</code>, <code>redactionConfig</code>, <code>dataResidency</code>, <code>signature</code>, <code>channel</code>. Append-only.</td><td>Platform</td></tr>
+        <tr><td><code>DiscoveredEndpoint</code></td><td>Project</td><td>Unique <code>(projectId, method, pathPattern)</code>. <code>isShadowApi</code>, <code>isZombieApi</code>, <code>riskScore</code>, <code>trafficCount</code>.</td><td>Collector</td></tr>
+        <tr><td><code>TenantKey</code></td><td>Project</td><td>DEK wrappé (AES-GCM). KEK master hors DB.</td><td>Platform</td></tr>
+        <tr><td><code>AuditLog</code></td><td>Organization (opt.)</td><td>Hash-chained. <code>action</code>, <code>actor</code>, <code>prevHash</code>, <code>hash</code>.</td><td>Platform</td></tr>
+        <tr><td><code>ApprovalRequest</code></td><td>-</td><td>Dual-auth. <code>action</code>, <code>requestedBy</code>, <code>approvedBy</code>, <code>status</code> (pending/approved/rejected/executed).</td><td>Platform</td></tr>
+        <tr><td><code>ContactLead</code></td><td>-</td><td>Leads marketing inbound.</td><td>Platform</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="glossaire">
+  <div class="anchor-offset"></div>
+  <h2>Annexe D - Glossaire</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RASP</strong></td><td>Runtime Application Self-Protection. Protection de sécurité embarquée dans le processus de l'application, qui analyse les requêtes à l'exécution.</td></tr>
+        <tr><td><strong>WAF</strong></td><td>Web Application Firewall. Protection périmètrique réseau (niveau infrastructure, avant l'application). Complémentaire au RASP mais ne voit pas le contexte applicatif.</td></tr>
+        <tr><td><strong>Monitor mode</strong></td><td>Mode par défaut. Les attaques sont détectées et reportées, mais les requêtes passent. Aucun impact sur le flux normal.</td></tr>
+        <tr><td><strong>Block mode</strong></td><td>Mode actif. Les requêtes détectées comme attaques sont bloquées (HTTP 403). À activer après validation en monitor.</td></tr>
+        <tr><td><strong>Fail-open</strong></td><td>En cas d'erreur interne de l'agent (exception, collector indisponible), l'application hôte continue de fonctionner normalement. L'agent ne peut jamais provoquer une interruption de service.</td></tr>
+        <tr><td><strong>Fail-closed</strong></td><td>En cas d'échec de la redaction, l'événement est abandonné (non transmis). Priorité donnée à la confidentialité des données sur la complétude de la télémétrie.</td></tr>
+        <tr><td><strong>BOLA</strong></td><td>Broken Object Level Authorization. Attaque où un utilisateur accède aux ressources d'un autre utilisateur en manipulant les IDs dans l'URL (ex: <code>/api/users/2</code> avec le JWT de l'utilisateur 1). Aussi appelé IDOR.</td></tr>
+        <tr><td><strong>Policy signée</strong></td><td>Configuration distribuée aux agents (mode, règles, redaction) signée Ed25519 par le control plane. Les agents vérifient la signature avant d'appliquer toute policy.</td></tr>
+        <tr><td><strong>Trust anchor</strong></td><td>Clé publique Ed25519 que l'agent considère comme autorité de confiance pour les policies. Configurable via <code>RaspConfig.policyPublicKey</code> ou <code>RASP_POLICY_PUBLIC_KEY</code>.</td></tr>
+        <tr><td><strong>Channel</strong></td><td>Canal de distribution des policies et versions : <code>stable</code> (défaut), <code>early</code> (preview), <code>edge</code> (cutting edge). Permet un déploiement progressif par cohorte.</td></tr>
+        <tr><td><strong>Kill-switch</strong></td><td>Mécanisme d'arrêt d'urgence. Par agent (dashboard) ou global (backoffice, dual-auth). L'agent en kill-switch ne détecte plus rien mais continue les heartbeats pour détecter la levée.</td></tr>
+        <tr><td><strong>Canary rollout</strong></td><td>Déploiement progressif d'une version agent : 0 → 1 → 10 → 50 → 100% des agents. Cohort déterministe par FNV-1a sur agentId. Auto-halt sur dépassement de budget d'erreur.</td></tr>
+        <tr><td><strong>DEK / KEK</strong></td><td>Data Encryption Key (par projet) / Key Encryption Key (master). Le DEK chiffre les données au repos ; le KEK chiffre le DEK. Crypto-shred = suppression du DEK → données inaccessibles.</td></tr>
+        <tr><td><strong>HMAC-SHA256</strong></td><td>Hash-based Message Authentication Code. Garantit l'intégrité et l'authenticité du payload transmis par l'agent. Calculé sur les bytes exacts du body (<code>req.rawBody</code>).</td></tr>
+        <tr><td><strong>SecureStore</strong></td><td>Composant de l'agent qui chiffre les secrets (<code>apiKey</code>, <code>hmacSecret</code>) en mémoire avec une clé AES-256-GCM aléatoire par processus. Résistance aux heap dumps.</td></tr>
+        <tr><td><strong>API Discovery</strong></td><td>Observation passive des endpoints HTTP appelés à l'exécution. Permet de détecter les APIs shadow (non documentées) et zombie (inactives).</td></tr>
+        <tr><td><strong>Dual authorization</strong></td><td>Séparation des responsabilités (4-eyes principle). Une action critique nécessite qu'un admin la demande ET qu'un second admin différent l'approuve.</td></tr>
+        <tr><td><strong>Audit chain</strong></td><td>Chaîne de hash SHA-256 sur les entrées d'audit log. Chaque entrée porte le hash de la précédente. Toute modification rétroactive brise la chaîne.</td></tr>
+        <tr><td><strong>mTLS</strong></td><td>Mutual TLS. Authentification bidirectionnelle : le serveur et le client présentent chacun un certificat. Couche d'authentification supplémentaire au niveau réseau.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+  <p style="font-size:0.78rem; color:var(--muted); text-align:center; margin-top: 2rem;">
+    Dossier technique RASP Platform · Version 0.1.x · Mai 2026 · Généré depuis le code source des repos <code>rasp</code>, <code>collector</code>, <code>agent-node</code>.
+  </p>
+</section>
+
+</main>
+
+<!-- ── JS ───────────────────────────────────────────────── -->
+<script>
+// Theme toggle
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙 Thème sombre' : '☀️ Thème clair';
+  try { localStorage.setItem('rasp-theme', isDark ? 'light' : 'dark'); } catch(_) {}
+}
+
+// Restore saved theme
+(function() {
+  try {
+    const saved = localStorage.getItem('rasp-theme');
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+      if (saved === 'dark') document.getElementById('theme-btn').textContent = '☀️ Thème clair';
+    }
+  } catch(_) {}
+})();
+
+// Active nav link on scroll
+(function() {
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.nav-link[href^="#"]');
+
+  function getActive() {
+    const headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) + 40;
+    let active = null;
+    sections.forEach(s => {
+      if (window.scrollY + headerH >= s.offsetTop) active = s.id;
+    });
+    return active;
+  }
+
+  function update() {
+    const id = getActive();
+    links.forEach(l => {
+      const href = l.getAttribute('href').slice(1);
+      l.classList.toggle('active', href === id);
+    });
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>
