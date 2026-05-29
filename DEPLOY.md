@@ -48,6 +48,31 @@ openssl rand -base64 32
 
 ---
 
+## 3b. Générer le keypair Ed25519 pour la signature des policies — une seule fois
+
+> **Ne pas répéter à chaque déploiement.** La même paire est réutilisée sur tous les déploiements suivants. Régénérer invaliderait toutes les policies chez les agents déjà installés.
+
+```bash
+cd ~/app/rasp
+
+# Clé privée — reste sur le VPS uniquement, jamais commitée
+openssl genpkey -algorithm ed25519 -out policy_signing_private.pem
+chmod 600 policy_signing_private.pem
+
+# Clé publique — non-secrète, à pinner dans le package agent-node
+openssl pkey -in policy_signing_private.pem -pubout -out policy_signing_public.pem
+
+# Convertir en une seule ligne pour le fichier .env (échappe les sauts de ligne)
+echo "POLICY_SIGNING_PRIVATE_KEY=\"$(awk 'NF{printf "%s\\n", $0}' policy_signing_private.pem)\""
+echo "POLICY_SIGNING_PUBLIC_KEY=\"$(awk 'NF{printf "%s\\n", $0}' policy_signing_public.pem)\""
+```
+
+Copier les deux lignes affichées dans `~/app/rasp/.env.production` (étape suivante).
+
+> **Pour un déploiement de test uniquement**, tu peux utiliser la paire de dev déjà présente dans `.env.example` — elle est déjà pinnée dans l'agent. Ne pas faire ça en production réelle.
+
+---
+
 ## 4. Créer les fichiers d'environnement
 
 ### rasp
@@ -67,6 +92,8 @@ Variables à renseigner :
 | `NEXTAUTH_URL` | `https://rasp.ton-domaine.com` (ou IP) |
 | `COLLECTOR_INTERNAL_URL` | `http://collector:4000` ← DNS interne compose |
 | `KEK_MASTER_KEY` | même valeur que collector |
+| `POLICY_SIGNING_PRIVATE_KEY` | clé privée générée à l'étape 3b (PEM, `\n` échappés) |
+| `POLICY_SIGNING_PUBLIC_KEY` | clé publique correspondante (PEM, `\n` échappés) |
 | `SEED_ADMIN_EMAIL` | email admin (seed one-shot uniquement) |
 | `SEED_ADMIN_PASSWORD` | mot de passe fort (seed one-shot uniquement) |
 
