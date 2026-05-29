@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,12 +27,20 @@ export function KillSwitchToggle({
   async function toggle() {
     setLoading(true);
     try {
-      await fetch(`/api/agents/${agentId}/kill-switch`, {
+      const res = await fetch(`/api/agents/${agentId}/kill-switch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ killSwitch: !enabled }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to update kill switch");
+      } else {
+        toast.success(enabled ? "Agent re-enabled" : "Kill switch activated");
+      }
       router.refresh();
+    } catch {
+      toast.error("Failed to update kill switch");
     } finally {
       setLoading(false);
       setConfirming(false);
@@ -41,18 +50,18 @@ export function KillSwitchToggle({
   return (
     <>
       <Button
-        variant={enabled ? "danger" : "secondary"}
+        variant={enabled ? "secondary" : "danger"}
         size="sm"
         onClick={() => setConfirming(true)}
       >
-        {enabled ? "Disable agent" : "Kill switch"}
+        {enabled ? "Re-enable agent" : "Kill switch"}
       </Button>
 
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {enabled ? "Disable kill switch?" : "Enable kill switch?"}
+              {enabled ? "Re-enable agent?" : "Enable kill switch?"}
             </DialogTitle>
             <DialogDescription>
               {enabled
@@ -69,7 +78,7 @@ export function KillSwitchToggle({
               onClick={toggle}
               disabled={loading}
             >
-              {loading ? "…" : enabled ? "Re-enable" : "Confirm kill switch"}
+              {loading ? "…" : enabled ? "Re-enable agent" : "Confirm kill switch"}
             </Button>
           </DialogFooter>
         </DialogContent>

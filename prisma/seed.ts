@@ -60,7 +60,7 @@ async function seedTenantKey(projectId: string) {
       data: { projectId, version: 1, wrappedDek: wrapDek(dek, kek), active: true },
     });
   } catch {
-    // Encryption disabled or invalid KEK — skip silently in dev seed.
+    // Encryption disabled or invalid KEK - skip silently in dev seed.
   }
 }
 
@@ -373,7 +373,7 @@ async function main() {
       status: "published",
       releasedAt: daysAgo(7),
       changelog: "Improved SQLi detection, reduced false positives.",
-      impact: "Low — detection-only changes, no breaking API surface.",
+      impact: "Low - detection-only changes, no breaking API surface.",
       rolloutStage: 4,
       rolloutPercent: 100,
       rolloutStartedAt: daysAgo(14),
@@ -387,7 +387,7 @@ async function main() {
       status: "published",
       releasedAt: daysAgo(3),
       changelog: "Path traversal improvements, Node 22 support.",
-      impact: "Medium — requires Node 18+; monitor error rate during rollout.",
+      impact: "Medium - requires Node 18+; monitor error rate during rollout.",
       rolloutStage: 2,
       rolloutPercent: 10,
       rolloutStartedAt: daysAgo(2),
@@ -402,7 +402,7 @@ async function main() {
         status: "candidate",
         releasedAt: null,
         changelog: "BOLA/IDOR detection alpha, new telemetry format.",
-        impact: "High — alpha feature set; not recommended for production.",
+        impact: "High - alpha feature set; not recommended for production.",
       },
       {
         version: "0.2.8",

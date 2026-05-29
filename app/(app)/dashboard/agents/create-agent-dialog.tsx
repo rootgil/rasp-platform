@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -68,8 +69,14 @@ export function CreateAgentDialog({
         const data = await res.json();
         setSetup({ agentId: data.agent.id, rawKey: data.rawKey });
         setStep("setup");
+        toast.success("Agent enregistré");
         router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to register agent");
       }
+    } catch {
+      toast.error("Failed to register agent");
     } finally {
       setLoading(false);
     }
@@ -96,7 +103,7 @@ export function CreateAgentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {step === "form" ? "Register Agent" : "Agent registered — save your credentials"}
+            {step === "form" ? "Register Agent" : "Agent registered - save your credentials"}
           </DialogTitle>
         </DialogHeader>
 
@@ -151,8 +158,8 @@ export function CreateAgentDialog({
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monitor">Monitor — detect only</SelectItem>
-                  <SelectItem value="block">Block — enforce rules</SelectItem>
+                  <SelectItem value="monitor">Monitor - detect only</SelectItem>
+                  <SelectItem value="block">Block - enforce rules</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,13 +21,29 @@ export function AlertActions({
 }) {
   const router = useRouter();
 
+  const STATUS_LABELS: Record<string, string> = {
+    open: "open",
+    investigating: "investigating",
+    resolved: "resolved",
+  };
+
   async function updateStatus(status: string) {
-    await fetch(`/api/alerts/${alertId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    router.refresh();
+    try {
+      const res = await fetch(`/api/alerts/${alertId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to update alert");
+      } else {
+        toast.success(`Alerte marquée comme ${STATUS_LABELS[status] ?? status}`);
+      }
+      router.refresh();
+    } catch {
+      toast.error("Failed to update alert");
+    }
   }
 
   return (

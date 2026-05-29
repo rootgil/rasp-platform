@@ -54,7 +54,7 @@ async function getDashboardData(organizationId: string) {
       where: { project: { organizationId } },
       _count: { path: true },
       orderBy: { _count: { path: "desc" } },
-      take: 5,
+      take: 10,
     }),
   ]);
 

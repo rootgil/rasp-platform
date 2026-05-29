@@ -19,15 +19,35 @@ import {
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 
-const navItems = [
-  { href: "/backoffice", label: "Platform Overview", icon: LayoutDashboard, exact: true },
-  { href: "/backoffice/organizations", label: "Organizations", icon: Building2 },
-  { href: "/backoffice/customers", label: "Customers", icon: Users },
-  { href: "/backoffice/contact-leads", label: "Contact Leads", icon: Inbox },
-  { href: "/backoffice/rules", label: "Detection Rules", icon: Shield },
-  { href: "/backoffice/agent-versions", label: "Agent Versions", icon: Activity },
-  { href: "/backoffice/system-health", label: "System Health", icon: HeartPulse },
-  { href: "/backoffice/platform-audit", label: "Platform Audit", icon: FileSearch },
+const navGroups = [
+  {
+    title: null,
+    items: [
+      { href: "/backoffice", label: "Platform Overview", icon: LayoutDashboard, exact: true },
+    ],
+  },
+  {
+    title: "Customers",
+    items: [
+      { href: "/backoffice/organizations", label: "Organizations", icon: Building2 },
+      { href: "/backoffice/customers", label: "Customers", icon: Users },
+      { href: "/backoffice/contact-leads", label: "Contact Leads", icon: Inbox },
+    ],
+  },
+  {
+    title: "Platform",
+    items: [
+      { href: "/backoffice/rules", label: "Detection Rules", icon: Shield },
+      { href: "/backoffice/agent-versions", label: "Agent Versions", icon: Activity },
+    ],
+  },
+  {
+    title: "Observability",
+    items: [
+      { href: "/backoffice/system-health", label: "System Health", icon: HeartPulse },
+      { href: "/backoffice/platform-audit", label: "Platform Audit", icon: FileSearch },
+    ],
+  },
 ];
 
 export function AdminSidebar() {
@@ -83,31 +103,40 @@ export function AdminSidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <ul className="space-y-0.5">
-            {navItems.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-brand text-white"
-                        : "text-text-muted hover:bg-white/10 hover:text-white"
-                    )}
-                  >
-                    <Icon size={18} strokeWidth={2} />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {navGroups.map((group, groupIdx) => (
+            <div key={groupIdx}>
+              {group.title && (
+                <p className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wider text-white/30">
+                  {group.title}
+                </p>
+              )}
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = (item as { exact?: boolean }).exact
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-brand text-white"
+                            : "text-text-muted hover:bg-white/10 hover:text-white"
+                        )}
+                      >
+                        <Icon size={18} strokeWidth={2} />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}

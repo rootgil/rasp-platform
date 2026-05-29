@@ -16,22 +16,49 @@ import {
   FileSearch,
   Settings,
   Activity,
+  FileCode2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/projects", label: "Applications", icon: Boxes },
-  { href: "/dashboard/agents", label: "Agents", icon: Server },
-  { href: "/dashboard/events", label: "Security Events", icon: ShieldAlert },
-  { href: "/dashboard/alerts", label: "Alerts", icon: Bell },
-  { href: "/dashboard/rules", label: "Rules", icon: Shield },
-  { href: "/dashboard/api-discovery", label: "API Discovery", icon: Webhook },
-  { href: "/dashboard/redaction-policies", label: "Redaction Logs", icon: ScrollText },
-  { href: "/dashboard/agent-lifecycle", label: "Agent Lifecycle", icon: Activity },
-  { href: "/dashboard/api-keys", label: "API Keys", icon: KeyRound },
-  { href: "/dashboard/audit-logs", label: "Audit Logs", icon: FileSearch },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+const navGroups = [
+  {
+    title: null,
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
+    ],
+  },
+  {
+    title: "Infrastructure",
+    items: [
+      { href: "/dashboard/projects", label: "Applications", icon: Boxes },
+      { href: "/dashboard/agents", label: "Agents", icon: Server },
+      { href: "/dashboard/agent-lifecycle", label: "Agent Lifecycle", icon: Activity },
+    ],
+  },
+  {
+    title: "Security",
+    items: [
+      { href: "/dashboard/events", label: "Security Events", icon: ShieldAlert },
+      { href: "/dashboard/alerts", label: "Alerts", icon: Bell },
+      { href: "/dashboard/api-discovery", label: "API Discovery", icon: Webhook },
+    ],
+  },
+  {
+    title: "Configuration",
+    items: [
+      { href: "/dashboard/rules", label: "Rules", icon: Shield },
+      { href: "/dashboard/policies", label: "Policies", icon: FileCode2 },
+      { href: "/dashboard/redaction-policies", label: "Redaction Logs", icon: ScrollText },
+    ],
+  },
+  {
+    title: "Administration",
+    items: [
+      { href: "/dashboard/api-keys", label: "API Keys", icon: KeyRound },
+      { href: "/dashboard/audit-logs", label: "Audit Logs", icon: FileSearch },
+      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -65,35 +92,44 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <ul className="space-y-0.5">
-            {navItems.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-brand-light text-brand"
-                        : "text-text-secondary hover:bg-background hover:text-text-primary"
-                    )}
-                  >
-                    <Icon
-                      size={18}
-                      strokeWidth={2}
-                      className={isActive ? "text-brand" : "text-text-muted"}
-                    />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {navGroups.map((group, groupIdx) => (
+            <div key={groupIdx}>
+              {group.title && (
+                <p className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  {group.title}
+                </p>
+              )}
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = (item as { exact?: boolean }).exact
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-brand-light text-brand"
+                            : "text-text-secondary hover:bg-background hover:text-text-primary"
+                        )}
+                      >
+                        <Icon
+                          size={18}
+                          strokeWidth={2}
+                          className={isActive ? "text-brand" : "text-text-muted"}
+                        />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
       </aside>
     </>

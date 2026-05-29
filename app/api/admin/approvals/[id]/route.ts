@@ -8,7 +8,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/admin/approvals/:id — approve or reject a request. Enforces
+ * POST /api/admin/approvals/:id - approve or reject a request. Enforces
  * separation of duties: approver must differ from requester (Addendum E.4.3).
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

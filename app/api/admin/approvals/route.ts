@@ -14,7 +14,7 @@ const createSchema = z.object({
   reason: z.string().max(2000).optional(),
 });
 
-/** GET /api/admin/approvals?status=pending — list dual-authorization requests. */
+/** GET /api/admin/approvals?status=pending - list dual-authorization requests. */
 export async function GET(req: Request) {
   try {
     await requireAdmin();
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST /api/admin/approvals — raise a sensitive-action request for approval. */
+/** POST /api/admin/approvals - raise a sensitive-action request for approval. */
 export async function POST(req: Request) {
   try {
     const user = await requireAdmin();

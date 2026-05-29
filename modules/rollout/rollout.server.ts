@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 /**
- * Agent version rollout — canary state machine (Addendum D.3-D.5).
+ * Agent version rollout - canary state machine (Addendum D.3-D.5).
  *
  * Stages map to a rollout percentage of the channel's agents:
  *   0 = not started, 1 = 1%, 2 = 10%, 3 = 50%, 4 = 100%.

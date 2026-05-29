@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { createPolicy } from "@/modules/policies/policies.server";
+import { createPolicy, getLatestPolicy } from "@/modules/policies/policies.server";
 
 /**
  * Translate a dashboard redaction policy (mode + rules) into the policy payload
@@ -43,7 +43,15 @@ export async function createAndPublishRedactionPolicy(
 
   const { redactionConfig, dataResidency } = buildPolicyFromRedaction(data.mode, data.rules);
   try {
-    await createPolicy(projectId, organizationId, { redactionConfig, dataResidency });
+    const latest = await getLatestPolicy(organizationId, projectId);
+    await createPolicy(projectId, organizationId, {
+      channel: latest?.channel,
+      mode: latest?.mode ?? "monitor",
+      detectionRules: latest?.detectionRules ?? undefined,
+      redactionConfig,
+      dataResidency,
+      targetAgentVersion: latest?.targetAgentVersion ?? undefined,
+    });
   } catch {
     // Signing key may be unconfigured; the editable record is still saved.
   }

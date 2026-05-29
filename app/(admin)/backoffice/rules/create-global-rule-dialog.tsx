@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -60,8 +61,14 @@ export function CreateGlobalRuleDialog({ children }: { children: React.ReactNode
       if (res.ok) {
         setOpen(false);
         setForm({ name: "", type: "", severity: "medium", description: "" });
+        toast.success(`Règle "${form.name}" créée`);
         router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to create rule");
       }
+    } catch {
+      toast.error("Failed to create rule");
     } finally {
       setLoading(false);
     }

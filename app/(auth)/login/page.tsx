@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,10 +33,15 @@ function LoginForm() {
       });
       if (result?.error) {
         setError("Invalid email or password");
+        toast.error("Invalid email or password");
       } else {
         const session = await getSession();
-        const role = (session?.user as { role?: string })?.role;
-        router.push(role === "admin" ? "/backoffice" : callbackUrl);
+        const user = session?.user as { role?: string; mustChangePassword?: boolean } | undefined;
+        if (user?.mustChangePassword) {
+          router.push("/change-password");
+        } else {
+          router.push(user?.role === "admin" ? "/backoffice" : callbackUrl);
+        }
         router.refresh();
       }
     } finally {

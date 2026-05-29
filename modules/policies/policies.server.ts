@@ -126,3 +126,25 @@ export async function rollbackToPolicyVersion(
     targetAgentVersion: target.targetAgentVersion,
   });
 }
+
+/**
+ * Publish a new signed policy with an updated enforcement mode while preserving
+ * the rest of the latest policy payload for the project/channel.
+ */
+export async function publishEnforcementModeChange(
+  projectId: string,
+  organizationId: string,
+  channel: string,
+  mode: "monitor" | "block"
+) {
+  const latest = await getLatestPolicy(organizationId, projectId, channel);
+
+  return createPolicy(projectId, organizationId, {
+    channel,
+    mode,
+    detectionRules: latest?.detectionRules ?? undefined,
+    redactionConfig: latest?.redactionConfig ?? undefined,
+    dataResidency: latest?.dataResidency ?? undefined,
+    targetAgentVersion: latest?.targetAgentVersion ?? undefined,
+  });
+}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,9 +50,12 @@ export function NewVersionButton() {
       setVersion("");
       setChannel("edge");
       setChangelog("");
+      toast.success(`Version ${version.trim()} créée`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

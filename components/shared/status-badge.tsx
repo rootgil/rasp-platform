@@ -16,6 +16,13 @@ const config: Record<string, { text: string; bg: string; border: string; dot: st
   monitor:       { text: "#1e40af", bg: "#eff6ff", border: "#bfdbfe", dot: "#2563eb" },
   candidate:     { text: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#d97706" },
   published:     { text: "#166534", bg: "#f0fdf4", border: "#bbf7d0", dot: "#16a34a" },
+  deprecated:    { text: "#475569", bg: "#f8fafc", border: "#e2e8f0", dot: "#94a3b8" },
+  halted:        { text: "#991b1b", bg: "#fef2f2", border: "#fecaca", dot: "#dc2626" },
+  quarantined:   { text: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff", dot: "#9333ea" },
+  pending:       { text: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#d97706" },
+  approved:      { text: "#166534", bg: "#f0fdf4", border: "#bbf7d0", dot: "#16a34a" },
+  rejected:      { text: "#991b1b", bg: "#fef2f2", border: "#fecaca", dot: "#dc2626" },
+  executed:      { text: "#475569", bg: "#f8fafc", border: "#e2e8f0", dot: "#94a3b8" },
 };
 
 const fallback = { text: "#475569", bg: "#f8fafc", border: "#e2e8f0", dot: "#94a3b8" };

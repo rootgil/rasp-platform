@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { VerifyAuditButton } from "./verify-audit-button";
 
 export default async function PlatformAuditPage({
   searchParams,
@@ -22,7 +23,11 @@ export default async function PlatformAuditPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Platform Audit" description="All administrative actions across all organizations" />
+      <PageHeader
+        title="Platform Audit"
+        description="All administrative actions across all organizations"
+        action={<VerifyAuditButton />}
+      />
 
       <Card>
         <CardContent className="p-0">

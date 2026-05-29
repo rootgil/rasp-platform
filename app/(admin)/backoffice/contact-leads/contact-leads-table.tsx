@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -84,9 +85,11 @@ export function ContactLeadsTable({ leads }: { leads: Lead[] }) {
         return;
       }
       setResult(data);
+      toast.success(`Compte créé pour ${form.email}`);
       router.refresh();
     } catch {
       setError("Network error, please try again.");
+      toast.error("Network error, please try again.");
     } finally {
       setLoading(false);
     }

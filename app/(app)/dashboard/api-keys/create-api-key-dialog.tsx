@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -39,8 +40,14 @@ export function CreateApiKeyDialog({
         const data = await res.json();
         setRawKey(data.rawKey);
         setStep("key");
+        toast.success("Clé API générée");
         router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to generate API key");
       }
+    } catch {
+      toast.error("Failed to generate API key");
     } finally {
       setLoading(false);
     }

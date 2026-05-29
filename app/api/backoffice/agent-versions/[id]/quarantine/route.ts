@@ -9,7 +9,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/backoffice/agent-versions/:id/quarantine — quarantine or release a
+ * POST /api/backoffice/agent-versions/:id/quarantine - quarantine or release a
  * version (Addendum E.6). Quarantining requires a prior dual-authorization.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

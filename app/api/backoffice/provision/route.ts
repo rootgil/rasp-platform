@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       });
 
       const user = await tx.user.create({
-        data: { name, email, passwordHash, role: "user" },
+        data: { name, email, passwordHash, role: "user", mustChangePassword: true },
       });
 
       await tx.organizationMember.create({

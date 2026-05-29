@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -62,10 +63,13 @@ export function RedactionPolicyDialog({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Failed to save policy");
+        const msg = data.error ?? "Failed to save policy";
+        setError(msg);
+        toast.error(msg);
         return;
       }
       setOpen(false);
+      toast.success("Politique de redaction publiée");
       router.refresh();
     } finally {
       setLoading(false);

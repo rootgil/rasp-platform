@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Upload, CheckCircle2, AlertCircle, FileJson } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,11 +69,14 @@ export function ImportSpecDialog() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Import failed");
+        const msg = data.error ?? "Import failed";
+        setError(msg);
+        toast.error(msg);
         return;
       }
 
       setResult(data as ImportResult);
+      toast.success("Import OpenAPI terminé");
       router.refresh();
     } finally {
       setLoading(false);

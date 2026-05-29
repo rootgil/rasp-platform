@@ -8,6 +8,20 @@ export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session?.user;
   const isAdmin = (session?.user as { role?: string })?.role === "admin";
+  const mustChangePassword = (session?.user as { mustChangePassword?: boolean })?.mustChangePassword === true;
+
+  // Logged-in user with a required password change: allow only /change-password (and sign-out).
+  if (isLoggedIn && mustChangePassword) {
+    if (nextUrl.pathname !== "/change-password") {
+      return NextResponse.redirect(new URL("/change-password", nextUrl));
+    }
+    return NextResponse.next();
+  }
+
+  // Prevent accessing /change-password without a pending flag.
+  if (isLoggedIn && !mustChangePassword && nextUrl.pathname === "/change-password") {
+    return NextResponse.redirect(new URL(isAdmin ? "/backoffice" : "/dashboard", nextUrl));
+  }
 
   if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
     return NextResponse.redirect(

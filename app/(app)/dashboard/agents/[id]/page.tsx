@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getLatestPolicy } from "@/modules/policies/policies.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CopyButton } from "@/components/shared/copy-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { EnforcementModeSelect } from "./enforcement-mode-select";
 
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,18 +18,29 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
 
   const agent = await prisma.agent.findFirst({
     where: { id, project: { organizationId: membership.organizationId } },
-    include: { project: { select: { name: true } } },
+    include: { project: { select: { id: true, name: true } } },
   });
   if (!agent) notFound();
 
-  const rows = [
+  const latestPolicy = await getLatestPolicy(
+    membership.organizationId,
+    agent.projectId,
+    agent.channel
+  );
+
+  const rows: {
+    label: string;
+    value: string;
+    mono?: boolean;
+    custom?: boolean;
+  }[] = [
     { label: "Agent ID", value: agent.id, mono: true },
     { label: "Application", value: agent.project.name },
     { label: "Language", value: agent.language },
     { label: "Framework", value: agent.framework ?? "-" },
     { label: "Version", value: agent.version, mono: true },
     { label: "Channel", value: agent.channel },
-    { label: "Mode", value: agent.mode },
+    { label: "Mode", value: agent.mode, custom: true },
     { label: "Kill Switch", value: agent.killSwitch ? "ENABLED" : "Disabled" },
     { label: "Last Heartbeat", value: agent.lastHeartbeatAt ? formatDate(agent.lastHeartbeatAt) : "Never" },
     { label: "Created", value: formatDate(agent.createdAt) },
@@ -46,12 +59,24 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
           <CardHeader><CardTitle>Agent Details</CardTitle></CardHeader>
           <CardContent className="p-0">
             <dl className="divide-y divide-border">
-              {rows.map(({ label, value, mono }) => (
+              {rows.map(({ label, value, mono, custom }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <dt className="text-sm text-text-secondary">{label}</dt>
                   <dd className={`text-sm font-medium text-text-primary flex items-center gap-1.5 ${mono ? "font-mono" : ""}`}>
-                    {value}
-                    {label === "Agent ID" && <CopyButton value={value} />}
+                    {custom && label === "Mode" ? (
+                      <EnforcementModeSelect
+                        agentId={agent.id}
+                        currentMode={agent.mode}
+                        policyMode={latestPolicy?.mode ?? null}
+                        projectName={agent.project.name}
+                        channel={agent.channel}
+                      />
+                    ) : (
+                      <>
+                        {value}
+                        {label === "Agent ID" && <CopyButton value={value} />}
+                      </>
+                    )}
                   </dd>
                 </div>
               ))}

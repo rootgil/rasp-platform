@@ -53,18 +53,18 @@ Get a free Neon database at [neon.tech](https://neon.tech).
 Policies pushed to agents are **Ed25519-signed** by the control plane and verified
 by each agent before being applied (Addendum E.4.1). This requires a key pair.
 
-**This is a one-time bootstrap step, done once before the first deployment — NOT on every deploy.**
+**This is a one-time bootstrap step, done once before the first deployment - NOT on every deploy.**
 The same key is reused across all subsequent deployments. Regenerating it would
 cause every already-installed agent to reject new policies.
 
 ### 1. Generate the pair on the server (VPS)
 
 ```bash
-# Private key — stays on the control plane only, never committed
+# Private key - stays on the control plane only, never committed
 openssl genpkey -algorithm ed25519 -out policy_signing_private.pem
 chmod 600 policy_signing_private.pem
 
-# Public key — non-secret, pinned inside the agent package
+# Public key - non-secret, pinned inside the agent package
 openssl pkey -in policy_signing_private.pem -pubout -out policy_signing_public.pem
 ```
 
@@ -131,7 +131,7 @@ openssl rand -base64 32
 | **KEK master key** | Control plane **and** collector (same value), secret manager / `chmod 600` | `KEK_MASTER_KEY` |
 
 ```
-# rasp/.env and collector/.env — MUST be identical on both
+# rasp/.env and collector/.env - MUST be identical on both
 KEK_MASTER_KEY="<base64 from openssl rand -base64 32>"
 ```
 
@@ -153,7 +153,7 @@ must share the same `KEK_MASTER_KEY`.
 
 - **MFA (TOTP):** admins enroll via `POST /api/admin/mfa` (`enroll` → scan the
   returned `otpauthUrl`, then `confirm` with a 6-digit code). No external service
-  needed — secrets are stored on the `User` row. `requireMfa()` gates sensitive
+  needed - secrets are stored on the `User` row. `requireMfa()` gates sensitive
   operations.
 - **Dual-authorization:** sensitive actions (global kill-switch, version
   quarantine, crypto-shred, rollback) require an `ApprovalRequest` raised by one

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -43,8 +44,14 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
       });
       if (res.ok) {
         setOpen(false);
+        toast.success(`Application "${form.name}" créée`);
         router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(data.error ?? "Failed to create application");
       }
+    } catch {
+      toast.error("Failed to create application");
     } finally {
       setLoading(false);
     }

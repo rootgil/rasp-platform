@@ -60,7 +60,7 @@ export function verifyTotp(secret: string, token: string, stepSeconds = 30): boo
     try {
       if (timingSafeEqual(Buffer.from(expected), Buffer.from(token))) return true;
     } catch {
-      // length mismatch — not equal
+      // length mismatch - not equal
     }
   }
   return false;

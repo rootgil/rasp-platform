@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,17 +22,37 @@ export function BackofficeRuleActions({
   const router = useRouter();
 
   async function patch(data: Record<string, unknown>) {
-    await fetch(`/api/rules/${ruleId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    router.refresh();
+    try {
+      const res = await fetch(`/api/rules/${ruleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(d.error ?? "Failed to update rule");
+      } else {
+        toast.success(data.enabled ? "Règle activée globalement" : "Règle désactivée globalement");
+      }
+      router.refresh();
+    } catch {
+      toast.error("Failed to update rule");
+    }
   }
 
   async function remove() {
-    await fetch(`/api/rules/${ruleId}`, { method: "DELETE" });
-    router.refresh();
+    try {
+      const res = await fetch(`/api/rules/${ruleId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        toast.error(d.error ?? "Failed to delete rule");
+      } else {
+        toast.success("Règle supprimée");
+      }
+      router.refresh();
+    } catch {
+      toast.error("Failed to delete rule");
+    }
   }
 
   return (

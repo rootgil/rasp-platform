@@ -8,7 +8,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/admin/mfa — manage the caller's TOTP MFA (Addendum E.4.3).
+ * POST /api/admin/mfa - manage the caller's TOTP MFA (Addendum E.4.3).
  *  - enroll: generate a secret + otpauth URL for QR display
  *  - confirm: verify the first code and enable MFA
  *  - disable: remove the secret and disable MFA

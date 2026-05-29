@@ -9,7 +9,7 @@ const schema = z.object({
   approvalId: z.string().optional(),
 });
 
-/** GET /api/backoffice/kill-switch — current platform kill-switch state. */
+/** GET /api/backoffice/kill-switch - current platform kill-switch state. */
 export async function GET() {
   try {
     await requireAdmin();
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/backoffice/kill-switch — toggle the platform-wide kill-switch
+ * POST /api/backoffice/kill-switch - toggle the platform-wide kill-switch
  * (Addendum E.6). Enabling requires a prior dual-authorization approval.
  */
 export async function POST(req: Request) {

@@ -2,7 +2,7 @@ import { requireAdmin, jsonError } from "@/lib/auth-helpers";
 import { getVersionExposure } from "@/modules/admin/incident.server";
 
 /**
- * GET /api/backoffice/version-exposure?version=1.2.3 — forensic mapping of
+ * GET /api/backoffice/version-exposure?version=1.2.3 - forensic mapping of
  * which customers/agents run a given version (Addendum E.6).
  */
 export async function GET(req: Request) {

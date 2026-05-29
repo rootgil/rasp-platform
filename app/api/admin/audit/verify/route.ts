@@ -1,7 +1,7 @@
 import { requireAdmin, jsonError, verifyAuditChain } from "@/lib/auth-helpers";
 
 /**
- * GET /api/admin/audit/verify — verify the tamper-evident audit-log hash chain
+ * GET /api/admin/audit/verify - verify the tamper-evident audit-log hash chain
  * (Addendum E.4.4). Returns { ok, brokenAt }.
  */
 export async function GET() {
