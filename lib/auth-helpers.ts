@@ -94,15 +94,37 @@ export async function createAuditLog({
   });
 }
 
+export type AuditChainBrokenRecord = {
+  id: string;
+  action: string;
+  target: string | null;
+  createdAt: string;
+  actor: string | null;
+  organization: string | null;
+  prevHash: string | null;
+  storedHash: string | null;
+  expectedHash: string;
+};
+
+export type AuditChainResult =
+  | { ok: true; brokenAt: null; reason: null; brokenRecord: null }
+  | { ok: false; brokenAt: string; reason: "prev_link_broken" | "hash_mismatch"; brokenRecord: AuditChainBrokenRecord };
+
 /**
  * Verify the audit-log hash chain. Returns the first id where the chain breaks,
- * or null if intact. Used to detect tampering (Addendum E.4.4).
+ * enriched with the record details and reason. Used to detect tampering (Addendum E.4.4).
  */
-export async function verifyAuditChain(): Promise<{ ok: boolean; brokenAt: string | null }> {
-  const logs = await prisma.auditLog.findMany({ orderBy: { createdAt: "asc" } });
+export async function verifyAuditChain(): Promise<AuditChainResult> {
+  const logs = await prisma.auditLog.findMany({
+    orderBy: { createdAt: "asc" },
+    include: {
+      actor: { select: { name: true, email: true } },
+      organization: { select: { name: true } },
+    },
+  });
   let prevHash: string | null = null;
   for (const log of logs) {
-    const expected: string = createHash("sha256")
+    const expectedHash: string = createHash("sha256")
       .update(
         JSON.stringify({
           prevHash,
@@ -115,12 +137,29 @@ export async function verifyAuditChain(): Promise<{ ok: boolean; brokenAt: strin
         })
       )
       .digest("hex");
-    if (log.prevHash !== prevHash || log.hash !== expected) {
-      return { ok: false, brokenAt: log.id };
+    const prevLinkBroken = log.prevHash !== prevHash;
+    const hashMismatch = log.hash !== expectedHash;
+    if (prevLinkBroken || hashMismatch) {
+      return {
+        ok: false,
+        brokenAt: log.id,
+        reason: prevLinkBroken ? "prev_link_broken" : "hash_mismatch",
+        brokenRecord: {
+          id: log.id,
+          action: log.action,
+          target: log.target ?? null,
+          createdAt: log.createdAt.toISOString(),
+          actor: log.actor ? (log.actor.name ?? log.actor.email) : null,
+          organization: log.organization?.name ?? null,
+          prevHash: log.prevHash ?? null,
+          storedHash: log.hash ?? null,
+          expectedHash,
+        },
+      };
     }
     prevHash = log.hash;
   }
-  return { ok: true, brokenAt: null };
+  return { ok: true, brokenAt: null, reason: null, brokenRecord: null };
 }
 
 export function jsonError(message: string, status: number) {

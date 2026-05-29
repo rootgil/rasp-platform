@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,31 +45,6 @@ export function EnforcementModeSelect({
   const [error, setError] = useState<string | null>(null);
 
   const pending = policyMode !== null && policyMode !== currentMode;
-
-  const HEARTBEAT_MS = 60_000;
-  const [progress, setProgress] = useState(0);
-  const [cycleKey, setCycleKey] = useState(0);
-
-  useEffect(() => {
-    if (!pending) return;
-    setProgress(0);
-    const start = performance.now();
-
-    let raf: number;
-    function tick() {
-      const elapsed = performance.now() - start;
-      const pct = Math.min(elapsed / HEARTBEAT_MS, 1);
-      setProgress(pct * 100);
-      if (pct < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        router.refresh();
-        setCycleKey((k) => k + 1);
-      }
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [pending, cycleKey]);
 
   async function apply() {
     setLoading(true);
@@ -123,18 +98,10 @@ export function EnforcementModeSelect({
         </Select>
       </div>
       {pending && policyMode && (
-        <div className="w-full max-w-[280px] flex flex-col gap-1 mt-0.5">
-          <p className="text-xs text-text-muted">
-            Pending →{" "}
-            <span className="font-medium">{MODE_LABELS[policyMode] ?? policyMode}</span>
-          </p>
-          <div className="h-0.5 w-full rounded-full bg-border overflow-hidden">
-            <div
-              className="h-full bg-brand rounded-full"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
+        <p className="text-xs text-text-muted mt-0.5">
+          Pending →{" "}
+          <span className="font-medium">{MODE_LABELS[policyMode] ?? policyMode}</span>
+        </p>
       )}
 
       <Dialog open={confirming} onOpenChange={(open) => !open && handleCancel()}>

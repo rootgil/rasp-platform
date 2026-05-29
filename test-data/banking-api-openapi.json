@@ -113,6 +113,53 @@
           "200": { "description": "Service is healthy" }
         }
       }
+    },
+    "/api/internal/metrics": {
+      "get": {
+        "summary": "Internal metrics endpoint",
+        "tags": ["Internal"],
+        "responses": {
+          "200": { "description": "Service metrics" }
+        }
+      }
+    },
+    "/api/v1/legacy/transfer": {
+      "post": {
+        "summary": "Legacy fund transfer",
+        "tags": ["Transactions"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["fromAccount", "toAccount", "amount"],
+                "properties": {
+                  "fromAccount": { "type": "string" },
+                  "toAccount":   { "type": "string" },
+                  "amount":      { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Transfer successful" },
+          "400": { "description": "Invalid transfer request" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/favicon.ico": {
+      "get": {
+        "summary": "Favicon",
+        "tags": ["Static"],
+        "responses": {
+          "200": { "description": "Favicon image" },
+          "404": { "description": "Not found" }
+        }
+      }
     }
   },
   "components": {

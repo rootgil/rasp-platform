@@ -9,6 +9,7 @@ import { Server, ShieldAlert, Ban, ScrollText, Boxes } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { DashboardCharts } from "./dashboard-charts";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
+import { OnboardingTour } from "./onboarding-tour";
 import Link from "next/link";
 
 async function getDashboardData(organizationId: string) {
@@ -96,11 +97,18 @@ export default async function DashboardPage() {
 
   if (!membership) redirect("/api/auth/force-signout");
 
-  const data = await getDashboardData(membership.organizationId);
+  const [data, me] = await Promise.all([
+    getDashboardData(membership.organizationId),
+    prisma.user.findUnique({
+      where: { id: session!.user!.id },
+      select: { onboardedAt: true },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
       <AutoRefresh />
+      <OnboardingTour show={!me?.onboardedAt} />
       <PageHeader
         title="Security Overview"
         description={`${membership.organization.name} · Production`}

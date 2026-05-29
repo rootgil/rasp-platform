@@ -8,6 +8,7 @@ import { Webhook, AlertTriangle, Clock, Shield } from "lucide-react";
 import { ExportButton } from "./export-button";
 import { ImportSpecDialog } from "./import-spec-dialog";
 import { ApiDiscoveryFilters } from "./api-discovery-filters";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 import {
   recomputeZombieFlags,
   getAuthCoverage,
@@ -48,6 +49,7 @@ export default async function ApiDiscoveryPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <PageHeader
         title="API Discovery"
         description="Runtime endpoint inventory - observed from live traffic"

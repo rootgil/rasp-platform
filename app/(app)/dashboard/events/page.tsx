@@ -62,13 +62,18 @@ export default async function EventsPage({
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase hidden md:table-cell">Endpoint</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Action</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">When</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {events.map((ev) => (
                 <tr key={ev.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3"><SeverityBadge severity={ev.severity} /></td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-primary">{ev.type.replace(/_/g, " ")}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <Link href={`/dashboard/events/${ev.id}`} className="text-text-primary hover:text-brand">
+                      {ev.type.replace(/_/g, " ")}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-sm">{ev.project.name}</td>
                   <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden md:table-cell">
                     {ev.method} {ev.path}
@@ -77,15 +82,21 @@ export default async function EventsPage({
                     <StatusBadge status={ev.action} />
                   </td>
                   <td className="px-4 py-3 text-xs text-text-muted">
-                    <Link href={`/dashboard/events/${ev.id}`} className="hover:text-brand">
-                      {formatRelativeTime(ev.createdAt)}
+                    {formatRelativeTime(ev.createdAt)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/dashboard/events/${ev.id}`}
+                      className="text-xs text-brand hover:underline whitespace-nowrap"
+                    >
+                      View →
                     </Link>
                   </td>
                 </tr>
               ))}
               {events.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-text-muted">
+                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-text-muted">
                     No security events found
                   </td>
                 </tr>

@@ -18,6 +18,7 @@ model User {
   // Force password change on first login after admin provisioning.
   mustChangePassword  Boolean              @default(false)
   passwordChangedAt   DateTime?
+  onboardedAt         DateTime?
   createdAt           DateTime             @default(now())
   memberships    OrganizationMember[]
   auditLogs      AuditLog[]
