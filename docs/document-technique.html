@@ -443,7 +443,7 @@ ul.std li { margin-bottom: 0.3rem; font-size: 0.88rem; }
     </div>
     <div class="card">
       <div class="card-title">🛡 agent-node</div>
-      <div class="card-body">Package npm <code>@rasp/agent-node</code>. Middleware Express/Fastify/NestJS. 10 détecteurs, redaction locale, transport sécurisé, policy signée Ed25519.</div>
+      <div class="card-body">Package npm <code>@queno/agent-node</code>. Middleware Express/Fastify/NestJS. 10 détecteurs, redaction locale, transport sécurisé, policy signée Ed25519.</div>
     </div>
   </div>
 
@@ -498,7 +498,7 @@ ul.std li { margin-bottom: 0.3rem; font-size: 0.88rem; }
       <rect x="20" y="60" width="195" height="130" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
       <text x="117" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">App Cliente</text>
       <rect x="38" y="94" width="160" height="42" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
-      <text x="118" y="112" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">@rasp/agent-node</text>
+      <text x="118" y="112" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">@queno/agent-node</text>
       <text x="118" y="127" text-anchor="middle" font-size="9" fill="#15803d">middleware Express/Fastify/NestJS</text>
       <rect x="38" y="148" width="160" height="28" rx="5" fill="#bbf7d0" stroke="#86efac" stroke-width="1"/>
       <text x="118" y="166" text-anchor="middle" font-size="9" fill="#166534">audit local (rasp-audit.log)</text>
@@ -954,17 +954,17 @@ ul.std li { margin-bottom: 0.3rem; font-size: 0.88rem; }
 <section class="section" id="agent-integration">
   <div class="anchor-offset"></div>
   <div class="section-tag">Guide d'intégration</div>
-  <h2>Agent Node - <code>@rasp/agent-node</code></h2>
+  <h2>Agent Node - <code>@queno/agent-node</code></h2>
 
   <h3 id="agent-install">Installation</h3>
   <pre><code><span class="c"># npm</span>
-npm install @rasp/agent-node
+npm install @queno/agent-node
 
 <span class="c"># pnpm</span>
-pnpm add @rasp/agent-node
+pnpm add @queno/agent-node
 
 <span class="c"># yarn</span>
-yarn add @rasp/agent-node</code><span class="lang-tag">bash</span></pre>
+yarn add @queno/agent-node</code><span class="lang-tag">bash</span></pre>
 
   <p>Seule dépendance runtime : <code>zod</code>. Les peer dependencies (<code>express</code>, <code>fastify</code>, <code>@nestjs/common</code>) sont optionnelles - installez uniquement ce qui est utilisé.</p>
 
@@ -1021,7 +1021,7 @@ yarn add @rasp/agent-node</code><span class="lang-tag">bash</span></pre>
 
   <h3 id="agent-express">Intégration Express</h3>
   <pre><code><span class="k">import</span> express <span class="k">from</span> <span class="s">"express"</span><span class="p">;</span>
-<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createExpressMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createExpressMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@queno/agent-node"</span><span class="p">;</span>
 
 <span class="c">// 1. Instancier et démarrer l'agent AVANT app.use()</span>
 <span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
@@ -1064,7 +1064,7 @@ app<span class="p">.</span><span class="f">listen</span><span class="p">(</span>
 
   <h3 id="agent-fastify">Intégration Fastify</h3>
   <pre><code><span class="k">import</span> Fastify <span class="k">from</span> <span class="s">"fastify"</span><span class="p">;</span>
-<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createFastifyPlugin</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createFastifyPlugin</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@queno/agent-node"</span><span class="p">;</span>
 
 <span class="k">const</span> <span class="n">agent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
   <span class="n">apiKey</span><span class="p">:</span>    process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_API_KEY</span><span class="p">!,</span>
@@ -1101,7 +1101,7 @@ process<span class="p">.</span><span class="f">on</span><span class="p">(</span>
   <h3 id="agent-nestjs">Intégration NestJS</h3>
   <pre><code><span class="c">// rasp.module.ts</span>
 <span class="k">import</span> <span class="p">{</span> <span class="t">Module</span><span class="p">,</span> <span class="t">NestModule</span><span class="p">,</span> <span class="t">MiddlewareConsumer</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@nestjs/common"</span><span class="p">;</span>
-<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createNestMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">createNestMiddleware</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@queno/agent-node"</span><span class="p">;</span>
 
 <span class="k">export const</span> <span class="n">raspAgent</span> <span class="p">=</span> <span class="k">new</span> <span class="t">RaspAgent</span><span class="p">({</span>
   <span class="n">apiKey</span><span class="p">:</span>    process<span class="p">.</span>env<span class="p">.</span><span class="n">RASP_API_KEY</span><span class="p">!,</span>
@@ -1168,7 +1168,7 @@ process<span class="p">.</span><span class="f">on</span><span class="p">(</span>
   <h3 id="agent-ext">Extensions</h3>
 
   <h4>Détecteur personnalisé</h4>
-  <pre><code><span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="t">Detector</span><span class="p">,</span> <span class="t">NormalizedRequest</span><span class="p">,</span> <span class="t">DetectionResult</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+  <pre><code><span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="t">Detector</span><span class="p">,</span> <span class="t">NormalizedRequest</span><span class="p">,</span> <span class="t">DetectionResult</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@queno/agent-node"</span><span class="p">;</span>
 
 <span class="k">const</span> <span class="n">myDetector</span><span class="p">:</span> <span class="t">Detector</span> <span class="p">=</span> <span class="p">{</span>
   <span class="n">name</span><span class="p">:</span> <span class="s">"my-custom-detector"</span><span class="p">,</span>
@@ -1192,7 +1192,7 @@ process<span class="p">.</span><span class="f">on</span><span class="p">(</span>
 
   <h4>Instrumentation Prisma (corrélation BOLA DB)</h4>
   <pre><code><span class="k">import</span> <span class="p">{</span> <span class="t">PrismaClient</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@prisma/client"</span><span class="p">;</span>
-<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">instrumentPrismaClient</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@rasp/agent-node"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">RaspAgent</span><span class="p">,</span> <span class="n">instrumentPrismaClient</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@queno/agent-node"</span><span class="p">;</span>
 
 <span class="k">const</span> <span class="n">prisma</span> <span class="p">=</span> <span class="k">new</span> <span class="t">PrismaClient</span><span class="p">({</span>
   <span class="n">log</span><span class="p">:</span> <span class="p">[{</span> <span class="n">emit</span><span class="p">:</span> <span class="s">"event"</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="s">"query"</span> <span class="p">}],</span>  <span class="c">// requis pour l'instrumentation</span>
