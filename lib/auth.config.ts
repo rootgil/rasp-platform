@@ -1,6 +1,9 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig: NextAuthConfig = {
+  // Self-hosted (Docker / reverse proxy): trust the incoming Host header.
+  // Without this Auth.js v5 throws UntrustedHost outside Vercel.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",

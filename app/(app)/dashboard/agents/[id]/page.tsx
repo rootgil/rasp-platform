@@ -5,6 +5,7 @@ import { getLatestPolicy } from "@/modules/policies/policies.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CopyButton } from "@/components/shared/copy-button";
+import { SecretField } from "@/components/shared/secret-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EnforcementModeSelect } from "./enforcement-mode-select";
@@ -32,15 +33,18 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
     label: string;
     value: string;
     mono?: boolean;
-    custom?: boolean;
+    custom?: "mode" | "hmac";
   }[] = [
     { label: "Agent ID", value: agent.id, mono: true },
+    ...(agent.hmacSecret
+      ? [{ label: "HMAC Secret", value: agent.hmacSecret, custom: "hmac" as const }]
+      : []),
     { label: "Application", value: agent.project.name },
     { label: "Language", value: agent.language },
     { label: "Framework", value: agent.framework ?? "-" },
     { label: "Version", value: agent.version, mono: true },
     { label: "Channel", value: agent.channel },
-    { label: "Mode", value: agent.mode, custom: true },
+    { label: "Mode", value: agent.mode, custom: "mode" },
     { label: "Kill Switch", value: agent.killSwitch ? "ENABLED" : "Disabled" },
     { label: "Last Heartbeat", value: agent.lastHeartbeatAt ? formatDate(agent.lastHeartbeatAt) : "Never" },
     { label: "Created", value: formatDate(agent.createdAt) },
@@ -60,10 +64,10 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
           <CardContent className="p-0">
             <dl className="divide-y divide-border">
               {rows.map(({ label, value, mono, custom }) => (
-                <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <dt className="text-sm text-text-secondary">{label}</dt>
+                <div key={label} className="flex items-center justify-between px-5 py-3 gap-4">
+                  <dt className="text-sm text-text-secondary shrink-0">{label}</dt>
                   <dd className={`text-sm font-medium text-text-primary flex items-center gap-1.5 ${mono ? "font-mono" : ""}`}>
-                    {custom && label === "Mode" ? (
+                    {custom === "mode" ? (
                       <EnforcementModeSelect
                         agentId={agent.id}
                         currentMode={agent.mode}
@@ -71,6 +75,8 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
                         projectName={agent.project.name}
                         channel={agent.channel}
                       />
+                    ) : custom === "hmac" ? (
+                      <SecretField value={value} />
                     ) : (
                       <>
                         {value}

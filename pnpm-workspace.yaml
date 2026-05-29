@@ -1,7 +1,8 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
-
-onlyBuiltDependencies:
-  - "@prisma/engines"
-  - prisma
+# pnpm 11 replaced onlyBuiltDependencies/ignoredBuiltDependencies with allowBuilds.
+# strictDepBuilds: false -> unlisted build scripts warn instead of failing the install.
+strictDepBuilds: false
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
+  sharp: false
+  unrs-resolver: false
