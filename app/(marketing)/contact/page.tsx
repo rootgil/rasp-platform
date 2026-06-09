@@ -131,9 +131,6 @@ export default function ContactPage() {
             <Card className="border-[#bfdbfe] bg-brand-light">
               <CardContent className="p-4">
                 <p className="text-xs font-semibold text-low-text mb-1">Try it yourself</p>
-                <p className="text-xs text-brand">
-                  Demo credentials: <span className="font-mono">demo@acme.io</span> / <span className="font-mono">demo1234</span>
-                </p>
                 <a href="/login" className="mt-2 text-xs text-brand underline">
                   → Open the demo dashboard
                 </a>

@@ -578,6 +578,20 @@ export function buildOpenApiSpec() {
           },
         },
       },
+      "/policies/{id}": {
+        parameters: [idParam("Policy ID")],
+        get: {
+          tags: ["policies"],
+          summary: "Get a policy version",
+          operationId: "getPolicy",
+          security: sessionSecurity,
+          responses: {
+            200: { description: "Policy object", content: { "application/json": { schema: { type: "object", additionalProperties: true } } } },
+            401: { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+            404: { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+          },
+        },
+      },
       "/policies/rollback": {
         post: {
           tags: ["policies"],

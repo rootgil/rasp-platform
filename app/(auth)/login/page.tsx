@@ -110,14 +110,6 @@ function LoginForm() {
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-border">
-            <p className="text-xs text-center text-text-muted">
-              Demo credentials:{" "}
-              <span className="font-mono text-text-secondary">demo@acme.io</span> /{" "}
-              <span className="font-mono text-text-secondary">demo1234</span>
-            </p>
-          </div>
         </div>
 
         <p className="mt-4 text-center text-sm text-text-muted">

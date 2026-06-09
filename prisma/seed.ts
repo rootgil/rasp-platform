@@ -476,7 +476,6 @@ async function main() {
 
   console.log("✅ Seed complete");
   console.log("  Admin:  admin@rasp.io  / admin1234");
-  console.log("  Client: demo@acme.io   / demo1234");
 }
 
 main()

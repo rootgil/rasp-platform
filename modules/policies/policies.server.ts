@@ -74,6 +74,13 @@ export async function createPolicy(
   });
 }
 
+export async function getPolicy(id: string, organizationId: string) {
+  return prisma.policy.findFirst({
+    where: { id, project: { organizationId } },
+    include: { project: { select: { id: true, name: true } } },
+  });
+}
+
 export async function listPolicies(organizationId: string, projectId?: string) {
   return prisma.policy.findMany({
     where: {

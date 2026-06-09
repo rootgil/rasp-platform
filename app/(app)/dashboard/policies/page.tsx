@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,12 +77,15 @@ export default async function PoliciesPage({
                     <tr key={policy.id} className="hover:bg-background transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-text-primary">{policy.project.name}</td>
                       <td className="px-4 py-3 font-mono text-xs">
-                        <span className="flex items-center gap-1.5">
+                        <Link
+                          href={`/dashboard/policies/${policy.id}`}
+                          className="inline-flex items-center gap-1.5 text-brand underline"
+                        >
                           v{policy.version}
                           {isLatest && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-light text-brand font-medium">latest</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-light text-brand font-medium no-underline">latest</span>
                           )}
-                        </span>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-xs capitalize">{policy.channel}</td>
                       <td className="px-4 py-3"><StatusBadge status={policy.mode} /></td>
