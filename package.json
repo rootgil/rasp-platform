@@ -12,6 +12,8 @@
     "db:push": "prisma db push",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:normalize-rules": "npx tsx prisma/scripts/normalize-rule-patterns.ts",
+    "db:repair-rules": "npx tsx prisma/scripts/repair-rule-yaml.ts",
     "db:seed:prod": "npx tsx prisma/seed-prod.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",

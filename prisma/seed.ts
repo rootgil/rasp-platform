@@ -325,7 +325,7 @@ async function main() {
     ipHandling: "mask_last_octet",
   };
 
-  // Global Rule Catalogue — YAML-driven, patterns compiled to CustomRuleSpec for agent delivery
+  // Global Rule Catalogue - YAML-driven, patterns compiled to CustomRuleSpec for agent delivery
   const catalogueRules = [
     {
       name: "SQLI_BASIC_001",
@@ -333,7 +333,7 @@ async function main() {
       severity: "high",
       description: "Detects common SQL injection patterns in request parameters.",
       enabled: true,
-      pattern: "(?i)(union[\\s]+select|drop[\\s]+table|'\\s*or\\s*'1'\\s*='\\s*1|--\\s*$|\\/\\*.*?\\*\\/|sleep\\s*\\(|benchmark\\s*\\(|xp_cmdshell)",
+      pattern: "(union[\\s]+select|drop[\\s]+table|'\\s*or\\s*'1'\\s*='\\s*1|--\\s*$|\\/\\*.*?\\*\\/|sleep\\s*\\(|benchmark\\s*\\(|xp_cmdshell)",
       target: "any",
       config: { patterns: ["OR 1=1", "' OR '", "UNION SELECT", "DROP TABLE", "SLEEP(", "benchmark(", "--", "/*"] },
     },
@@ -353,7 +353,7 @@ async function main() {
       severity: "critical",
       description: "Detects OS command injection patterns.",
       enabled: true,
-      pattern: "(?i)(;\\s*(cat|ls|id|whoami|curl|wget|bash|sh|python|perl|ruby|nc)\\s|&&|\\|\\|[^|]|`[^`]+`|\\$\\([^)]+\\)|nc\\s+-[el]|bash\\s+-i|\\beval\\s*\\()",
+      pattern: "(;\\s*(cat|ls|id|whoami|curl|wget|bash|sh|python|perl|ruby|nc)\\s|&&|\\|\\|[^|]|`[^`]+`|\\$\\([^)]+\\)|nc\\s+-[el]|bash\\s+-i|\\beval\\s*\\()",
       target: "any",
       config: { patterns: [";", "&&", "||", "`", "$(", "cat /etc/passwd", "curl http", "wget http", "nc -e", "bash -i"] },
     },
@@ -363,7 +363,7 @@ async function main() {
       severity: "medium",
       description: "Detects reflected and stored XSS patterns.",
       enabled: true,
-      pattern: "(?i)(<script[\\s>]|javascript:\\s*|on(error|load|click|mouseover|focus)\\s*=|eval\\s*\\(|document\\.cookie|<iframe[\\s>]|<object[\\s>]|vbscript:)",
+      pattern: "(<script[\\s>]|javascript:\\s*|on(error|load|click|mouseover|focus)\\s*=|eval\\s*\\(|document\\.cookie|<iframe[\\s>]|<object[\\s>]|vbscript:)",
       target: "any",
       config: { patterns: ["<script>", "javascript:", "onerror=", "onload=", "eval(", "document.cookie"] },
     },
@@ -373,7 +373,7 @@ async function main() {
       severity: "high",
       description: "Detects XML External Entity injection attempts.",
       enabled: true,
-      pattern: "(?i)(<!ENTITY|SYSTEM\\s+[\"']file:\\/\\/|PUBLIC\\s+[\"'][^\"']*[\"']\\s+[\"']|%xxe;|<!\\[CDATA\\[)",
+      pattern: "(<!ENTITY|SYSTEM\\s+[\"']file:\\/\\/|PUBLIC\\s+[\"'][^\"']*[\"']\\s+[\"']|%xxe;|<!\\[CDATA\\[)",
       target: "body",
       config: { patterns: ["<!ENTITY", "SYSTEM \"file://", "SYSTEM 'file://", "%xxe;"] },
     },
@@ -383,7 +383,7 @@ async function main() {
       severity: "high",
       description: "Detects Server-Side Request Forgery patterns targeting internal services.",
       enabled: true,
-      pattern: "(?i)(169\\.254\\.169\\.254|metadata\\.google\\.internal|metadata\\.internal|169\\.254\\.170\\.2|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|::1|\\bfile:\\/\\/|\\/proc\\/self)",
+      pattern: "(169\\.254\\.169\\.254|metadata\\.google\\.internal|metadata\\.internal|169\\.254\\.170\\.2|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|::1|\\bfile:\\/\\/|\\/proc\\/self)",
       target: "any",
       config: { patterns: ["169.254.169.254", "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"] },
     },
@@ -393,7 +393,7 @@ async function main() {
       severity: "critical",
       description: "Detects Server-Side Template Injection (SSTI) patterns.",
       enabled: true,
-      pattern: "(?i)(\\{\\{\\s*[0-9*+\\-/]|\\$\\{\\s*[0-9*+\\-/]|#\\{\\s*[0-9*+\\-/]|<%=\\s*[0-9]|\\{\\{\\s*config\\s*\\}\\}|\\{\\{\\s*self\\.__dict__|\\{\\{\\s*request\\.|@\\{\\s*[0-9])",
+      pattern: "(\\{\\{\\s*[0-9*+\\-/]|\\$\\{\\s*[0-9*+\\-/]|#\\{\\s*[0-9*+\\-/]|<%=\\s*[0-9]|\\{\\{\\s*config\\s*\\}\\}|\\{\\{\\s*self\\.__dict__|\\{\\{\\s*request\\.|@\\{\\s*[0-9])",
       target: "any",
       config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] },
     },
@@ -413,7 +413,7 @@ async function main() {
       severity: "medium",
       description: "Detects credential brute force and stuffing attempts via common auth endpoint patterns.",
       enabled: true,
-      pattern: "(?i)\\/(?:auth|login|signin|token|oauth|password|credential)(?:\\/|$)",
+      pattern: "\\/(?:auth|login|signin|token|oauth|password|credential)(?:\\/|$)",
       target: "path",
       config: { maxAttemptsPerMinute: 10, trackByIp: true, trackByUser: true },
     },
@@ -423,7 +423,7 @@ async function main() {
       severity: "high",
       description: "Detects NoSQL injection patterns targeting MongoDB and similar databases.",
       enabled: true,
-      pattern: "(?i)(\\$where|\\$gt|\\$ne|\\$or|\\$regex|\\$exists|\\$expr|\\$function|\\{\\s*\"\\$|;\\s*db\\.|mapReduce\\s*\\()",
+      pattern: "(\\$where|\\$gt|\\$ne|\\$or|\\$regex|\\$exists|\\$expr|\\$function|\\{\\s*\"\\$|;\\s*db\\.|mapReduce\\s*\\()",
       target: "any",
       config: { patterns: ["$where", "$gt", "$ne", "$or", "$regex", "$exists", "{\"$"] },
     },
@@ -433,7 +433,7 @@ async function main() {
       severity: "critical",
       description: "Detects unsafe deserialization patterns.",
       enabled: true,
-      pattern: "(?i)(rO0AB|aced0005|__reduce__|__reduce_ex__|pickle\\.loads|java\\.io\\.ObjectInputStream|readObject\\s*\\(|yaml\\.load\\s*\\([^)]*Loader)",
+      pattern: "(rO0AB|aced0005|__reduce__|__reduce_ex__|pickle\\.loads|java\\.io\\.ObjectInputStream|readObject\\s*\\(|yaml\\.load\\s*\\([^)]*Loader)",
       target: "body",
       config: { patterns: ["rO0AB", "aced0005", "__reduce__", "pickle.loads", "java.io.ObjectInputStream"] },
     },
@@ -478,7 +478,7 @@ async function main() {
     )
   );
 
-  // ProjectRules for the demo project (banking-api) — all catalogue rules enabled
+  // ProjectRules for the demo project (banking-api) - all catalogue rules enabled
   const demoProjectRules = await Promise.all(
     createdRules.map((rule) =>
       prisma.projectRule.create({

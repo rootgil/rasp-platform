@@ -1,5 +1,6 @@
 import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { updateProjectRule, deleteProjectRule } from "@/modules/project-rules/project-rules.server";
+import { formatRuleCompileErrors } from "@/modules/project-rules/rule-yaml-help";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -21,7 +22,7 @@ export async function PATCH(
 
     const result = await updateProjectRule(id, orgId, parsed.data);
     if (result === null) return jsonError("Rule not found", 404);
-    if (result && "errors" in result) return jsonError(JSON.stringify(result.errors), 400);
+    if (result && "errors" in result) return jsonError(formatRuleCompileErrors(result.errors), 400);
 
     await createAuditLog({
       actorId:        user.id,

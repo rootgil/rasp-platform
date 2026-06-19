@@ -12,7 +12,6 @@ export async function POST(
 
     const result = await acceptCatalogueNotification(id, orgId);
     if (!result) return jsonError("Notification not found", 404);
-    if (result && "errors" in result) return jsonError(JSON.stringify(result.errors), 400);
 
     await createAuditLog({
       actorId:        user.id,

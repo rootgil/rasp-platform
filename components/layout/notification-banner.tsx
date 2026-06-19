@@ -25,7 +25,7 @@ export function NotificationBanner({ count }: NotificationBannerProps) {
           {count === 1
             ? "1 new security rule is available in the catalogue"
             : `${count} new security rules are available in the catalogue`}
-          {" — "}
+          {" - "}
           <span className="text-amber-800">
             Review and activate them to keep your protection up to date.
           </span>

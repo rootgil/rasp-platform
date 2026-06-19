@@ -89,7 +89,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
     try {
       const res = await fetch(`/api/project-rules/notifications/${notifId}/accept`, { method: "POST" });
       if (res.ok) {
-        toast.success(`Rule "${ruleName}" activated — don't forget to publish`);
+        toast.success(`Rule "${ruleName}" activated - don't forget to publish`);
         setNotifications((prev) => prev.filter((n) => n.id !== notifId));
         onNotifCountChange?.(notifications.length - 1);
       } else {
@@ -104,7 +104,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
     try {
       const res = await fetch(`/api/project-rules/notifications/${notifId}/decline`, { method: "POST" });
       if (res.ok) {
-        toast.info("Rule declined — you can activate it later from the Rules page");
+        toast.info("Rule declined - you can activate it later from the Rules page");
         setNotifications((prev) => prev.filter((n) => n.id !== notifId));
         onNotifCountChange?.(notifications.length - 1);
       } else {

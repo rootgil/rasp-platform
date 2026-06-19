@@ -11,7 +11,16 @@ export default async function RulesPage() {
 
   const membership = await prisma.organizationMember.findFirst({
     where:   { userId: session.user.id },
-    include: { organization: { include: { projects: { select: { id: true, name: true } } } } },
+    include: {
+      organization: {
+        include: {
+          projects: {
+            select:  { id: true, name: true },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+      },
+    },
   });
   if (!membership) redirect("/login");
 

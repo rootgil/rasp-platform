@@ -124,7 +124,7 @@ export function BackofficeRulesTable({ rules }: { rules: Rule[] }) {
                       <div className="rounded-md border border-border overflow-hidden">
                         <div className="flex items-center justify-between px-3 py-1.5 bg-background border-b border-border">
                           <span className="text-[11px] font-medium text-text-muted uppercase tracking-wide">
-                            YAML Definition — {rule.name}
+                            YAML Definition - {rule.name}
                           </span>
                           <button
                             className="text-[11px] transition-colors"

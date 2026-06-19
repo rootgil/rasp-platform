@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getLatestPolicy } from "@/modules/policies/policies.server";
 import { compileRuleYaml, buildRuleYaml } from "./yaml-compiler";
 
 /** Ensure the project belongs to the given org. Returns null if not found. */
@@ -25,7 +26,7 @@ export async function listProjectRules(projectId: string, orgId: string) {
 
 /**
  * Add a catalogue rule to a project. The project's YAML is a copy of the
- * catalogue YAML at the time of addition — the user can override it later.
+ * catalogue YAML at the time of addition - the user can override it later.
  */
 export async function addFromCatalogue(
   projectId: string,
@@ -38,15 +39,30 @@ export async function addFromCatalogue(
   const rule = await prisma.rule.findUnique({ where: { id: catalogueRuleId } });
   if (!rule) return null;
 
-  const yaml = rule.yamlDefinition ?? buildRuleYaml({
+  const yaml = buildRuleYaml({
     id:          rule.name,
-    name:        rule.name,
+    name:        rule.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     type:        rule.type,
     severity:    rule.severity,
     target:      rule.target,
     pattern:     rule.pattern ?? "",
     description: rule.description,
+    enabled:     true,
   });
+
+  const compiled = compileRuleYaml(yaml);
+  const canonicalYaml = "errors" in compiled
+    ? yaml
+    : buildRuleYaml({
+        id:          compiled.spec.id,
+        name:        compiled.spec.name,
+        type:        compiled.yaml.type,
+        severity:    compiled.yaml.severity,
+        target:      compiled.spec.target,
+        pattern:     compiled.spec.pattern,
+        description: compiled.spec.description,
+        enabled:     true,
+      });
 
   return prisma.projectRule.create({
     data: {
@@ -58,9 +74,9 @@ export async function addFromCatalogue(
       severity:       rule.severity,
       description:    rule.description,
       enabled:        true,
-      yamlDefinition: yaml,
-      pattern:        rule.pattern,
-      target:         rule.target,
+      yamlDefinition: canonicalYaml,
+      pattern:        "errors" in compiled ? rule.pattern : compiled.spec.pattern,
+      target:         "errors" in compiled ? rule.target  : compiled.spec.target,
     },
   });
 }
@@ -81,6 +97,17 @@ export async function createCustomRule(
 
   const { spec, yaml } = result;
 
+  const canonicalYaml = buildRuleYaml({
+    id:          spec.id,
+    name:        spec.name,
+    type:        yaml.type,
+    severity:    yaml.severity,
+    target:      spec.target,
+    pattern:     spec.pattern,
+    description: yaml.description,
+    enabled:     yaml.enabled,
+  });
+
   return prisma.projectRule.create({
     data: {
       projectId,
@@ -90,7 +117,7 @@ export async function createCustomRule(
       severity:       yaml.severity,
       description:    yaml.description,
       enabled:        yaml.enabled,
-      yamlDefinition,
+      yamlDefinition: canonicalYaml,
       pattern:        spec.pattern,
       target:         spec.target,
     },
@@ -123,7 +150,16 @@ export async function updateProjectRule(
     if ("errors" in result) return { errors: result.errors };
 
     const { spec, yaml } = result;
-    updates.yamlDefinition = data.yamlDefinition;
+    updates.yamlDefinition = buildRuleYaml({
+      id:          spec.id,
+      name:        spec.name,
+      type:        yaml.type,
+      severity:    yaml.severity,
+      target:      spec.target,
+      pattern:     spec.pattern,
+      description: yaml.description,
+      enabled:     yaml.enabled,
+    });
     updates.pattern        = spec.pattern;
     updates.target         = spec.target;
     updates.severity       = yaml.severity;
@@ -165,4 +201,57 @@ export async function acceptCatalogueNotification(
   });
 
   return projectRule;
+}
+
+type DetectionRuleRef = { id?: string; name?: string };
+
+/** Whether enabled project rules differ from the latest signed policy. */
+export async function getPublishStatus(projectId: string, orgId: string) {
+  const project = await assertProjectOwnership(projectId, orgId);
+  if (!project) return null;
+
+  const enabledRules = await prisma.projectRule.findMany({
+    where:  { projectId, enabled: true },
+    select: { name: true },
+  });
+
+  const latestPolicy =
+    (await getLatestPolicy(orgId, projectId, "stable")) ??
+    (await getLatestPolicy(orgId, projectId));
+
+  if (enabledRules.length === 0) {
+    return {
+      latestVersion:  latestPolicy?.version ?? null,
+      needsPublish:   false,
+      enabledCount:   0,
+      publishedCount: Array.isArray(latestPolicy?.detectionRules)
+        ? (latestPolicy!.detectionRules as unknown[]).length
+        : 0,
+    };
+  }
+
+  if (!latestPolicy) {
+    return {
+      latestVersion:  null,
+      needsPublish:   true,
+      enabledCount:   enabledRules.length,
+      publishedCount: 0,
+    };
+  }
+
+  const detectionRules = Array.isArray(latestPolicy.detectionRules)
+    ? (latestPolicy.detectionRules as DetectionRuleRef[])
+    : [];
+
+  const allPublished = enabledRules.every((rule) =>
+    detectionRules.some((dr) => dr.id === rule.name || dr.name === rule.name)
+  );
+  const countsMatch = detectionRules.length === enabledRules.length;
+
+  return {
+    latestVersion:  latestPolicy.version,
+    needsPublish:   !allPublished || !countsMatch,
+    enabledCount:   enabledRules.length,
+    publishedCount: detectionRules.length,
+  };
 }

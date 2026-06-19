@@ -3,7 +3,9 @@ import {
   listProjectRules,
   addFromCatalogue,
   createCustomRule,
+  getPublishStatus,
 } from "@/modules/project-rules/project-rules.server";
+import { formatRuleCompileErrors } from "@/modules/project-rules/rule-yaml-help";
 import { z } from "zod";
 
 const addCatalogueSchema = z.object({
@@ -31,7 +33,9 @@ export async function GET(req: Request) {
     const rules = await listProjectRules(projectId, orgId);
     if (rules === null) return jsonError("Project not found", 404);
 
-    return Response.json(rules);
+    const publishStatus = await getPublishStatus(projectId, orgId);
+
+    return Response.json({ rules, publishStatus });
   } catch (e) {
     if (e instanceof Response) return e;
     return jsonError("Internal server error", 500);
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
     }
 
     if (result === null) return jsonError("Project or catalogue rule not found", 404);
-    if (result && "errors" in result) return jsonError(JSON.stringify(result.errors), 400);
+    if (result && "errors" in result) return jsonError(formatRuleCompileErrors(result.errors), 400);
 
     await createAuditLog({
       actorId:        user.id,

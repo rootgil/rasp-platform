@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -20,8 +19,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ChevronDown, ChevronUp, Plus, UploadCloud, Pencil, Trash2, AlertCircle, CheckCircle2,
+  ChevronDown, ChevronUp, Plus, UploadCloud, Pencil, Trash2,
 } from "lucide-react";
+import { RuleYamlEditor, isRuleYamlValid } from "@/components/rules/rule-yaml-editor";
+import { CUSTOM_RULE_YAML_TEMPLATE } from "@/modules/project-rules/rule-yaml-help";
 
 interface Project     { id: string; name: string }
 interface CatalogueRule {
@@ -40,28 +41,11 @@ const SEV: Record<string, "destructive" | "secondary" | "outline"> = {
   critical: "destructive", high: "destructive", medium: "secondary", low: "outline",
 };
 
-const CUSTOM_TEMPLATE = `name: My Detection Rule
-type: custom_rule
-severity: medium
-target: any
-pattern: "(keyword1|keyword2)"
-description: Describe what this rule detects
-enabled: true`;
+const CUSTOM_TEMPLATE = CUSTOM_RULE_YAML_TEMPLATE;
 
-function YamlValidation({ yaml }: { yaml: string }) {
-  const lines  = yaml.split("\n");
-  const obj: Record<string, string> = {};
-  for (const l of lines) { const m = l.match(/^(\w+):\s*"?([^"#\n]*)"?\s*/); if (m) obj[m[1]] = m[2].trim(); }
-  const missing = ["id", "name", "type", "severity", "target", "pattern"].filter((k) => !obj[k]);
-  if (missing.length) return (
-    <span className="flex items-center gap-1 text-xs text-destructive">
-      <AlertCircle size={11} /> Missing: {missing.join(", ")}
-    </span>
-  );
-  try { new RegExp(obj.pattern); } catch {
-    return <span className="flex items-center gap-1 text-xs text-destructive"><AlertCircle size={11} /> invalid regex pattern</span>;
-  }
-  return <span className="flex items-center gap-1 text-xs text-success"><CheckCircle2 size={11} /> Valid</span>;
+async function readApiError(res: Response, fallback: string): Promise<string> {
+  const data = await res.json().catch(() => ({})) as { error?: string };
+  return data.error?.trim() || fallback;
 }
 
 export function RulesClient({
@@ -76,6 +60,10 @@ export function RulesClient({
   const [loadingRules, setLoadingRules]           = useState(false);
   const [publishing, setPublishing]               = useState(false);
   const [dirty, setDirty]                         = useState(false);
+  const [needsPublish, setNeedsPublish]           = useState(false);
+  const [latestPolicyVersion, setLatestPolicyVersion] = useState<number | null>(null);
+  const [enabledRuleCount, setEnabledRuleCount]   = useState(0);
+  const [publishedRuleCount, setPublishedRuleCount] = useState(0);
 
   // Expanded YAML panels
   const [expandedCatalogueYaml, setExpandedCatalogueYaml] = useState<string | null>(null);
@@ -92,7 +80,23 @@ export function RulesClient({
     setLoadingRules(true);
     try {
       const res = await fetch(`/api/project-rules?projectId=${projectId}`);
-      if (res.ok) setProjectRules(await res.json());
+      if (res.ok) {
+        const data = await res.json() as {
+          rules: ProjectRule[];
+          publishStatus: {
+            latestVersion: number | null;
+            needsPublish: boolean;
+            enabledCount: number;
+            publishedCount: number;
+          };
+        };
+        setProjectRules(data.rules);
+        setNeedsPublish(data.publishStatus.needsPublish);
+        setLatestPolicyVersion(data.publishStatus.latestVersion);
+        setEnabledRuleCount(data.publishStatus.enabledCount);
+        setPublishedRuleCount(data.publishStatus.publishedCount);
+        setDirty(false);
+      }
     } finally {
       setLoadingRules(false);
     }
@@ -100,7 +104,7 @@ export function RulesClient({
 
   useEffect(() => { fetchProjectRules(selectedProjectId); }, [selectedProjectId, fetchProjectRules]);
 
-  // ——— Catalogue tab actions ———
+  // --- Catalogue tab actions ---
 
   function isActive(catalogueRuleId: string) {
     return projectRules.some((pr) => pr.catalogueRuleId === catalogueRuleId);
@@ -143,11 +147,11 @@ export function RulesClient({
       setDirty(true);
       toast.success("Override saved");
     } else {
-      toast.error("Failed to save override");
+      toast.error(await readApiError(res, "Failed to save override"), { duration: 8000 });
     }
   }
 
-  // ——— Custom tab actions ———
+  // --- Custom tab actions ---
 
   function openCreateDialog() {
     setEditTarget(null);
@@ -162,6 +166,11 @@ export function RulesClient({
   }
 
   async function saveCustomRule() {
+    if (!isRuleYamlValid(customYaml)) {
+      toast.error("Fix the YAML errors listed in the dialog before saving.");
+      return;
+    }
+
     if (editTarget) {
       const res = await fetch(`/api/project-rules/${editTarget.id}`, {
         method:  "PATCH",
@@ -174,7 +183,9 @@ export function RulesClient({
         setCustomDialogOpen(false);
         setDirty(true);
         toast.success("Rule updated");
-      } else { toast.error("Failed to update rule"); }
+      } else {
+        toast.error(await readApiError(res, "Failed to update rule"), { duration: 8000 });
+      }
     } else {
       const res = await fetch("/api/project-rules", {
         method:  "POST",
@@ -186,8 +197,10 @@ export function RulesClient({
         setProjectRules((p) => [...p, created]);
         setCustomDialogOpen(false);
         setDirty(true);
-        toast.success("Rule created");
-      } else { toast.error("Failed to create rule"); }
+        toast.success("Rule created - click Publish to activate on agents");
+      } else {
+        toast.error(await readApiError(res, "Failed to create rule"), { duration: 8000 });
+      }
     }
   }
 
@@ -210,7 +223,7 @@ export function RulesClient({
     else toast.error("Failed to delete rule");
   }
 
-  // ——— Publish ———
+  // --- Publish ---
 
   async function handlePublish() {
     setPublishing(true);
@@ -222,11 +235,11 @@ export function RulesClient({
       });
       if (res.ok) {
         const policy = await res.json() as { version: number };
-        setDirty(false);
-        toast.success(`Policy v${policy.version} published — agents will update within ~30s`);
+        toast.success(`Policy v${policy.version} published - agents will update within ~30s`);
+        await fetchProjectRules(selectedProjectId);
       } else {
         const d = await res.json().catch(() => ({})) as { error?: string };
-        toast.error(d.error ?? "Failed to publish");
+        toast.error(d.error ?? "Failed to publish", { duration: 10000 });
       }
     } finally {
       setPublishing(false);
@@ -235,31 +248,47 @@ export function RulesClient({
 
   const customRules    = projectRules.filter((r) => r.source === "custom");
   const activeCount    = projectRules.filter((r) => r.enabled).length;
+  const showPublishBanner = needsPublish || dirty;
 
   return (
     <div className="space-y-4">
       {/* Project selector */}
-      {projects.length > 1 && (
+      {(projects.length > 1 || projects.length === 1) && (
         <div className="flex items-center gap-3">
-          <Label className="shrink-0 text-sm">Application</Label>
-          <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {projects.length > 1 ? (
+            <>
+              <Label className="shrink-0 text-sm">Application</Label>
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          ) : (
+            <>
+              <Label className="shrink-0 text-sm">Application</Label>
+              <span className="text-sm font-medium text-text-primary">{projects[0]?.name}</span>
+            </>
+          )}
         </div>
       )}
 
       {/* Publish banner */}
-      {dirty && (
+      {showPublishBanner && (
         <div className="flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2.5">
           <p className="text-sm font-medium text-amber-900">
-            {activeCount} rule{activeCount !== 1 ? "s" : ""} — changes not yet published to agents
+            {latestPolicyVersion == null
+              ? `${enabledRuleCount} rule${enabledRuleCount !== 1 ? "s" : ""} enabled - no policy published yet, agents cannot detect anything`
+              : publishedRuleCount !== enabledRuleCount
+                ? `Policy v${latestPolicyVersion} has ${publishedRuleCount} rule${publishedRuleCount !== 1 ? "s" : ""}, but ${enabledRuleCount} ${enabledRuleCount !== 1 ? "are" : "is"} enabled - publish to sync agents`
+                : dirty
+                  ? `${enabledRuleCount} rule${enabledRuleCount !== 1 ? "s" : ""} - YAML changed since last publish`
+                  : `${enabledRuleCount} rule${enabledRuleCount !== 1 ? "s" : ""} - publish to push updates to agents`}
           </p>
-          <Button size="sm" onClick={handlePublish} disabled={publishing} className="h-7 text-xs">
+          <Button size="sm" onClick={handlePublish} disabled={publishing || activeCount === 0} className="h-7 text-xs">
             <UploadCloud size={12} className="mr-1" />
             {publishing ? "Publishing…" : "Publish now"}
           </Button>
@@ -282,7 +311,7 @@ export function RulesClient({
           </TabsTrigger>
         </TabsList>
 
-        {/* ——— CATALOGUE TAB ——— */}
+        {/* --- CATALOGUE TAB --- */}
         <TabsContent value="catalogue" className="mt-4">
           <Card>
             <CardContent className="p-0">
@@ -356,19 +385,21 @@ export function RulesClient({
                         {/* Override editor */}
                         {isOverrideOpen && (
                           <div className="ml-12 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-text-secondary font-medium">Your project override</span>
-                              <YamlValidation yaml={overrideYaml} />
-                            </div>
-                            <Textarea
-                              value={overrideYaml}
-                              onChange={(e) => setOverrideYaml(e.target.value)}
-                              rows={8}
-                              className="font-mono text-xs resize-none"
-                              spellCheck={false}
+                            <RuleYamlEditor
+                              yaml={overrideYaml}
+                              onChange={setOverrideYaml}
+                              rows={6}
+                              showFieldGuide={false}
                             />
                             <div className="flex gap-2">
-                              <Button size="sm" className="h-7 text-xs" onClick={saveOverride}>Save override</Button>
+                              <Button
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={saveOverride}
+                                disabled={!isRuleYamlValid(overrideYaml)}
+                              >
+                                Save override
+                              </Button>
                               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOverrideTarget(null)}>Cancel</Button>
                               {isOverriding && pr && (
                                 <Button
@@ -392,7 +423,7 @@ export function RulesClient({
           </Card>
         </TabsContent>
 
-        {/* ——— CUSTOM RULES TAB ——— */}
+        {/* --- CUSTOM RULES TAB --- */}
         <TabsContent value="custom" className="mt-4">
           <div className="space-y-4">
             <div className="flex justify-end">
@@ -469,38 +500,26 @@ export function RulesClient({
 
       {/* Custom rule create/edit dialog */}
       <Dialog open={customDialogOpen} onOpenChange={setCustomDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="w-[calc(100%-1rem)] sm:max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit Rule" : "New Custom Rule"}</DialogTitle>
             <DialogDescription>
-              Define the rule in YAML. Pattern must be a valid JavaScript regex.
+              Required fields: name, type, severity, target, pattern. Publish after saving.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Rule definition</span>
-              <YamlValidation yaml={customYaml} />
-            </div>
-            <Textarea
-              value={customYaml}
-              onChange={(e) => setCustomYaml(e.target.value)}
-              rows={10}
-              className="font-mono text-xs resize-none"
-              spellCheck={false}
-            />
-            <div className="rounded-md bg-background border border-border px-3 py-2 space-y-1">
-              <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wide">Pattern examples</p>
-              <div className="grid grid-cols-1 gap-0.5 font-mono text-[11px] text-text-muted">
-                <span><span className="text-brand">(keyword1|keyword2)</span> — match any of these words</span>
-                <span><span className="text-brand">(\.\./|/etc/passwd)</span> — path traversal</span>
-                <span><span className="text-brand">(\beval\s*\(|\bexec\s*\()</span> — dangerous function calls</span>
-              </div>
-              <p className="text-[11px] text-text-muted pt-0.5">Standard JavaScript regex. No <span className="font-mono">(?i)</span> inline flag — use <span className="font-mono">[Aa]</span> for case-insensitive chars if needed.</p>
-            </div>
-          </div>
+          <RuleYamlEditor
+            yaml={customYaml}
+            onChange={setCustomYaml}
+            rows={8}
+          />
           <DialogFooter>
             <Button variant="secondary" onClick={() => setCustomDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveCustomRule}>{editTarget ? "Save changes" : "Create rule"}</Button>
+            <Button
+              onClick={saveCustomRule}
+              disabled={!isRuleYamlValid(customYaml)}
+            >
+              {editTarget ? "Save changes" : "Create rule"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

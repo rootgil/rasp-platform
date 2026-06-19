@@ -111,7 +111,7 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
       const project = await projectRes.json() as { id: string };
 
       // Step 2: Add selected catalogue rules
-      await Promise.all(
+      const ruleResults = await Promise.all(
         Array.from(selectedRuleIds).map((catalogueRuleId) =>
           fetch("/api/project-rules", {
             method:  "POST",
@@ -120,16 +120,34 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
           })
         )
       );
+      const failedRule = ruleResults.find((r) => !r.ok);
+      if (failedRule) {
+        toast.error("Application created but some rules failed to attach - check Rules page");
+        router.refresh();
+        return;
+      }
 
-      // Step 3: Publish initial policy v1
-      await fetch("/api/project-rules/publish", {
+      // Step 3: Publish initial policy v1 (required - agents only detect via signed policy)
+      const publishRes = await fetch("/api/project-rules/publish", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ projectId: project.id }),
       });
+      if (!publishRes.ok) {
+        const d = await publishRes.json().catch(() => ({})) as { error?: string };
+        toast.error(
+          d.error ??
+            "Application created but policy publish failed - go to Rules and click Publish now"
+        );
+        router.refresh();
+        return;
+      }
+      const policy = await publishRes.json() as { version: number };
 
       handleClose(false);
-      toast.success(`Application "${form.name}" created with ${selectedRuleIds.size} detection rule(s) active`);
+      toast.success(
+        `Application "${form.name}" created - Policy v${policy.version} published (${selectedRuleIds.size} rule${selectedRuleIds.size !== 1 ? "s" : ""})`
+      );
       router.refresh();
     } catch {
       toast.error("Failed to create application");
@@ -144,15 +162,21 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className={step === 2 ? "max-w-2xl" : undefined}>
+      <DialogContent
+        className={
+          step === 2
+            ? "w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-4xl overflow-x-hidden"
+            : undefined
+        }
+      >
         <DialogHeader>
           <DialogTitle>
             {step === 1 ? "Add Application" : "Choose Detection Rules"}
           </DialogTitle>
           <DialogDescription>
             {step === 1
-              ? "Step 1 of 2 — Application details"
-              : `Step 2 of 2 — Select at least one rule. Your agents won't detect anything until a rule is active.`}
+              ? "Step 1 of 2 - Application details"
+              : `Step 2 of 2 - Select at least one rule. Your agents won't detect anything until a rule is active.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -224,20 +248,20 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
               </Button>
             </div>
 
-            <div className="border border-border rounded-md divide-y divide-border max-h-[360px] overflow-y-auto">
+            <div className="border border-border rounded-md divide-y divide-border max-h-[min(480px,calc(100dvh-16rem))] overflow-y-auto overflow-x-hidden">
               {catalogue.length === 0 && (
                 <div className="p-6 text-center text-sm text-text-muted">Loading catalogue…</div>
               )}
               {catalogue.map((rule) => (
-                <div key={rule.id} className="p-3 space-y-1.5">
-                  <div className="flex items-start gap-3">
+                <div key={rule.id} className="p-3 space-y-1.5 min-w-0">
+                  <div className="flex items-start gap-3 min-w-0">
                     <Checkbox
                       id={`rule-${rule.id}`}
                       checked={selectedRuleIds.has(rule.id)}
                       onCheckedChange={() => toggleRule(rule.id)}
-                      className="mt-0.5"
+                      className="mt-0.5 shrink-0"
                     />
-                    <label htmlFor={`rule-${rule.id}`} className="flex-1 cursor-pointer space-y-0.5">
+                    <label htmlFor={`rule-${rule.id}`} className="flex-1 min-w-0 cursor-pointer space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-text-primary">{rule.name}</span>
                         <Badge variant={SEVERITY_COLORS[rule.severity] ?? "outline"} className="text-[10px] px-1.5 py-0">
@@ -263,7 +287,7 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
                     )}
                   </div>
                   {expandedYaml === rule.id && rule.yamlDefinition && (
-                    <pre className="ml-7 p-2 rounded bg-background border border-border text-[10px] font-mono overflow-x-auto max-h-32 text-text-primary">
+                    <pre className="ml-7 p-3 rounded bg-background border border-border text-[11px] leading-relaxed font-mono overflow-hidden max-h-48 text-text-primary whitespace-pre-wrap break-all">
                       {rule.yamlDefinition}
                     </pre>
                   )}
@@ -274,7 +298,7 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
             {!step2Valid && (
               <p className="flex items-center gap-1.5 text-xs text-destructive">
                 <ShieldCheck size={12} />
-                Select at least one rule — your application will have no protection otherwise.
+                Select at least one rule - your application will have no protection otherwise.
               </p>
             )}
 
