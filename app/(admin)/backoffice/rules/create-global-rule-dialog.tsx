@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -10,58 +10,110 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
-const RULE_TYPES = [
-  { value: "sql_injection",      label: "SQL Injection" },
-  { value: "nosql_injection",    label: "NoSQL Injection" },
-  { value: "path_traversal",     label: "Path Traversal" },
-  { value: "command_injection",  label: "Command Injection" },
-  { value: "xss",                label: "XSS" },
-  { value: "xxe",                label: "XXE" },
-  { value: "ssrf",               label: "SSRF" },
-  { value: "template_injection", label: "Template Injection (SSTI)" },
-  { value: "bola_idor",          label: "BOLA / IDOR" },
-  { value: "brute_force",        label: "Brute Force / Credential Stuffing" },
-  { value: "deserialization",    label: "Deserialization" },
-  { value: "suspicious_payload", label: "Suspicious Payload" },
-];
+const YAML_TEMPLATE = `name: My Detection Rule
+type: custom_rule
+severity: medium
+target: any
+pattern: "(keyword1|keyword2|keyword3)"
+description: Describe what this rule detects
+enabled: true`;
+
+interface ParsedPreview {
+  id:          string;
+  name:        string;
+  type:        string;
+  severity:    string;
+  target:      string;
+  pattern:     string;
+  description?: string;
+}
+
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: "destructive",
+  high:     "destructive",
+  medium:   "secondary",
+  low:      "outline",
+};
+
+function parseYamlPreview(text: string): { preview: ParsedPreview; error: null } | { preview: null; error: string } {
+  try {
+    const lines = text.split("\n");
+    const obj: Record<string, string> = {};
+    for (const line of lines) {
+      const m = line.match(/^(\w+):\s*"?([^"#\n]*)"?\s*(?:#.*)?$/);
+      if (m) obj[m[1].trim()] = m[2].trim();
+    }
+    if (!obj.name)    return { preview: null, error: "name is required" };
+    if (!obj.type)    return { preview: null, error: "type is required" };
+    if (!obj.severity) return { preview: null, error: "severity is required" };
+    if (!obj.target)  return { preview: null, error: "target is required" };
+    if (!obj.pattern) return { preview: null, error: "pattern is required" };
+
+    // Validate regex
+    try { new RegExp(obj.pattern); } catch {
+      return { preview: null, error: "pattern is not a valid regular expression" };
+    }
+
+    const derivedId = (obj.id || obj.name).trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "");
+    return {
+      preview: {
+        id:          derivedId,
+        name:        obj.name,
+        type:        obj.type,
+        severity:    obj.severity,
+        target:      obj.target,
+        pattern:     obj.pattern,
+        description: obj.description,
+      },
+      error: null,
+    };
+  } catch {
+    return { preview: null, error: "Invalid YAML" };
+  }
+}
 
 export function CreateGlobalRuleDialog({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const router  = useRouter();
+  const [open, setOpen]     = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    type: "",
-    severity: "medium" as "critical" | "high" | "medium" | "low",
-    description: "",
-  });
+  const [yaml, setYaml]     = useState(YAML_TEMPLATE);
+
+  const parsed = parseYamlPreview(yaml);
+
+  const handleOpen = useCallback((v: boolean) => {
+    setOpen(v);
+    if (v) setYaml(YAML_TEMPLATE);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!parsed.preview) return;
     setLoading(true);
     try {
       const res = await fetch("/api/rules", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body:    JSON.stringify({
+          name:           parsed.preview.id,
+          type:           parsed.preview.type,
+          severity:       parsed.preview.severity,
+          description:    parsed.preview.description,
+          pattern:        parsed.preview.pattern,
+          target:         parsed.preview.target,
+          yamlDefinition: yaml,
+          enabled:        true,
+        }),
       });
       if (res.ok) {
         setOpen(false);
-        setForm({ name: "", type: "", severity: "medium", description: "" });
-        toast.success(`Règle "${form.name}" créée`);
+        toast.success(`Rule "${parsed.preview.name}" created — projects will be notified`);
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string };
@@ -74,74 +126,75 @@ export function CreateGlobalRuleDialog({ children }: { children: React.ReactNode
     }
   }
 
-  const canSubmit = form.name && form.type;
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>New Global Detection Rule</DialogTitle>
+          <DialogDescription>
+            Define the rule in YAML. It will be added to the catalogue and all existing projects will receive an opt-in notification.
+          </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1.5">
-            <Label>Rule name</Label>
-            <Input
-              placeholder="SQLI_CUSTOM_001"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Detection type</Label>
-            <Select
-              value={form.type}
-              onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type…" />
-              </SelectTrigger>
-              <SelectContent>
-                {RULE_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Severity</Label>
-            <Select
-              value={form.severity}
-              onValueChange={(v) => setForm((f) => ({ ...f, severity: v as typeof form.severity }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Description <span className="text-text-muted">(optional)</span></Label>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Rule definition (YAML)</span>
+              {parsed.error ? (
+                <span className="flex items-center gap-1 text-xs text-destructive">
+                  <AlertCircle size={12} /> {parsed.error}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-success">
+                  <CheckCircle2 size={12} /> Valid
+                </span>
+              )}
+            </div>
             <Textarea
-              placeholder="Describe what this rule detects…"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              rows={2}
+              value={yaml}
+              onChange={(e) => setYaml(e.target.value)}
+              rows={12}
+              className="font-mono text-xs resize-none"
+              spellCheck={false}
             />
+            <div className="rounded-md bg-background border border-border px-3 py-2 space-y-1">
+              <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wide">Pattern examples (JavaScript regex)</p>
+              <div className="grid grid-cols-1 gap-0.5 font-mono text-[11px] text-text-muted">
+                <span><span className="text-text-secondary">SQL Injection</span>   <span className="text-brand">(union\s+select|drop\s+table|sleep\s*\()</span></span>
+                <span><span className="text-text-secondary">XSS              </span><span className="text-brand">(&lt;script[\s&gt;]|javascript:|on\w+\s*=)</span></span>
+                <span><span className="text-text-secondary">Path Traversal   </span><span className="text-brand">(\.\./|/etc/passwd|%2e%2e%2f)</span></span>
+                <span><span className="text-text-secondary">Keyword match    </span><span className="text-brand">(keyword1|keyword2)</span></span>
+              </div>
+              <p className="text-[11px] text-text-muted pt-0.5">Use standard JavaScript regex syntax. For case-insensitive matching, use character classes: <span className="font-mono">[Ss][Qq][Ll]</span> or bracket alternatives.</p>
+            </div>
           </div>
+
+          {parsed.preview && (
+            <div className="rounded-md border border-border p-3 space-y-1.5 bg-background">
+              <p className="text-xs font-medium text-text-secondary uppercase">Preview</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-sm font-semibold">{parsed.preview.name}</span>
+                <Badge variant={(SEVERITY_COLORS[parsed.preview.severity] ?? "outline") as "destructive" | "secondary" | "outline"}>
+                  {parsed.preview.severity}
+                </Badge>
+                <span className="text-xs text-text-muted">{parsed.preview.type}</span>
+                <span className="text-xs text-text-muted">target: {parsed.preview.target}</span>
+              </div>
+              {parsed.preview.description && (
+                <p className="text-xs text-text-muted">{parsed.preview.description}</p>
+              )}
+              <p className="font-mono text-xs text-text-secondary break-all">
+                pattern: {parsed.preview.pattern}
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !canSubmit}>
+            <Button type="submit" disabled={loading || !parsed.preview}>
               {loading ? "Creating…" : "Create Rule"}
             </Button>
           </DialogFooter>

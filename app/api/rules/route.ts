@@ -1,14 +1,19 @@
 import { requireSession, requireAdmin, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { getRules, createRule } from "@/modules/rules/rules.server";
+import { createNotificationsForNewRule } from "@/modules/project-rules/notifications.server";
 import { z } from "zod";
 
 const createSchema = z.object({
-  name: z.string().min(1),
-  type: z.string().min(1),
-  severity: z.enum(["critical", "high", "medium", "low"]).default("medium"),
-  description: z.string().optional(),
-  enabled: z.boolean().default(true),
-  config: z.unknown().optional(),
+  name:           z.string().min(1),
+  type:           z.string().min(1),
+  severity:       z.enum(["critical", "high", "medium", "low"]).default("medium"),
+  description:    z.string().optional(),
+  enabled:        z.boolean().default(true),
+  config:         z.unknown().optional(),
+  // YAML-driven fields
+  pattern:        z.string().optional(),
+  target:         z.string().optional(),
+  yamlDefinition: z.string().optional(),
 });
 
 export async function GET() {
@@ -35,6 +40,8 @@ export async function POST(req: Request) {
       target: rule.id,
       metadata: { name: rule.name, type: rule.type, severity: rule.severity },
     });
+    // Notify all existing projects about the new catalogue rule (opt-in flow)
+    createNotificationsForNewRule(rule.id).catch(() => {});
     return Response.json(rule, { status: 201 });
   } catch (e) {
     if (e instanceof Response) return e;

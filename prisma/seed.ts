@@ -98,6 +98,8 @@ async function main() {
   await prisma.redactionPolicy.deleteMany();
   await prisma.policy.deleteMany();
   await prisma.tenantKey.deleteMany();
+  await prisma.catalogueRuleNotification.deleteMany();
+  await prisma.projectRule.deleteMany();
   await prisma.rule.deleteMany();
   await prisma.agent.deleteMany();
   await prisma.apiKey.deleteMany();
@@ -113,18 +115,18 @@ async function main() {
   // Users
   const adminUser = await prisma.user.create({
     data: {
-      email: "admin@rasp.io",
+      email: "admin@queno.io",
       name: "Platform Admin",
-      passwordHash: await bcrypt.hash("admin1234", 10),
+      passwordHash: await bcrypt.hash("Qu3n0@Adm1n#2026!", 10),
       role: "admin",
     },
   });
 
   const clientUser = await prisma.user.create({
     data: {
-      email: "demo@acme.io",
+      email: "alex.chen@acme-financial.io",
       name: "Alex Chen",
-      passwordHash: await bcrypt.hash("demo1234", 10),
+      passwordHash: await bcrypt.hash("Acm3F1n@nce#Demo26", 10),
       role: "user",
     },
   });
@@ -323,6 +325,192 @@ async function main() {
     ipHandling: "mask_last_octet",
   };
 
+  // Global Rule Catalogue — YAML-driven, patterns compiled to CustomRuleSpec for agent delivery
+  const catalogueRules = [
+    {
+      name: "SQLI_BASIC_001",
+      type: "sql_injection",
+      severity: "high",
+      description: "Detects common SQL injection patterns in request parameters.",
+      enabled: true,
+      pattern: "(?i)(union[\\s]+select|drop[\\s]+table|'\\s*or\\s*'1'\\s*='\\s*1|--\\s*$|\\/\\*.*?\\*\\/|sleep\\s*\\(|benchmark\\s*\\(|xp_cmdshell)",
+      target: "any",
+      config: { patterns: ["OR 1=1", "' OR '", "UNION SELECT", "DROP TABLE", "SLEEP(", "benchmark(", "--", "/*"] },
+    },
+    {
+      name: "PATH_TRAVERSAL_001",
+      type: "path_traversal",
+      severity: "high",
+      description: "Detects directory traversal attempts.",
+      enabled: true,
+      pattern: "(\\.\\.\\/|\\.\\.\\\\ |%2e%2e%2f|%252e%252e%252f|\\/etc\\/passwd|windows\\/win\\.ini|%c0%af|%c1%9c)",
+      target: "path",
+      config: { patterns: ["../", "..\\", "/etc/passwd", "windows/win.ini", "%2e%2e%2f", "%252e%252e%252f"] },
+    },
+    {
+      name: "CMD_INJECTION_001",
+      type: "command_injection",
+      severity: "critical",
+      description: "Detects OS command injection patterns.",
+      enabled: true,
+      pattern: "(?i)(;\\s*(cat|ls|id|whoami|curl|wget|bash|sh|python|perl|ruby|nc)\\s|&&|\\|\\|[^|]|`[^`]+`|\\$\\([^)]+\\)|nc\\s+-[el]|bash\\s+-i|\\beval\\s*\\()",
+      target: "any",
+      config: { patterns: [";", "&&", "||", "`", "$(", "cat /etc/passwd", "curl http", "wget http", "nc -e", "bash -i"] },
+    },
+    {
+      name: "XSS_BASIC_001",
+      type: "xss",
+      severity: "medium",
+      description: "Detects reflected and stored XSS patterns.",
+      enabled: true,
+      pattern: "(?i)(<script[\\s>]|javascript:\\s*|on(error|load|click|mouseover|focus)\\s*=|eval\\s*\\(|document\\.cookie|<iframe[\\s>]|<object[\\s>]|vbscript:)",
+      target: "any",
+      config: { patterns: ["<script>", "javascript:", "onerror=", "onload=", "eval(", "document.cookie"] },
+    },
+    {
+      name: "XXE_001",
+      type: "xxe",
+      severity: "high",
+      description: "Detects XML External Entity injection attempts.",
+      enabled: true,
+      pattern: "(?i)(<!ENTITY|SYSTEM\\s+[\"']file:\\/\\/|PUBLIC\\s+[\"'][^\"']*[\"']\\s+[\"']|%xxe;|<!\\[CDATA\\[)",
+      target: "body",
+      config: { patterns: ["<!ENTITY", "SYSTEM \"file://", "SYSTEM 'file://", "%xxe;"] },
+    },
+    {
+      name: "SSRF_001",
+      type: "ssrf",
+      severity: "high",
+      description: "Detects Server-Side Request Forgery patterns targeting internal services.",
+      enabled: true,
+      pattern: "(?i)(169\\.254\\.169\\.254|metadata\\.google\\.internal|metadata\\.internal|169\\.254\\.170\\.2|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|::1|\\bfile:\\/\\/|\\/proc\\/self)",
+      target: "any",
+      config: { patterns: ["169.254.169.254", "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"] },
+    },
+    {
+      name: "TEMPLATE_INJECTION_001",
+      type: "template_injection",
+      severity: "critical",
+      description: "Detects Server-Side Template Injection (SSTI) patterns.",
+      enabled: true,
+      pattern: "(?i)(\\{\\{\\s*[0-9*+\\-/]|\\$\\{\\s*[0-9*+\\-/]|#\\{\\s*[0-9*+\\-/]|<%=\\s*[0-9]|\\{\\{\\s*config\\s*\\}\\}|\\{\\{\\s*self\\.__dict__|\\{\\{\\s*request\\.|@\\{\\s*[0-9])",
+      target: "any",
+      config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] },
+    },
+    {
+      name: "BOLA_IDOR_001",
+      type: "bola_idor",
+      severity: "high",
+      description: "Detects Broken Object Level Authorization and IDOR patterns via numeric resource ID access.",
+      enabled: true,
+      pattern: "\\/(?:users|accounts|orders|documents|records|profiles|invoices|customers)\\/[0-9]+(?:\\/|$)",
+      target: "path",
+      config: { detectHorizontalEscalation: true, detectVerticalEscalation: true },
+    },
+    {
+      name: "BRUTE_FORCE_001",
+      type: "brute_force",
+      severity: "medium",
+      description: "Detects credential brute force and stuffing attempts via common auth endpoint patterns.",
+      enabled: true,
+      pattern: "(?i)\\/(?:auth|login|signin|token|oauth|password|credential)(?:\\/|$)",
+      target: "path",
+      config: { maxAttemptsPerMinute: 10, trackByIp: true, trackByUser: true },
+    },
+    {
+      name: "NOSQL_INJECTION_001",
+      type: "nosql_injection",
+      severity: "high",
+      description: "Detects NoSQL injection patterns targeting MongoDB and similar databases.",
+      enabled: true,
+      pattern: "(?i)(\\$where|\\$gt|\\$ne|\\$or|\\$regex|\\$exists|\\$expr|\\$function|\\{\\s*\"\\$|;\\s*db\\.|mapReduce\\s*\\()",
+      target: "any",
+      config: { patterns: ["$where", "$gt", "$ne", "$or", "$regex", "$exists", "{\"$"] },
+    },
+    {
+      name: "DESERIALIZATION_001",
+      type: "deserialization",
+      severity: "critical",
+      description: "Detects unsafe deserialization patterns.",
+      enabled: true,
+      pattern: "(?i)(rO0AB|aced0005|__reduce__|__reduce_ex__|pickle\\.loads|java\\.io\\.ObjectInputStream|readObject\\s*\\(|yaml\\.load\\s*\\([^)]*Loader)",
+      target: "body",
+      config: { patterns: ["rO0AB", "aced0005", "__reduce__", "pickle.loads", "java.io.ObjectInputStream"] },
+    },
+    {
+      name: "SUSPICIOUS_PAYLOAD_001",
+      type: "suspicious_payload",
+      severity: "low",
+      description: "Catch-all rule for anomalous payloads containing binary content or oversized field values.",
+      enabled: true,
+      pattern: "(?:[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f-\\x9f]|\\\\u00[0-9a-f]{2}){3,}",
+      target: "body",
+      config: { maxFieldLength: 8192, detectBinaryContent: true },
+    },
+  ] as const;
+
+  // Build yamlDefinition for each catalogue rule
+  function buildYaml(r: {
+    name: string; type: string; severity: string; description: string;
+    pattern: string; target: string; enabled: boolean;
+  }): string {
+    return [
+      `id: ${r.name}`,
+      `name: ${r.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}`,
+      `type: ${r.type}`,
+      `severity: ${r.severity}`,
+      `target: ${r.target}`,
+      `pattern: "${r.pattern.replace(/"/g, '\\"')}"`,
+      `description: ${r.description}`,
+      `enabled: ${r.enabled}`,
+    ].join("\n");
+  }
+
+  const createdRules = await Promise.all(
+    catalogueRules.map((r) =>
+      prisma.rule.create({
+        data: {
+          ...r,
+          config: r.config as object,
+          yamlDefinition: buildYaml({ ...r, enabled: r.enabled }),
+        },
+      })
+    )
+  );
+
+  // ProjectRules for the demo project (banking-api) — all catalogue rules enabled
+  const demoProjectRules = await Promise.all(
+    createdRules.map((rule) =>
+      prisma.projectRule.create({
+        data: {
+          projectId: projectNode.id,
+          catalogueRuleId: rule.id,
+          source: "catalogue",
+          name: rule.name,
+          type: rule.type,
+          severity: rule.severity,
+          description: rule.description,
+          enabled: true,
+          pattern: rule.pattern,
+          target: rule.target,
+          yamlDefinition: rule.yamlDefinition!,
+        },
+      })
+    )
+  );
+
+  // Compile demo ProjectRules to CustomRuleSpec[] for the initial policy
+  const demoDetectionRules = demoProjectRules.map((pr) => ({
+    id: pr.name,
+    name: pr.name,
+    eventType: pr.type,
+    severity: pr.severity as "critical" | "high" | "medium" | "low",
+    target: pr.target as "any" | "path" | "query" | "body" | "headers",
+    pattern: pr.pattern!,
+    description: pr.description ?? undefined,
+    enabled: true,
+  }));
+
   // Redaction Policy
   await prisma.redactionPolicy.create({
     data: {
@@ -332,12 +520,12 @@ async function main() {
     },
   });
 
-  // Signed policy distributed to agents (matches redaction policy above)
+  // Signed policy v1 with real detection rules
   try {
     await createSignedPolicy(projectNode.id, 1, {
       channel: "stable",
       mode: "monitor",
-      detectionRules: null,
+      detectionRules: demoDetectionRules,
       redactionConfig: { mode: "denylist", ...redactionRules },
       dataResidency: null,
       targetAgentVersion: "0.3.1",
@@ -346,24 +534,6 @@ async function main() {
     console.warn("  ⚠ Skipped signed policy (POLICY_SIGNING_PRIVATE_KEY not set?)");
     console.warn(`    ${err instanceof Error ? err.message : err}`);
   }
-
-  // Global Rule Catalogue (backoffice-managed, enforced via hardcoded agent detectors)
-  await prisma.rule.createMany({
-    data: [
-      { name: "SQLI_BASIC_001",          type: "sql_injection",       severity: "high",     description: "Detects common SQL injection patterns in request parameters.",                  enabled: true, config: { patterns: ["OR 1=1", "' OR '", "UNION SELECT", "DROP TABLE", "SLEEP(", "benchmark(", "--", "/*"] } },
-      { name: "PATH_TRAVERSAL_001",      type: "path_traversal",      severity: "high",     description: "Detects directory traversal attempts.",                                         enabled: true, config: { patterns: ["../", "..\\", "/etc/passwd", "windows/win.ini", "%2e%2e%2f", "%252e%252e%252f"] } },
-      { name: "CMD_INJECTION_001",       type: "command_injection",   severity: "critical", description: "Detects OS command injection patterns.",                                         enabled: true, config: { patterns: [";", "&&", "||", "`", "$(", "cat /etc/passwd", "curl http", "wget http", "nc -e", "bash -i"] } },
-      { name: "XSS_BASIC_001",           type: "xss",                 severity: "medium",   description: "Detects reflected and stored XSS patterns.",                                    enabled: true, config: { patterns: ["<script>", "javascript:", "onerror=", "onload=", "eval(", "document.cookie"] } },
-      { name: "XXE_001",                 type: "xxe",                 severity: "high",     description: "Detects XML External Entity injection attempts.",                               enabled: true, config: { patterns: ["<!ENTITY", "SYSTEM \"file://", "SYSTEM 'file://", "%xxe;"] } },
-      { name: "SSRF_001",                type: "ssrf",                severity: "high",     description: "Detects Server-Side Request Forgery patterns targeting internal services.",      enabled: true, config: { patterns: ["169.254.169.254", "localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"] } },
-      { name: "TEMPLATE_INJECTION_001",  type: "template_injection",  severity: "critical", description: "Detects Server-Side Template Injection (SSTI) patterns.",                      enabled: true, config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] } },
-      { name: "BOLA_IDOR_001",           type: "bola_idor",           severity: "high",     description: "Detects Broken Object Level Authorization and IDOR patterns.",                  enabled: true, config: { detectHorizontalEscalation: true, detectVerticalEscalation: true } },
-      { name: "BRUTE_FORCE_001",         type: "brute_force",         severity: "medium",   description: "Detects credential brute force and stuffing attempts.",                         enabled: true, config: { maxAttemptsPerMinute: 10, trackByIp: true, trackByUser: true } },
-      { name: "NOSQL_INJECTION_001",     type: "nosql_injection",     severity: "high",     description: "Detects NoSQL injection patterns targeting MongoDB and similar databases.",      enabled: true, config: { patterns: ["$where", "$gt", "$ne", "$or", "$regex", "$exists", "{\"$"] } },
-      { name: "DESERIALIZATION_001",     type: "deserialization",     severity: "critical", description: "Detects unsafe deserialization patterns.",                                       enabled: true, config: { patterns: ["rO0AB", "aced0005", "__reduce__", "pickle.loads", "java.io.ObjectInputStream"] } },
-      { name: "SUSPICIOUS_PAYLOAD_001",  type: "suspicious_payload",  severity: "low",      description: "Catch-all rule for anomalous or oversized payloads.",                           enabled: true, config: { maxFieldLength: 8192, detectBinaryContent: true } },
-    ],
-  });
 
   // Agent Versions (with rollout/canary demo state)
   const version031 = await prisma.agentVersion.create({
@@ -475,7 +645,8 @@ async function main() {
   });
 
   console.log("✅ Seed complete");
-  console.log("  Admin:  admin@rasp.io  / admin1234");
+  console.log("  Admin:  admin@queno.io              / Qu3n0@Adm1n#2026!");
+  console.log("  Demo:   alex.chen@acme-financial.io / Acm3F1n@nce#Demo26");
 }
 
 main()

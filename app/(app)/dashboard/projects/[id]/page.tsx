@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Server, ShieldAlert, Webhook } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { CopyButton } from "@/components/shared/copy-button";
+import { DeleteProjectButton } from "./delete-project-button";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -191,6 +192,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DeleteProjectButton projectId={project.id} projectName={project.name} />
     </div>
   );
 }

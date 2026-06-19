@@ -10,21 +10,27 @@ export async function getRule(id: string) {
 }
 
 export async function createRule(data: {
-  name: string;
-  type: string;
-  severity?: string;
-  description?: string;
-  enabled?: boolean;
-  config?: unknown;
+  name:            string;
+  type:            string;
+  severity?:       string;
+  description?:    string;
+  enabled?:        boolean;
+  config?:         unknown;
+  pattern?:        string;
+  target?:         string;
+  yamlDefinition?: string;
 }) {
   return prisma.rule.create({
     data: {
-      name: data.name,
-      type: data.type,
-      severity: data.severity ?? "medium",
-      description: data.description ?? null,
-      enabled: data.enabled ?? true,
-      config: (data.config ?? null) as Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue,
+      name:           data.name,
+      type:           data.type,
+      severity:       data.severity ?? "medium",
+      description:    data.description ?? null,
+      enabled:        data.enabled ?? true,
+      config:         (data.config ?? null) as Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue,
+      pattern:        data.pattern ?? null,
+      target:         data.target ?? "any",
+      yamlDefinition: data.yamlDefinition ?? null,
     },
   });
 }

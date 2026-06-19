@@ -57,7 +57,7 @@ model Project {
   environment         String               @default("production")
   collectorUrl        String?
   createdAt           DateTime             @default(now())
-  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization        Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agents              Agent[]
   apiKeys             ApiKey[]
   securityEvents      SecurityEvent[]
@@ -65,6 +65,8 @@ model Project {
   discoveredEndpoints DiscoveredEndpoint[]
   redactionPolicies   RedactionPolicy[]
   policies            Policy[]
+  projectRules        ProjectRule[]
+  ruleNotifications   CatalogueRuleNotification[]
 }
 
 model ApiKey {
@@ -188,15 +190,62 @@ model Alert {
 }
 
 model Rule {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  type        String
-  severity    String   @default("medium")
-  description String?
-  enabled     Boolean  @default(true)
-  config      Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String                      @id @default(cuid())
+  name           String                      @unique
+  type           String
+  severity       String                      @default("medium")
+  description    String?
+  enabled        Boolean                     @default(true)
+  config         Json?
+  // YAML-driven fields (added for policy-driven detection)
+  pattern        String?
+  target         String                      @default("any")
+  yamlDefinition String?
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  projectRules   ProjectRule[]
+  notifications  CatalogueRuleNotification[]
+}
+
+model ProjectRule {
+  id              String    @id @default(cuid())
+  projectId       String
+  catalogueRuleId String?
+  source          String    @default("custom")
+  name            String
+  type            String
+  severity        String    @default("medium")
+  description     String?
+  enabled         Boolean   @default(true)
+  // YAML is the single source of truth for this project's rule.
+  // For source=catalogue: initially copied from the catalogue, user may override.
+  // For source=custom: fully user-defined.
+  yamlDefinition  String
+  // Denormalised fields compiled from yamlDefinition on every save.
+  pattern         String?
+  target          String    @default("any")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  catalogueRule   Rule?     @relation(fields: [catalogueRuleId], references: [id])
+
+  @@unique([projectId, catalogueRuleId])
+  @@index([projectId])
+}
+
+model CatalogueRuleNotification {
+  id         String    @id @default(cuid())
+  ruleId     String
+  projectId  String
+  status     String    @default("pending")
+  seenAt     DateTime?
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  rule       Rule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, projectId])
+  @@index([projectId, status])
 }
 
 model DiscoveredEndpoint {
