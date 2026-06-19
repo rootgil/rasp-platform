@@ -12,6 +12,8 @@
     "db:push": "prisma db push",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:normalize-rules": "npx tsx prisma/scripts/normalize-rule-patterns.ts",
+    "db:repair-rules": "npx tsx prisma/scripts/repair-rule-yaml.ts",
     "db:seed:prod": "npx tsx prisma/seed-prod.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
@@ -21,6 +23,7 @@
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@radix-ui/react-alert-dialog": "^1.1.17",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -44,6 +47,7 @@
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

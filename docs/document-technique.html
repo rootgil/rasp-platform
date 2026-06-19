@@ -1242,7 +1242,7 @@ process<span class="p">.</span><span class="f">on</span><span class="p">(</span>
   <ul class="features">
     <li><strong>Key-based (denylist) :</strong> clés d'objet correspondant aux patterns → sous-arbre remplacé par <code>[REDACTED]</code>. Profondeur max 6 niveaux.</li>
     <li><strong>Value-based :</strong> les valeurs string sont scannées par <code>redactValueString()</code>. Configurable via <code>valueRedaction</code> (défaut <code>true</code>).</li>
-    <li><strong>Mode allowlist :</strong> <em>supprime</em> (abandon physique) tout champ non approuvé. Seules les clés structurelles (<code>STRUCTURAL_KEYS</code>) et les expressions <code>allowKeyPatterns</code> sont conservées. Le conteneur <code>metadata</code> est préservé pour que ses enfants soient filtrés individuellement. Aucun marqueur <code>[REDACTED]</code> n'est émis — les clés absentes ne fuient pas côté collector.</li>
+    <li><strong>Mode allowlist :</strong> <em>supprime</em> (abandon physique) tout champ non approuvé. Seules les clés structurelles (<code>STRUCTURAL_KEYS</code>) et les expressions <code>allowKeyPatterns</code> sont conservées. Le conteneur <code>metadata</code> est préservé pour que ses enfants soient filtrés individuellement. Aucun marqueur <code>[REDACTED]</code> n'est émis - les clés absentes ne fuient pas côté collector.</li>
   </ul>
 
   <h4>patterns.ts - redaction de valeurs (priorité ordre)</h4>

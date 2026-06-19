@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -10,138 +10,82 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const RULE_TYPES = [
-  { value: "sql_injection",      label: "SQL Injection" },
-  { value: "nosql_injection",    label: "NoSQL Injection" },
-  { value: "path_traversal",     label: "Path Traversal" },
-  { value: "command_injection",  label: "Command Injection" },
-  { value: "xss",                label: "XSS" },
-  { value: "xxe",                label: "XXE" },
-  { value: "ssrf",               label: "SSRF" },
-  { value: "template_injection", label: "Template Injection (SSTI)" },
-  { value: "bola_idor",          label: "BOLA / IDOR" },
-  { value: "brute_force",        label: "Brute Force / Credential Stuffing" },
-  { value: "deserialization",    label: "Deserialization" },
-  { value: "suspicious_payload", label: "Suspicious Payload" },
-];
+import { RuleYamlEditor, isRuleYamlValid } from "@/components/rules/rule-yaml-editor";
+import { CUSTOM_RULE_YAML_TEMPLATE } from "@/modules/project-rules/rule-yaml-help";
+import { compileRuleYaml } from "@/modules/project-rules/yaml-compiler";
 
 export function CreateGlobalRuleDialog({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const router  = useRouter();
+  const [open, setOpen]       = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    type: "",
-    severity: "medium" as "critical" | "high" | "medium" | "low",
-    description: "",
-  });
+  const [yaml, setYaml]       = useState(CUSTOM_RULE_YAML_TEMPLATE);
+
+  const handleOpen = useCallback((v: boolean) => {
+    setOpen(v);
+    if (v) setYaml(CUSTOM_RULE_YAML_TEMPLATE);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isRuleYamlValid(yaml)) {
+      toast.error("Fix the YAML errors listed in the dialog before saving.");
+      return;
+    }
+
     setLoading(true);
     try {
+      const compiled = compileRuleYaml(yaml);
+      if ("errors" in compiled) return;
+
       const res = await fetch("/api/rules", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body:    JSON.stringify({
+          name:           compiled.spec.id,
+          type:           compiled.yaml.type,
+          severity:       compiled.yaml.severity,
+          description:    compiled.spec.description,
+          pattern:        compiled.spec.pattern,
+          target:         compiled.spec.target,
+          yamlDefinition: yaml,
+          enabled:        true,
+        }),
       });
       if (res.ok) {
         setOpen(false);
-        setForm({ name: "", type: "", severity: "medium", description: "" });
-        toast.success(`Règle "${form.name}" créée`);
+        toast.success(`Rule "${compiled.spec.name}" created - projects will be notified`);
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string };
-        toast.error(data.error ?? "Failed to create rule");
+        toast.error(data.error ?? "Failed to create rule", { duration: 8000 });
       }
-    } catch {
-      toast.error("Failed to create rule");
     } finally {
       setLoading(false);
     }
   }
 
-  const canSubmit = form.name && form.type;
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-[calc(100%-1rem)] sm:max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>New Global Detection Rule</DialogTitle>
+          <DialogDescription>
+            Define the rule in YAML. It will be added to the catalogue and all existing projects will receive an opt-in notification.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label>Rule name</Label>
-            <Input
-              placeholder="SQLI_CUSTOM_001"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Detection type</Label>
-            <Select
-              value={form.type}
-              onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type…" />
-              </SelectTrigger>
-              <SelectContent>
-                {RULE_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Severity</Label>
-            <Select
-              value={form.severity}
-              onValueChange={(v) => setForm((f) => ({ ...f, severity: v as typeof form.severity }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Description <span className="text-text-muted">(optional)</span></Label>
-            <Textarea
-              placeholder="Describe what this rule detects…"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              rows={2}
-            />
-          </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <RuleYamlEditor yaml={yaml} onChange={setYaml} rows={8} />
+
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !canSubmit}>
+            <Button type="submit" disabled={loading || !isRuleYamlValid(yaml)}>
               {loading ? "Creating…" : "Create Rule"}
             </Button>
           </DialogFooter>

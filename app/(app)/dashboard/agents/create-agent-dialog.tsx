@@ -31,25 +31,39 @@ type SetupData = {
 
 type CopyState = { agentId: boolean; rawKey: boolean };
 
+type FixedProject = {
+  id:         string;
+  name:       string;
+  language?:  string;
+  framework?: string | null;
+};
+
 export function CreateAgentDialog({
   children,
   projects,
+  fixedProject,
 }: {
-  children: React.ReactNode;
-  projects: { id: string; name: string }[];
+  children:      React.ReactNode;
+  projects:      { id: string; name: string }[];
+  fixedProject?: FixedProject;
 }) {
   const router = useRouter();
+
+  function initialForm() {
+    return {
+      projectId: fixedProject?.id ?? "",
+      language:  fixedProject?.language ?? "",
+      framework: fixedProject?.framework ?? "",
+      mode:      "monitor",
+    };
+  }
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "setup">("form");
   const [loading, setLoading] = useState(false);
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [copied, setCopied] = useState<CopyState>({ agentId: false, rawKey: false });
-  const [form, setForm] = useState({
-    projectId: "",
-    language: "",
-    framework: "",
-    mode: "monitor",
-  });
+  const [form, setForm] = useState(initialForm);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -93,37 +107,52 @@ export function CreateAgentDialog({
     setTimeout(() => {
       setStep("form");
       setSetup(null);
-      setForm({ projectId: "", language: "", framework: "", mode: "monitor" });
+      setForm(initialForm());
     }, 300);
   }
 
+  function handleOpenChange(v: boolean) {
+    if (v) {
+      setForm(initialForm());
+      setOpen(true);
+    } else {
+      handleClose();
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true); }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {step === "form" ? "Register Agent" : "Agent registered - save your credentials"}
+            {step === "form"
+              ? fixedProject
+                ? `Register Agent - ${fixedProject.name}`
+                : "Register Agent"
+              : "Agent registered - save your credentials"}
           </DialogTitle>
         </DialogHeader>
 
         {step === "form" ? (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label>Application</Label>
-              <Select
-                value={form.projectId}
-                onValueChange={(v) => setForm((f) => ({ ...f, projectId: v }))}
-                required
-              >
-                <SelectTrigger><SelectValue placeholder="Select application…" /></SelectTrigger>
-                <SelectContent>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!fixedProject && (
+              <div className="space-y-1.5">
+                <Label>Application</Label>
+                <Select
+                  value={form.projectId}
+                  onValueChange={(v) => setForm((f) => ({ ...f, projectId: v }))}
+                  required
+                >
+                  <SelectTrigger><SelectValue placeholder="Select application…" /></SelectTrigger>
+                  <SelectContent>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label>Language</Label>

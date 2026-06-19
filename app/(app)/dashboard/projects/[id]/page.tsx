@@ -7,9 +7,15 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Server, ShieldAlert, Webhook } from "lucide-react";
+import { Server, ShieldAlert, Webhook, Plus } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { CopyButton } from "@/components/shared/copy-button";
+import { DeleteProjectButton } from "./delete-project-button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CreateAgentDialog } from "../../agents/create-agent-dialog";
+import { getLatestPolicy } from "@/modules/policies/policies.server";
+import Link from "next/link";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,6 +36,24 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   });
 
   if (!project) notFound();
+
+  const latestPolicy = await getLatestPolicy(membership.organizationId, id, "stable")
+    ?? await getLatestPolicy(membership.organizationId, id, "beta");
+
+  type DetectionRule = { id: string; name: string; eventType: string; severity: string; target: string; pattern: string; description?: string; enabled: boolean };
+  const detectionRules: DetectionRule[] = Array.isArray((latestPolicy?.detectionRules as unknown))
+    ? (latestPolicy!.detectionRules as unknown as DetectionRule[])
+    : [];
+
+  const projectRules = await prisma.projectRule.findMany({
+    where:   { projectId: id },
+    orderBy: { createdAt: "asc" },
+    select:  { id: true, name: true, type: true, severity: true, enabled: true, source: true, target: true },
+  });
+
+  const SEV_COLOR: Record<string, string> = {
+    critical: "destructive", high: "destructive", medium: "secondary", low: "outline",
+  };
 
   return (
     <div className="space-y-6">
@@ -53,15 +77,97 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <div className="overflow-x-auto">
         <TabsList>
           <TabsTrigger value="agents">Agents ({project.agents.length})</TabsTrigger>
+          <TabsTrigger value="rules">
+            Rules ({projectRules.filter(r => r.enabled).length})
+          </TabsTrigger>
           <TabsTrigger value="events">Events ({project._count.securityEvents})</TabsTrigger>
           <TabsTrigger value="endpoints">Endpoints ({project._count.discoveredEndpoints})</TabsTrigger>
           <TabsTrigger value="keys">API Keys ({project.apiKeys.length})</TabsTrigger>
         </TabsList>
         </div>
 
+        <TabsContent value="rules">
+          <Card>
+            <CardContent className="p-0">
+              {projectRules.length === 0 ? (
+                <div className="p-8 text-center space-y-2">
+                  <p className="text-sm text-text-muted">No detection rules configured for this application.</p>
+                  <Link href="/dashboard/rules" className="text-xs text-brand hover:underline">
+                    Configure rules →
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  {latestPolicy ? (
+                    <div className="px-4 py-2 border-b border-border flex items-center gap-2 bg-background">
+                      <span className="text-xs text-text-muted">
+                        Policy <span className="font-mono font-semibold text-text-primary">v{latestPolicy.version}</span>
+                        {" · "}
+                        <span className="text-text-secondary">{detectionRules.length} rule{detectionRules.length !== 1 ? "s" : ""} compiled</span>
+                        {detectionRules.length !== projectRules.filter(r => r.enabled).length && (
+                          <span className="ml-2 text-amber-600 font-medium">
+                            - unpublished changes
+                          </span>
+                        )}
+                      </span>
+                      <Link href="/dashboard/rules" className="ml-auto text-xs text-brand hover:underline">
+                        Manage rules →
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-2 border-b border-border bg-amber-50">
+                      <p className="text-xs text-amber-700 font-medium">No policy published yet - rules are not active on agents.</p>
+                    </div>
+                  )}
+                  <div className="divide-y divide-border">
+                    {projectRules.map((rule) => {
+                      const inPolicy = detectionRules.some(r => r.id === rule.name || r.name === rule.name);
+                      return (
+                        <div key={rule.id} className="flex items-center gap-3 px-4 py-2.5">
+                          <span className={`h-2 w-2 rounded-full shrink-0 ${rule.enabled && inPolicy ? "bg-success" : rule.enabled ? "bg-amber-400" : "bg-text-muted"}`} />
+                          <span className="font-mono text-xs font-medium text-text-primary flex-1">{rule.name}</span>
+                          <span className="text-xs text-text-muted hidden sm:block">{rule.type.replace(/_/g, " ")}</span>
+                          <span className="text-xs text-text-muted hidden md:block">target: {rule.target}</span>
+                          <Badge variant={(SEV_COLOR[rule.severity] ?? "outline") as "destructive" | "secondary" | "outline"} className="text-[10px] px-1.5 py-0">
+                            {rule.severity}
+                          </Badge>
+                          <span className="text-[10px] text-text-muted w-16 text-right shrink-0">
+                            {!rule.enabled ? "disabled" : inPolicy ? "active" : "not published"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="agents">
           <Card>
             <CardContent className="p-0">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-b border-border bg-background">
+                <p className="text-sm text-text-secondary">
+                  {project.agents.length === 0
+                    ? "No agents on this application yet."
+                    : `${project.agents.length} agent${project.agents.length !== 1 ? "s" : ""} registered`}
+                </p>
+                <CreateAgentDialog
+                  projects={[{ id: project.id, name: project.name }]}
+                  fixedProject={{
+                    id:        project.id,
+                    name:      project.name,
+                    language:  project.language,
+                    framework: project.framework,
+                  }}
+                >
+                  <Button size="sm">
+                    <Plus size={14} className="mr-1.5" />
+                    Register Agent
+                  </Button>
+                </CreateAgentDialog>
+              </div>
               <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[280px]">
                 <thead>
@@ -76,11 +182,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <tbody className="divide-y divide-border">
                   {project.agents.map((a) => (
                     <tr key={a.id} className="hover:bg-background">
-                      <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden sm:table-cell">
-                        <span className="flex items-center gap-1">
+                      <td className="px-4 py-3 font-mono text-xs hidden sm:table-cell">
+                        <Link href={`/dashboard/agents/${a.id}`} className="flex items-center gap-1 text-brand hover:underline">
                           {a.id.slice(0, 12)}…
                           <CopyButton value={a.id} />
-                        </span>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs hidden md:table-cell">{a.version}</td>
                       <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
@@ -88,6 +194,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                       <td className="px-4 py-3 text-xs text-text-muted">{a.lastHeartbeatAt ? formatRelativeTime(a.lastHeartbeatAt) : "Never"}</td>
                     </tr>
                   ))}
+                  {project.agents.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-sm text-text-muted">
+                        Register an agent to start receiving telemetry from this application.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
               </div>
@@ -191,6 +304,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DeleteProjectButton projectId={project.id} projectName={project.name} />
     </div>
   );
 }

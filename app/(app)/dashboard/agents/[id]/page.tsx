@@ -9,6 +9,7 @@ import { SecretField } from "@/components/shared/secret-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EnforcementModeSelect } from "./enforcement-mode-select";
+import { DeleteAgentButton } from "./delete-agent-button";
 
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -123,6 +124,8 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
           </CardContent>
         </Card>
       </div>
+
+      <DeleteAgentButton agentId={agent.id} />
     </div>
   );
 }

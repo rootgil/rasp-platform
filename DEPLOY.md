@@ -39,7 +39,7 @@ Structure attendue :
 openssl rand -base64 32
 openssl rand -base64 32
 
-# KEK_MASTER_KEY — doit être IDENTIQUE dans rasp et collector
+# KEK_MASTER_KEY - doit être IDENTIQUE dans rasp et collector
 openssl rand -base64 32
 
 # HMAC_SECRET pour collector (si HMAC_REQUIRED=true)
@@ -48,18 +48,18 @@ openssl rand -base64 32
 
 ---
 
-## 3b. Générer le keypair Ed25519 pour la signature des policies — une seule fois
+## 3b. Générer le keypair Ed25519 pour la signature des policies - une seule fois
 
 > **Ne pas répéter à chaque déploiement.** La même paire est réutilisée sur tous les déploiements suivants. Régénérer invaliderait toutes les policies chez les agents déjà installés.
 
 ```bash
 cd ~/app/rasp
 
-# Clé privée — reste sur le VPS uniquement, jamais commitée
+# Clé privée - reste sur le VPS uniquement, jamais commitée
 openssl genpkey -algorithm ed25519 -out policy_signing_private.pem
 chmod 600 policy_signing_private.pem
 
-# Clé publique — non-secrète, à pinner dans le package agent-node
+# Clé publique - non-secrète, à pinner dans le package agent-node
 openssl pkey -in policy_signing_private.pem -pubout -out policy_signing_public.pem
 
 # Convertir en une seule ligne pour le fichier .env (échappe les sauts de ligne)
@@ -69,7 +69,7 @@ echo "POLICY_SIGNING_PUBLIC_KEY=\"$(awk 'NF{printf "%s\\n", $0}' policy_signing_
 
 Copier les deux lignes affichées dans `~/app/rasp/.env.production` (étape suivante).
 
-> **Pour un déploiement de test uniquement**, tu peux utiliser la paire de dev déjà présente dans `.env.example` — elle est déjà pinnée dans l'agent. Ne pas faire ça en production réelle.
+> **Pour un déploiement de test uniquement**, tu peux utiliser la paire de dev déjà présente dans `.env.example` - elle est déjà pinnée dans l'agent. Ne pas faire ça en production réelle.
 
 ---
 
@@ -126,7 +126,7 @@ docker compose logs -f        # suivre tous les logs en temps réel
 
 ---
 
-## 6. Seed admin — une seule fois après le premier déploiement
+## 6. Seed admin - une seule fois après le premier déploiement
 
 ```bash
 cd ~/app/rasp

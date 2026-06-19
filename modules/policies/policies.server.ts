@@ -88,7 +88,7 @@ export async function listPolicies(organizationId: string, projectId?: string) {
       ...(projectId ? { projectId } : {}),
     },
     include: { project: { select: { name: true } } },
-    orderBy: [{ projectId: "asc" }, { version: "desc" }],
+    orderBy: [{ createdAt: "desc" }, { version: "desc" }],
     take: 200,
   });
 }
