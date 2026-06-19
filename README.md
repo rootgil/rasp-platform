@@ -10,6 +10,7 @@ Separate repos: `rasp-collector` (event ingestion) · `rasp-agent-node` (runtime
 | Role   | Email             | Password    |
 |--------|-------------------|-------------|
 | Admin  | admin@rasp.io     | admin1234   |
+| Demo   | demo@acme.io      | demo1234    |
 
 ## Stack
 

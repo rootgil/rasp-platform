@@ -115,18 +115,18 @@ async function main() {
   // Users
   const adminUser = await prisma.user.create({
     data: {
-      email: "admin@queno.io",
+      email: "admin@rasp.io",
       name: "Platform Admin",
-      passwordHash: await bcrypt.hash("Qu3n0@Adm1n#2026!", 10),
+      passwordHash: await bcrypt.hash("admin1234", 10),
       role: "admin",
     },
   });
 
   const clientUser = await prisma.user.create({
     data: {
-      email: "alex.chen@acme-financial.io",
-      name: "Alex Chen",
-      passwordHash: await bcrypt.hash("Acm3F1n@nce#Demo26", 10),
+      email: "demo@acme.io",
+      name: "Demo User",
+      passwordHash: await bcrypt.hash("demo1234", 10),
       role: "user",
     },
   });
@@ -645,8 +645,8 @@ async function main() {
   });
 
   console.log("✅ Seed complete");
-  console.log("  Admin:  admin@queno.io              / Qu3n0@Adm1n#2026!");
-  console.log("  Demo:   alex.chen@acme-financial.io / Acm3F1n@nce#Demo26");
+  console.log("  Admin:  admin@rasp.io  / admin1234");
+  console.log("  Demo:   demo@acme.io   / demo1234");
 }
 
 main()
