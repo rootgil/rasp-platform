@@ -70,9 +70,16 @@ export default async function EventsPage({
                 <tr key={ev.id} className="hover:bg-background transition-colors">
                   <td className="px-4 py-3"><SeverityBadge severity={ev.severity} /></td>
                   <td className="px-4 py-3 font-mono text-xs">
-                    <Link href={`/dashboard/events/${ev.id}`} className="text-text-primary hover:text-brand">
-                      {ev.type.replace(/_/g, " ")}
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <Link href={`/dashboard/events/${ev.id}`} className="text-text-primary hover:text-brand">
+                        {ev.type.replace(/_/g, " ")}
+                      </Link>
+                      {(ev.type === "bola_detection" || ev.type === "idor_detection") && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wide">
+                          BOLA
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm">{ev.project.name}</td>
                   <td className="px-4 py-3 font-mono text-xs text-text-secondary hidden md:table-cell">

@@ -33,6 +33,23 @@ export interface PendingNotification {
 }
 
 /**
+ * When a new project is created, backfill notifications for all currently
+ * enabled catalogue rules so the new project sees the opt-in queue immediately.
+ */
+export async function backfillNotificationsForProject(projectId: string): Promise<void> {
+  const enabledRules = await prisma.rule.findMany({
+    where: { enabled: true },
+    select: { id: true },
+  });
+  if (enabledRules.length === 0) return;
+
+  await prisma.catalogueRuleNotification.createMany({
+    data: enabledRules.map((r) => ({ ruleId: r.id, projectId })),
+    skipDuplicates: true,
+  });
+}
+
+/**
  * Return all pending notifications for projects belonging to the given org.
  */
 export async function getPendingNotifications(

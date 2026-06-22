@@ -9,7 +9,7 @@ export default async function BackofficeLayout({ children }: { children: React.R
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
+      <AdminSidebar adminEmail={session.user?.email ?? undefined} />
       <main className="lg:ml-[260px] pt-16 lg:pt-0">
         <div className="p-4 sm:p-6 lg:p-8">
           {children}

@@ -8,6 +8,7 @@ import { PromoteVersionButton } from "./promote-version-button";
 import { NewVersionButton } from "./new-version-button";
 import { VersionActions } from "./version-actions";
 import { VersionExposureDialog } from "./version-exposure-dialog";
+import { VersionCompareDialog } from "./version-compare-dialog";
 import { getRolloutKpis } from "@/modules/rollout/rollout.server";
 import { CheckCircle2, Percent, Clock, Activity } from "lucide-react";
 
@@ -24,6 +25,11 @@ export default async function AgentVersionsPage() {
     prisma.agentVersion.findMany({ orderBy: { createdAt: "desc" } }),
     getRolloutKpis(),
   ]);
+
+  // Latest published stable version — used as the "current" baseline for comparisons.
+  const latestPublished = versions.find(
+    (v) => v.status === "published" && v.channel === "stable" && !v.quarantined
+  ) ?? null;
 
   return (
     <div className="space-y-6">
@@ -117,6 +123,18 @@ export default async function AgentVersionsPage() {
                           quarantined={v.quarantined}
                         />
                         <VersionExposureDialog version={v.version} />
+                        {latestPublished && v.id !== latestPublished.id && (
+                          <VersionCompareDialog
+                            currentVersion={{
+                              ...latestPublished,
+                              releasedAt: latestPublished.releasedAt?.toISOString() ?? null,
+                            }}
+                            candidateVersion={{
+                              ...v,
+                              releasedAt: v.releasedAt?.toISOString() ?? null,
+                            }}
+                          />
+                        )}
                       </div>
                     </td>
                   </tr>

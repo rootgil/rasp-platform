@@ -8,6 +8,7 @@ import { Webhook, AlertTriangle, Clock, Shield } from "lucide-react";
 import { ExportButton } from "./export-button";
 import { ImportSpecDialog } from "./import-spec-dialog";
 import { ApiDiscoveryFilters } from "./api-discovery-filters";
+import { DataFlowDiagram } from "./data-flow-diagram";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import {
   recomputeZombieFlags,
@@ -19,9 +20,10 @@ import {
 export default async function ApiDiscoveryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; tab?: string }>;
 }) {
   const filters = await searchParams;
+  const activeTab = filters.tab === "dataflow" ? "dataflow" : "inventory";
   const session = await auth();
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
@@ -47,6 +49,12 @@ export default async function ApiDiscoveryPage({
     getEndpointStats(orgId, projectId),
   ]);
 
+  // Cast sensitiveFields from Prisma Json to string[] for the diagram component.
+  const endpointsForDiagram = endpoints.map((ep) => ({
+    ...ep,
+    sensitiveFields: Array.isArray(ep.sensitiveFields) ? (ep.sensitiveFields as string[]) : null,
+  }));
+
   return (
     <div className="space-y-6">
       <AutoRefresh />
@@ -63,6 +71,42 @@ export default async function ApiDiscoveryPage({
 
       <ApiDiscoveryFilters projects={projects} />
 
+      {/* Tab navigation */}
+      <div className="flex gap-1 border-b border-border">
+        <a
+          href={`?${new URLSearchParams({ ...(projectId ? { projectId } : {}), tab: "inventory" }).toString()}`}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === "inventory"
+              ? "border-text-primary text-text-primary"
+              : "border-transparent text-text-muted hover:text-text-secondary"
+          }`}
+        >
+          Endpoint Inventory
+        </a>
+        <a
+          href={`?${new URLSearchParams({ ...(projectId ? { projectId } : {}), tab: "dataflow" }).toString()}`}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === "dataflow"
+              ? "border-text-primary text-text-primary"
+              : "border-transparent text-text-muted hover:text-text-secondary"
+          }`}
+        >
+          Sensitive Data Flow
+        </a>
+      </div>
+
+      {activeTab === "dataflow" ? (
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm font-semibold text-text-primary mb-1">Sensitive Data Flow</p>
+            <p className="text-xs text-text-muted mb-5">
+              PII fields observed per endpoint — used for PIPEDA / Law 25 compliance mapping.
+            </p>
+            <DataFlowDiagram endpoints={endpointsForDiagram} />
+          </CardContent>
+        </Card>
+      ) : (
+      <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="Total Endpoints" value={stats.total} icon={Webhook} iconColor="#2563eb" iconBg="#eff6ff" />
         <KpiCard title="Shadow APIs" value={stats.shadow} icon={AlertTriangle} iconColor="#dc2626" iconBg="#fef2f2" />
@@ -178,6 +222,8 @@ export default async function ApiDiscoveryPage({
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   );
 }

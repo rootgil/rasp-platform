@@ -13,6 +13,7 @@ export function NotificationBanner({ count }: NotificationBannerProps) {
   const [dismissed, setDismissed] = useState(false);
 
   // Re-show banner whenever count changes (new notifications arrived)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (count > 0) setDismissed(false); }, [count]);
 
   if (count === 0 || dismissed) return null;

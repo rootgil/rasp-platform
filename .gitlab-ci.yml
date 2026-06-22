@@ -1,0 +1,127 @@
+# rasp-platform — GitLab CI Pipeline
+#
+# Stages:
+#   lint       → ESLint
+#   typecheck  → tsc --noEmit
+#   test       → vitest run
+#   migrate-check → verify no pending migrations on staging DB
+#
+# CI variables (set in GitLab Settings → CI/CD → Variables):
+#   DATABASE_URL   (masked, protected) — real DB for migrate-check stage only
+#
+# Image is SHA-pinned to prevent tag-based supply chain substitution (E.3.2).
+
+image: node:22-alpine@sha256:ab07539e0988b63558ff621f5fbe1077054c39d9809112974fb79993949d41cd
+
+stages:
+  - lint
+  - typecheck
+  - test
+  - migrate-check
+
+default:
+  tags:
+    - oriso-runner-01
+  before_script:
+    - node --version
+    - npm config set prefix "$HOME/.local"
+    - npm install -g pnpm@10 --quiet
+    - export PATH="$HOME/.local/bin:$PATH"
+    - pnpm --version
+
+.only_mr_and_main: &only_mr_and_main
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+lint:
+  stage: lint
+  <<: *only_mr_and_main
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
+    - pnpm lint
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
+typecheck:
+  stage: typecheck
+  <<: *only_mr_and_main
+  needs:
+    - job: lint
+      artifacts: false
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
+    - pnpm typecheck
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
+test:
+  stage: test
+  <<: *only_mr_and_main
+  needs:
+    - job: typecheck
+      artifacts: false
+  variables:
+    DATABASE_URL: "postgresql://test:test@localhost:5432/test_rasp"
+    NODE_ENV: test
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
+    - pnpm test
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    expire_in: 7 days
+
+# Verifies that prisma migrate status reports no pending migrations.
+# Only runs on main branch pushes — requires a real staging DATABASE_URL.
+migrate-check:
+  stage: migrate-check
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+  needs:
+    - job: test
+      artifacts: false
+  script:
+    - pnpm install --frozen-lockfile
+    - |
+      if [ -z "$DATABASE_URL" ]; then
+        echo "DATABASE_URL not set — skipping migrate-check (set it in protected CI variables)"
+        exit 0
+      fi
+    - pnpm exec prisma migrate status
+    - |
+      STATUS=$(pnpm exec prisma migrate status 2>&1)
+      if echo "$STATUS" | grep -q "Database schema is not up to date"; then
+        echo "ERROR: pending migrations detected on staging. Run pnpm db:deploy before merging."
+        exit 1
+      fi
+      echo "OK: no pending migrations."
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/

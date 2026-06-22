@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InviteMemberDialog } from "./invite-member-dialog";
+import { EditNameForm } from "./settings-forms";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -25,17 +27,46 @@ export default async function SettingsPage() {
     include: { user: { select: { name: true, email: true, role: true } } },
   });
 
+  const pendingInvites = await prisma.invitation.findMany({
+    where: {
+      organizationId: membership.organizationId,
+      acceptedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true, email: true, role: true, expiresAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const isOwner = membership.role === "owner";
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Organization and account settings" />
+      <div className="flex items-center justify-between">
+        <PageHeader title="Settings" description="Organization and account settings" />
+        {isOwner && <InviteMemberDialog />}
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
           <CardContent className="p-0">
             <dl className="divide-y divide-border">
+              <div className="flex items-center justify-between px-5 py-3">
+                <dt className="text-sm text-text-secondary">Name</dt>
+                <dd>
+                  {isOwner ? (
+                    <EditNameForm
+                      initialName={membership.organization.name}
+                      label="Organization name"
+                      endpoint={`/api/organizations/${membership.organizationId}`}
+                      fieldKey="name"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-text-primary">{membership.organization.name}</span>
+                  )}
+                </dd>
+              </div>
               {[
-                { label: "Name", value: membership.organization.name },
                 { label: "Plan", value: membership.organization.plan.toUpperCase() },
                 { label: "Created", value: membership.organization.createdAt.toLocaleDateString("en-CA") },
               ].map(({ label, value }) => (
@@ -52,8 +83,18 @@ export default async function SettingsPage() {
           <CardHeader><CardTitle>Your Profile</CardTitle></CardHeader>
           <CardContent className="p-0">
             <dl className="divide-y divide-border">
+              <div className="flex items-center justify-between px-5 py-3">
+                <dt className="text-sm text-text-secondary">Name</dt>
+                <dd>
+                  <EditNameForm
+                    initialName={user?.name ?? ""}
+                    label="Display name"
+                    endpoint="/api/account/profile"
+                    fieldKey="name"
+                  />
+                </dd>
+              </div>
               {[
-                { label: "Name", value: user?.name ?? "-" },
                 { label: "Email", value: user?.email ?? "-" },
                 { label: "Role", value: membership.role },
                 { label: "Member since", value: user?.createdAt.toLocaleDateString("en-CA") ?? "-" },
@@ -71,27 +112,57 @@ export default async function SettingsPage() {
           <CardHeader><CardTitle>Team Members</CardTitle></CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[400px]">
-              <thead>
-                <tr className="bg-background border-b border-border">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {members.map((m) => (
-                  <tr key={m.id} className="hover:bg-background">
-                    <td className="px-5 py-3 font-medium text-text-primary">{m.user.name ?? "-"}</td>
-                    <td className="px-5 py-3 text-text-secondary">{m.user.email}</td>
-                    <td className="px-5 py-3 capitalize text-xs font-medium text-text-secondary">{m.role}</td>
+              <table className="w-full text-sm min-w-[400px]">
+                <thead>
+                  <tr className="bg-background border-b border-border">
+                    <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Name</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {members.map((m) => (
+                    <tr key={m.id} className="hover:bg-background">
+                      <td className="px-5 py-3 font-medium text-text-primary">{m.user.name ?? "-"}</td>
+                      <td className="px-5 py-3 text-text-secondary">{m.user.email}</td>
+                      <td className="px-5 py-3 capitalize text-xs font-medium text-text-secondary">{m.role}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
+
+        {pendingInvites.length > 0 && (
+          <Card className="md:col-span-2">
+            <CardHeader><CardTitle>Pending Invitations</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[400px]">
+                  <thead>
+                    <tr className="bg-background border-b border-border">
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Expires</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {pendingInvites.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-background">
+                        <td className="px-5 py-3 text-text-primary">{inv.email}</td>
+                        <td className="px-5 py-3 capitalize text-xs font-medium text-text-secondary">{inv.role}</td>
+                        <td className="px-5 py-3 text-xs text-text-muted">
+                          {new Date(inv.expiresAt).toLocaleDateString("en-CA")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ import { Server, ShieldAlert, Webhook, Plus } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { CopyButton } from "@/components/shared/copy-button";
 import { DeleteProjectButton } from "./delete-project-button";
+import { BYOKSettings } from "./byok-settings";
+import { MaintenanceWindowSettings } from "./maintenance-window";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreateAgentDialog } from "../../agents/create-agent-dialog";
@@ -83,6 +85,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <TabsTrigger value="events">Events ({project._count.securityEvents})</TabsTrigger>
           <TabsTrigger value="endpoints">Endpoints ({project._count.discoveredEndpoints})</TabsTrigger>
           <TabsTrigger value="keys">API Keys ({project.apiKeys.length})</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
         </div>
 
@@ -302,6 +305,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-4">
+          <BYOKSettings projectId={project.id} />
+          <MaintenanceWindowSettings projectId={project.id} />
         </TabsContent>
       </Tabs>
 

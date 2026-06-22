@@ -12,6 +12,7 @@ export {
 
 const VALID_SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const VALID_TARGETS = ["any", "path", "query", "body", "headers"] as const;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const VALID_TYPES = [
   "sql_injection",
   "nosql_injection",

@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/utils";
 import { getPlatformAuditLogs } from "@/modules/audit/audit.server";
 import { VerifyAuditButton } from "./verify-audit-button";
 import { AuditFilters } from "./audit-filters";
+import { Lock } from "lucide-react";
 
 export default async function PlatformAuditPage({
   searchParams,
@@ -21,6 +22,16 @@ export default async function PlatformAuditPage({
         description="All administrative actions across all organizations"
         action={<VerifyAuditButton />}
       />
+
+      {/* Append-only enforcement banner (Addendum E.4.2) */}
+      <div className="flex items-center gap-2 rounded-md border border-[#bbf7d0] bg-success-bg px-4 py-2.5 text-xs text-success-text">
+        <Lock size={13} className="shrink-0" />
+        <span>
+          <span className="font-semibold">Append-only enforced</span> — the platform blocks any
+          DELETE or UPDATE on this table at the application layer. Each record is chained via a
+          SHA-256 hash. Use &ldquo;Verify integrity&rdquo; to confirm the chain is intact.
+        </span>
+      </div>
 
       <AuditFilters />
 

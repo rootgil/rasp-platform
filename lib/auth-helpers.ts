@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
+import { jwtVerify } from "jose";
 
 export type SessionUser = {
   id: string;
@@ -22,15 +23,64 @@ export async function requireSession(): Promise<SessionUser> {
   return session.user as SessionUser;
 }
 
-export async function requireAdmin(): Promise<SessionUser> {
-  const user = await requireSession();
-  if (user.role !== "admin") {
-    throw new Response(JSON.stringify({ error: "Forbidden" }), {
-      status: 403,
-      headers: { "Content-Type": "application/json" },
-    });
+/**
+ * Attempt to authenticate via a break-glass JWT passed as
+ * `Authorization: Bearer <jwt>` when there is no active Next-Auth session.
+ * Returns a synthetic SessionUser if the JWT is valid, null otherwise.
+ */
+async function tryBreakGlassJwt(req?: Request): Promise<SessionUser | null> {
+  try {
+    // In Next.js Route Handlers the request is available via `headers()`, but
+    // requireAdmin is also called from places where we can pass the Request.
+    // We rely on the caller optionally passing it; if not available we skip.
+    if (!req) return null;
+    const authHeader = req.headers.get("authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return null;
+    const token = authHeader.slice(7);
+
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) return null;
+
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+
+    if (!payload.breakGlass) return null;
+    if (payload.role !== "admin") return null;
+
+    return {
+      id: payload.sub as string,
+      email: payload.email as string,
+      role: "admin",
+    };
+  } catch {
+    return null;
   }
-  return user;
+}
+
+export async function requireAdmin(req?: Request): Promise<SessionUser> {
+  // 1. Try normal Next-Auth session first
+  const session = await auth();
+  if (session?.user) {
+    const user = session.user as SessionUser;
+    if (user.role !== "admin") {
+      throw new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return user;
+  }
+
+  // 2. Fall back to break-glass JWT (for emergency access without a session)
+  if (req) {
+    const bgUser = await tryBreakGlassJwt(req);
+    if (bgUser) return bgUser;
+  }
+
+  // 3. No valid authentication
+  throw new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export async function getOrgId(userId: string): Promise<string> {

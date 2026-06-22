@@ -5,7 +5,7 @@ import { KpiCard } from "@/components/shared/kpi-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Server, ShieldAlert, Ban, ScrollText, Boxes } from "lucide-react";
+import { Server, ShieldAlert, Ban, ScrollText, Boxes, UserX } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import { DashboardCharts } from "./dashboard-charts";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
@@ -26,6 +26,7 @@ async function getDashboardData(organizationId: string) {
     eventsByDay,
     bySeverity,
     topEndpoints,
+    bolaCount,
   ] = await Promise.all([
     prisma.project.count({ where: { organizationId } }),
     prisma.agent.count({ where: { project: { organizationId } } }),
@@ -57,6 +58,12 @@ async function getDashboardData(organizationId: string) {
       orderBy: { _count: { path: "desc" } },
       take: 10,
     }),
+    prisma.securityEvent.count({
+      where: {
+        project: { organizationId },
+        type: { in: ["bola_detection", "idor_detection"] },
+      },
+    }),
   ]);
 
   // Build daily chart data (last 7 days)
@@ -84,6 +91,7 @@ async function getDashboardData(organizationId: string) {
     chartData: Object.values(days),
     severityData: bySeverity.map((s) => ({ name: s.severity, value: s._count })),
     topEndpoints: topEndpoints.map((e) => ({ path: e.path ?? "unknown", count: e._count.path })),
+    bolaCount,
   };
 }
 
@@ -115,7 +123,7 @@ export default async function DashboardPage() {
       />
 
       {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <KpiCard
           title="Protected Apps"
           value={data.projectCount}
@@ -145,12 +153,20 @@ export default async function DashboardPage() {
           iconBg="#fff7ed"
         />
         <KpiCard
+          title="BOLA / IDOR"
+          value={data.bolaCount}
+          icon={UserX}
+          iconColor="#7c3aed"
+          iconBg="#f5f3ff"
+          delta="Auth bypass attempts"
+        />
+        <KpiCard
           title="Redacted Payloads"
           value="100%"
           icon={ScrollText}
           iconColor="#d97706"
           iconBg="#fffbeb"
-          delta="All events scrubbed at source"
+          delta="Scrubbed at source"
           deltaPositive
         />
       </div>

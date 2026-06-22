@@ -314,7 +314,7 @@ export default function LandingPage() {
             {/* Connector lines (desktop) */}
             <div className="hidden md:block absolute top-[2.375rem] left-[calc(33.33%+8px)] right-[calc(33.33%+8px)] h-px bg-linear-to-r from-[#cbd5e1] via-[#93c5fd] to-[#cbd5e1]" />
 
-            {steps.map((step, i) => (
+            {steps.map((step) => (
               <div
                 key={step.num}
                 className="relative flex flex-col items-center text-center px-6 py-6"

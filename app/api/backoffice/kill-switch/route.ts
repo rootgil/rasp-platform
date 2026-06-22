@@ -1,6 +1,8 @@
 import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireMfa } from "@/modules/admin/mfa.server";
 import { getPlatformSetting, setGlobalKillSwitch } from "@/modules/admin/incident.server";
 import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { notifyAllOrgs } from "@/modules/notifications/user-notifications.server";
 import { z } from "zod";
 
 const schema = z.object({
@@ -10,9 +12,9 @@ const schema = z.object({
 });
 
 /** GET /api/backoffice/kill-switch - current platform kill-switch state. */
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    await requireAdmin();
+    await requireAdmin(req);
     const setting = await getPlatformSetting();
     return Response.json({ setting });
   } catch (e) {
@@ -27,7 +29,12 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   try {
-    const user = await requireAdmin();
+    const user = await requireAdmin(req);
+    // MFA is mandatory for the kill-switch regardless of whether MFA is
+    // enrolled — an admin without MFA cannot operate this action (E.4.3).
+    const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
+    await requireMfa(user.id, mfaToken);
+
     const orgId = await getOrgId(user.id).catch(() => undefined);
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
@@ -52,6 +59,16 @@ export async function POST(req: Request) {
       action: parsed.data.enabled ? "platform.kill_switch.enabled" : "platform.kill_switch.disabled",
       metadata: { reason: parsed.data.reason },
     });
+    notifyAllOrgs({
+      type:  parsed.data.enabled ? "kill_switch.enabled" : "kill_switch.disabled",
+      title: parsed.data.enabled
+        ? "Platform kill-switch activated"
+        : "Platform kill-switch deactivated",
+      body: parsed.data.enabled
+        ? "All RASP agents have been set to passive mode by the platform operator."
+        : "RASP agents have been restored to active inspection mode.",
+      metadata: { reason: parsed.data.reason },
+    }).catch(() => {});
     return Response.json({ setting });
   } catch (e) {
     if (e instanceof Response) return e;

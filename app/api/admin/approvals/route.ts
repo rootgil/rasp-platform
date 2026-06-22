@@ -1,5 +1,6 @@
 import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { listApprovals, raiseApproval } from "@/modules/admin/approvals.server";
+import { createAdminNotification } from "@/modules/admin/admin-notifications.server";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -50,6 +51,16 @@ export async function POST(req: Request) {
       target: request.id,
       metadata: { action: parsed.data.action, target: parsed.data.target },
     });
+    createAdminNotification({
+      type: "approval.raised",
+      relatedId: request.id,
+      metadata: {
+        action:        parsed.data.action,
+        target:        parsed.data.target,
+        raisedByEmail: user.email,
+        reason:        parsed.data.reason,
+      },
+    }).catch(() => {});
     return Response.json({ request }, { status: 201 });
   } catch (e) {
     if (e instanceof Response) return e;

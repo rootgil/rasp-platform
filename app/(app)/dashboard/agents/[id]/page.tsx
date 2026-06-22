@@ -9,6 +9,7 @@ import { SecretField } from "@/components/shared/secret-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EnforcementModeSelect } from "./enforcement-mode-select";
+import { ChannelSelect } from "./channel-select";
 import { DeleteAgentButton } from "./delete-agent-button";
 
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +30,12 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
     agent.projectId,
     agent.channel
   );
+
+  const latestStableVersion = await prisma.agentVersion.findFirst({
+    where: { channel: "stable", status: "published", quarantined: false },
+    orderBy: { releasedAt: "desc" },
+    select: { version: true },
+  });
 
   const rows: {
     label: string;
@@ -124,6 +131,18 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle>Update Channel</CardTitle></CardHeader>
+        <CardContent>
+          <ChannelSelect
+            agentId={agent.id}
+            currentChannel={agent.channel}
+            currentPinnedVersion={agent.pinnedVersion ?? null}
+            latestStableVersion={latestStableVersion?.version ?? null}
+          />
+        </CardContent>
+      </Card>
 
       <DeleteAgentButton agentId={agent.id} />
     </div>

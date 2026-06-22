@@ -3,27 +3,44 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { KeyRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { KeyRound, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { RevokeKeyButton } from "./revoke-key-button";
+import { CreateApiKeyDialog } from "./create-api-key-dialog";
 
 export default async function ApiKeysPage() {
   const session = await auth();
   const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
   if (!membership) redirect("/login");
 
-  const keys = await prisma.apiKey.findMany({
-    where: { project: { organizationId: membership.organizationId } },
-    include: { project: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [keys, projects] = await Promise.all([
+    prisma.apiKey.findMany({
+      where: { project: { organizationId: membership.organizationId } },
+      include: { project: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.project.findMany({
+      where: { organizationId: membership.organizationId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="API Keys"
-        description="Keys used by agents to authenticate with the collector"
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="API Keys"
+          description="Keys used by agents to authenticate with the collector"
+        />
+        <CreateApiKeyDialog projects={projects}>
+          <Button size="sm" className="shrink-0">
+            <Plus size={15} className="mr-1.5" />
+            Generate Key
+          </Button>
+        </CreateApiKeyDialog>
+      </div>
 
       <Card>
         <CardContent className="p-0">

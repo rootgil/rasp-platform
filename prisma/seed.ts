@@ -87,6 +87,17 @@ async function createSignedPolicy(
 }
 
 async function main() {
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const demoPassword  = process.env.SEED_DEMO_PASSWORD;
+
+  if (!adminPassword || !demoPassword) {
+    console.error(
+      "❌  SEED_ADMIN_PASSWORD and SEED_DEMO_PASSWORD must be set.\n" +
+      "    Copy .env.example → .env and fill in strong passwords before seeding."
+    );
+    process.exit(1);
+  }
+
   console.log("Seeding database...");
 
   // Clean up (order respects FK constraints)
@@ -117,7 +128,16 @@ async function main() {
     data: {
       email: "admin@rasp.io",
       name: "Platform Admin",
-      passwordHash: await bcrypt.hash("admin1234", 10),
+      passwordHash: await bcrypt.hash(adminPassword, 12),
+      role: "admin",
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: "admin2@rasp.io",
+      name: "Platform Admin 2",
+      passwordHash: await bcrypt.hash(adminPassword, 12),
       role: "admin",
     },
   });
@@ -126,7 +146,7 @@ async function main() {
     data: {
       email: "demo@acme.io",
       name: "Demo User",
-      passwordHash: await bcrypt.hash("demo1234", 10),
+      passwordHash: await bcrypt.hash(demoPassword, 12),
       role: "user",
     },
   });
@@ -286,17 +306,19 @@ async function main() {
   }
 
   // Discovered Endpoints
+  // authStatus values must match the collector vocabulary:
+  // "authenticated" | "unauthenticated" | "unknown"
   const endpointDefs = [
-    { method: "GET",    path: "/api/users/:id",             authStatus: "jwt",     authorization: "owner",   hasSensitiveData: true,  riskScore: 45 },
-    { method: "POST",   path: "/api/auth/login",            authStatus: "none",    authorization: "public",  hasSensitiveData: true,  riskScore: 80 },
-    { method: "GET",    path: "/api/accounts/:id/balance",  authStatus: "jwt",     authorization: "owner",   hasSensitiveData: true,  riskScore: 60 },
-    { method: "GET",    path: "/api/transactions",          authStatus: "jwt",     authorization: "member",  hasSensitiveData: true,  riskScore: 55 },
-    { method: "DELETE", path: "/api/admin/users/:id",       authStatus: "jwt",     authorization: "admin",   hasSensitiveData: false, riskScore: 70 },
-    { method: "GET",    path: "/api/documents/:filename",   authStatus: "jwt",     authorization: "member",  hasSensitiveData: true,  riskScore: 50 },
-    { method: "GET",    path: "/api/internal/metrics",      authStatus: "none",    authorization: "unknown", hasSensitiveData: false, riskScore: 90, isShadowApi: true },
-    { method: "POST",   path: "/api/v1/legacy/transfer",    authStatus: "unknown", authorization: "unknown", hasSensitiveData: true,  riskScore: 75, isShadowApi: true },
-    { method: "GET",    path: "/api/v1/reports/export",     authStatus: "jwt",     authorization: "admin",   hasSensitiveData: false, riskScore: 20, isZombieApi: true },
-    { method: "GET",    path: "/health",                    authStatus: "none",    authorization: "public",  hasSensitiveData: false, riskScore: 5 },
+    { method: "GET",    path: "/api/users/:id",             authStatus: "authenticated",   authorization: "owner",   hasSensitiveData: true,  riskScore: 45 },
+    { method: "POST",   path: "/api/auth/login",            authStatus: "unauthenticated", authorization: "public",  hasSensitiveData: true,  riskScore: 80 },
+    { method: "GET",    path: "/api/accounts/:id/balance",  authStatus: "authenticated",   authorization: "owner",   hasSensitiveData: true,  riskScore: 60 },
+    { method: "GET",    path: "/api/transactions",          authStatus: "authenticated",   authorization: "member",  hasSensitiveData: true,  riskScore: 55 },
+    { method: "DELETE", path: "/api/admin/users/:id",       authStatus: "authenticated",   authorization: "admin",   hasSensitiveData: false, riskScore: 70 },
+    { method: "GET",    path: "/api/documents/:filename",   authStatus: "authenticated",   authorization: "member",  hasSensitiveData: true,  riskScore: 50 },
+    { method: "GET",    path: "/api/internal/metrics",      authStatus: "unauthenticated", authorization: "unknown", hasSensitiveData: false, riskScore: 90, isShadowApi: true },
+    { method: "POST",   path: "/api/v1/legacy/transfer",    authStatus: "unknown",         authorization: "unknown", hasSensitiveData: true,  riskScore: 75, isShadowApi: true },
+    { method: "GET",    path: "/api/v1/reports/export",     authStatus: "authenticated",   authorization: "admin",   hasSensitiveData: false, riskScore: 20, isZombieApi: true },
+    { method: "GET",    path: "/health",                    authStatus: "unauthenticated", authorization: "public",  hasSensitiveData: false, riskScore: 5 },
   ];
 
   for (const ep of endpointDefs) {
@@ -645,8 +667,9 @@ async function main() {
   });
 
   console.log("✅ Seed complete");
-  console.log("  Admin:  admin@rasp.io  / admin1234");
-  console.log("  Demo:   demo@acme.io   / demo1234");
+  console.log("  Admin:   admin@rasp.io   / admin1234");
+  console.log("  Admin 2: admin2@rasp.io  / admin1234  (dual-auth approver)");
+  console.log("  Demo:    demo@acme.io    / demo1234");
 }
 
 main()

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -13,8 +13,12 @@ import {
   FileSearch,
   Inbox,
   Shield,
+  ShieldAlert,
+  KeyRound,
   LogOut,
   Menu,
+  UserCircle,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
@@ -39,6 +43,8 @@ const navGroups = [
     items: [
       { href: "/backoffice/rules", label: "Detection Rules", icon: Shield },
       { href: "/backoffice/agent-versions", label: "Agent Versions", icon: Activity },
+      { href: "/backoffice/security-center", label: "Security Center", icon: ShieldAlert },
+      { href: "/backoffice/crypto", label: "Crypto Keys", icon: KeyRound },
     ],
   },
   {
@@ -50,7 +56,56 @@ const navGroups = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  adminEmail?: string;
+}
+
+function AdminNotifBadge() {
+  const [count, setCount]   = useState(0);
+  const router              = useRouter();
+
+  const fetchCount = useCallback(async () => {
+    try {
+      const res  = await fetch("/api/admin/notifications");
+      if (!res.ok) return;
+      const data = (await res.json()) as { unreadCount: number };
+      setCount(data.unreadCount);
+    } catch {
+      // non-critical
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCount();
+    const interval = setInterval(fetchCount, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchCount]);
+
+  async function handleClick() {
+    // Mark all as read then navigate
+    await fetch("/api/admin/notifications", { method: "POST" }).catch(() => {});
+    setCount(0);
+    router.push("/backoffice/security-center");
+  }
+
+  if (count === 0) return null;
+
+  return (
+    <button
+      onClick={handleClick}
+      className="flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm text-yellow-300 hover:bg-white/10 hover:text-yellow-200 transition-colors"
+    >
+      <Bell size={16} />
+      <span className="flex-1 text-left">{count} pending approval{count > 1 ? "s" : ""}</span>
+      <span className="h-5 min-w-[20px] rounded-full bg-yellow-400 text-[10px] font-bold text-black flex items-center justify-center px-1">
+        {count > 9 ? "9+" : count}
+      </span>
+    </button>
+  );
+}
+
+export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -140,7 +195,14 @@ export function AdminSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10">
+        <div className="p-4 border-t border-white/10 space-y-1">
+          {adminEmail && (
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <UserCircle size={15} className="text-white/40 shrink-0" />
+              <span className="text-xs text-white/50 truncate">{adminEmail}</span>
+            </div>
+          )}
+          <AdminNotifBadge />
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm text-text-muted hover:bg-white/10 hover:text-white transition-colors"
