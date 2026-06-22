@@ -24,7 +24,9 @@ default:
     - oriso-runner-01
   before_script:
     - node --version
-    - npm install -g pnpm@latest --quiet
+    - npm config set prefix "$HOME/.local"
+    - npm install -g pnpm@10 --quiet
+    - export PATH="$HOME/.local/bin:$PATH"
     - pnpm --version
 
 .only_mr_and_main: &only_mr_and_main
@@ -37,6 +39,7 @@ lint:
   <<: *only_mr_and_main
   script:
     - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
     - pnpm lint
   cache:
     key:
@@ -54,6 +57,7 @@ typecheck:
       artifacts: false
   script:
     - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
     - pnpm typecheck
   cache:
     key:
@@ -74,6 +78,7 @@ test:
     NODE_ENV: test
   script:
     - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
     - pnpm test
   cache:
     key:
