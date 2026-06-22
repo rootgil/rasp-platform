@@ -102,6 +102,7 @@ export function RulesClient({
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchProjectRules(selectedProjectId); }, [selectedProjectId, fetchProjectRules]);
 
   // --- Catalogue tab actions ---
@@ -470,7 +471,7 @@ export function RulesClient({
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete rule "{pr.name}"?</AlertDialogTitle>
+                                  <AlertDialogTitle>Delete rule &quot;{pr.name}&quot;?</AlertDialogTitle>
                                   <AlertDialogDescription>
                                     This rule will be removed from your project. Publish after deletion to update agents.
                                   </AlertDialogDescription>

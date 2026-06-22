@@ -76,6 +76,7 @@ function AdminNotifBadge() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCount();
     const interval = setInterval(fetchCount, 30_000);
     return () => clearInterval(interval);

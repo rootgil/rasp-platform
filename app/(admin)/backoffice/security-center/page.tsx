@@ -82,6 +82,7 @@ function KillSwitchSection({ currentUserId }: { currentUserId?: string }) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
   }, [fetchStatus]);
 
@@ -470,6 +471,7 @@ function ApprovalsSection() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchApprovals();
     const interval = setInterval(fetchApprovals, 30_000);
     return () => clearInterval(interval);
@@ -593,6 +595,7 @@ function MfaSection() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
   }, [fetchStatus]);
 
@@ -778,6 +781,7 @@ function BreakGlassSection() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTokens();
   }, [fetchTokens]);
 

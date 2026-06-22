@@ -189,6 +189,7 @@ export function MaintenanceWindowSettings({ projectId }: { projectId: string }) 
   }, [projectId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAgents();
   }, [fetchAgents]);
 

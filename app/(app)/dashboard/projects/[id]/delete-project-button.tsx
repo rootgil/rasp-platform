@@ -80,7 +80,7 @@ export function DeleteProjectButton({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete "{projectName}"?</DialogTitle>
+            <DialogTitle>Delete &quot;{projectName}&quot;?</DialogTitle>
             <DialogDescription>
               All agents, API keys, security events, alerts, policies and detection rules for this application will be <strong>permanently deleted</strong>.
               <br /><br />

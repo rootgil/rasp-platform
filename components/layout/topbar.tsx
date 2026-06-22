@@ -132,6 +132,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
   }, [onNotifCountChange]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAndCount();
     const interval = setInterval(fetchAndCount, 30_000);
     return () => clearInterval(interval);

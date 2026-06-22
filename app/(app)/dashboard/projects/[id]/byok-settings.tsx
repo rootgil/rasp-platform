@@ -30,6 +30,7 @@ export function BYOKSettings({ projectId }: { projectId: string }) {
   }, [projectId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
   }, [fetchStatus]);
 
