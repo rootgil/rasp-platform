@@ -1,6 +1,22 @@
 import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { beginMfaEnrollment, confirmMfaEnrollment, disableMfa } from "@/modules/admin/mfa.server";
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
+/** GET /api/admin/mfa - return the caller's current MFA status. */
+export async function GET() {
+  try {
+    const user = await requireSession();
+    const record = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { mfaEnabled: true },
+    });
+    return Response.json({ mfaEnabled: record?.mfaEnabled ?? false });
+  } catch (e) {
+    if (e instanceof Response) return e;
+    return jsonError("Internal server error", 500);
+  }
+}
 
 const schema = z.object({
   action: z.enum(["enroll", "confirm", "disable"]),

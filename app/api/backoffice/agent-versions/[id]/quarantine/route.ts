@@ -1,6 +1,9 @@
 import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireMfa } from "@/modules/admin/mfa.server";
 import { setVersionQuarantine } from "@/modules/admin/incident.server";
 import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { notifyAffectedProjects } from "@/modules/notifications/user-notifications.server";
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({
@@ -14,7 +17,10 @@ const schema = z.object({
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAdmin();
+    const user = await requireAdmin(req);
+    const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
+    await requireMfa(user.id, mfaToken);
+
     const orgId = await getOrgId(user.id).catch(() => undefined);
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
@@ -42,6 +48,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       target: id,
       metadata: { reason: parsed.data.reason },
     });
+
+    if (parsed.data.quarantined) {
+      prisma.agent.findMany({
+        where: { targetVersion: version.version },
+        select: { projectId: true },
+      }).then((agents) => {
+        const projectIds = [...new Set(agents.map((a) => a.projectId))];
+        return notifyAffectedProjects({
+          projectIds,
+          type:     "agent_version.quarantined",
+          title:    `Agent version ${version.version} quarantined`,
+          body:     `Version ${version.version} has been quarantined by the platform operator and is no longer served to agents.`,
+          metadata: { versionId: id, version: version.version, reason: parsed.data.reason },
+        });
+      }).catch(() => {});
+    }
+
     return Response.json({ version });
   } catch (e) {
     if (e instanceof Response) return e;

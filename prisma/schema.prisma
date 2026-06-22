@@ -20,20 +20,25 @@ model User {
   passwordChangedAt   DateTime?
   onboardedAt         DateTime?
   createdAt           DateTime             @default(now())
-  memberships    OrganizationMember[]
-  auditLogs      AuditLog[]
-  approvalsMade  ApprovalRequest[]    @relation("approver")
-  approvalsRaised ApprovalRequest[]   @relation("requester")
+  memberships         OrganizationMember[]
+  auditLogs           AuditLog[]
+  approvalsMade       ApprovalRequest[]    @relation("approver")
+  approvalsRaised     ApprovalRequest[]    @relation("requester")
+  breakGlassTokens    BreakGlassToken[]
+  sentInvitations     Invitation[]         @relation("sentInvitations")
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Organization {
-  id        String               @id @default(cuid())
-  name      String
-  plan      String               @default("free")
-  createdAt DateTime             @default(now())
-  members   OrganizationMember[]
-  projects  Project[]
-  auditLogs AuditLog[]
+  id                String               @id @default(cuid())
+  name              String
+  plan              String               @default("free")
+  createdAt         DateTime             @default(now())
+  members           OrganizationMember[]
+  projects          Project[]
+  auditLogs         AuditLog[]
+  userNotifications UserNotification[]
+  invitations       Invitation[]
 }
 
 model OrganizationMember {
@@ -56,6 +61,11 @@ model Project {
   framework           String?
   environment         String               @default("production")
   collectorUrl        String?
+  // BYOK: customer-provided KEK, wrapped by the platform master KEK (Addendum E.6).
+  // When set, the collector uses this KEK instead of the global KEK_MASTER_KEY for
+  // this project's DEKs. The value is a base64-encoded 32-byte key wrapped via
+  // AES-256-GCM with the master KEK. Null means global KEK is used.
+  customerKekWrapped  String?
   createdAt           DateTime             @default(now())
   organization        Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agents              Agent[]
@@ -67,6 +77,7 @@ model Project {
   policies            Policy[]
   projectRules        ProjectRule[]
   ruleNotifications   CatalogueRuleNotification[]
+  userNotifications   UserNotification[]
 }
 
 model ApiKey {
@@ -263,6 +274,9 @@ model DiscoveredEndpoint {
   avgResponseMs    Int      @default(0)
   // Inferred OpenAPI-like schema from observed traffic (param names -> types).
   schema           Json?
+  // Sensitive field names observed on this endpoint (e.g. ["email","password"]).
+  // Populated by the agent's endpoint-observer when hasSensitiveData = true.
+  sensitiveFields  Json?
   isShadowApi      Boolean  @default(false)
   isZombieApi      Boolean  @default(false)
   firstSeenAt      DateTime @default(now())
@@ -369,6 +383,60 @@ model ApprovalRequest {
   @@index([status])
 }
 
+// Emergency break-glass tokens for out-of-band recovery (Addendum E.6).
+// Single-use, time-limited. The raw token is shown once and never stored.
+model BreakGlassToken {
+  id           String    @id @default(cuid())
+  tokenHash    String    @unique
+  createdById  String
+  reason       String?
+  expiresAt    DateTime
+  usedAt       DateTime?
+  usedByIp     String?
+  revoked      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  createdBy    User      @relation(fields: [createdById], references: [id])
+
+  @@index([expiresAt])
+}
+
+// Broadcast notification to all admins, e.g. when a dual-auth request is raised,
+// approved, or rejected. Not scoped to a specific admin (all admins share the queue).
+model AdminNotification {
+  id        String    @id @default(cuid())
+  type      String    // "approval.raised" | "approval.approved" | "approval.rejected"
+  relatedId String?   // ApprovalRequest.id
+  metadata  Json?     // { action, target, raisedByEmail, resolvedByEmail? }
+  status    String    @default("unread") // "unread" | "read"
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Operational notification pushed to tenant users when an admin takes an action
+// that directly affects their projects (kill-switch, quarantine, rollback…).
+// Scoped by orgId (platform-wide actions) or projectId (version-level actions).
+model UserNotification {
+  id           String        @id @default(cuid())
+  orgId        String?       // set for org-wide events (e.g. kill_switch)
+  projectId    String?       // set for project-scoped events (e.g. version rollback)
+  type         String        // "kill_switch.enabled" | "kill_switch.disabled" | "agent_version.quarantined" | "agent_version.rolledback"
+  title        String
+  body         String?
+  metadata     Json?
+  status       String        @default("unread") // "unread" | "read"
+  createdAt    DateTime      @default(now())
+  readAt       DateTime?
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+  @@index([projectId, status])
+  @@index([createdAt])
+}
+
 model ContactLead {
   id          String    @id @default(cuid())
   name        String
@@ -378,4 +446,35 @@ model ContactLead {
   status      String    @default("pending")
   convertedAt DateTime?
   createdAt   DateTime  @default(now())
+}
+
+// Member invitation (48-hour single-use token).
+model Invitation {
+  id             String       @id @default(cuid())
+  email          String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           String       @default("member")
+  token          String       @unique
+  invitedById    String
+  invitedBy      User         @relation("sentInvitations", fields: [invitedById], references: [id])
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([expiresAt])
+}
+
+// Password reset token (1-hour single-use; only SHA-256 hash stored).
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([expiresAt])
 }

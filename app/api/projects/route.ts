@@ -1,5 +1,6 @@
 import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { getProjects, createProject } from "@/modules/projects/projects.server";
+import { backfillNotificationsForProject } from "@/modules/project-rules/notifications.server";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
       target: project.id,
       metadata: { name: project.name },
     });
+    backfillNotificationsForProject(project.id).catch(() => {});
     return Response.json(project, { status: 201 });
   } catch (e) {
     if (e instanceof Response) return e;

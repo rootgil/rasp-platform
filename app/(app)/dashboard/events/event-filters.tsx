@@ -7,6 +7,8 @@ const SEVERITIES = ["critical", "high", "medium", "low"];
 const ATTACK_TYPES = [
   "sql_injection", "path_traversal", "command_injection",
   "xss", "ssrf", "deserialization", "suspicious_payload",
+  // BOLA/IDOR detections from the agent (Addendum A.5 / B.4)
+  "bola_detection", "idor_detection",
 ];
 
 export function EventFilters({ projects }: { projects: { id: string; name: string }[] }) {

@@ -5,6 +5,17 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+async function checkDatabaseHealth() {
+  const start = Date.now();
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    const latencyMs = Date.now() - start;
+    return { status: "healthy", detail: `Connected (${latencyMs}ms)` };
+  } catch {
+    return { status: "offline", detail: "Cannot reach database" };
+  }
+}
+
 async function checkCollectorHealth() {
   const collectorUrl = process.env.COLLECTOR_INTERNAL_URL ?? "http://localhost:4000";
   try {
@@ -14,30 +25,23 @@ async function checkCollectorHealth() {
     });
     if (res.ok) {
       const data = await res.json();
-      return { status: "healthy", data };
+      return { status: "healthy", data, detail: "Responding to /health" };
     }
-    return { status: "degraded", data: null };
+    return { status: "degraded", data: null, detail: `HTTP ${res.status}` };
   } catch {
-    return { status: "offline", data: null };
+    return { status: "offline", data: null, detail: "Cannot reach collector - check COLLECTOR_INTERNAL_URL" };
   }
 }
 
 export default async function SystemHealthPage() {
-  const [collectorHealth, dbStats] = await Promise.all([
+  const [dbHealth, collectorHealth] = await Promise.all([
+    checkDatabaseHealth(),
     checkCollectorHealth(),
-    prisma.$queryRaw<[{ count: number }]>`SELECT COUNT(*) as count FROM "SecurityEvent"`.catch(() => [{ count: 0 }]),
   ]);
 
   const checks = [
-    { name: "PostgreSQL Database", status: "healthy", detail: "Replication lag: 0ms" },
-    {
-      name: "Collector Service",
-      status: collectorHealth.status,
-      detail: collectorHealth.status === "healthy" ? "All ingestion workers active" : "Cannot reach collector - check COLLECTOR_INTERNAL_URL",
-    },
-    { name: "Auth Service", status: "healthy", detail: "JWT signing active" },
-    { name: "Rate Limiter", status: "healthy", detail: "Redis-backed (mock)" },
-    { name: "Event Queue", status: "healthy", detail: `~${(dbStats[0] as { count: number }).count ?? 0} events total` },
+    { name: "PostgreSQL Database", status: dbHealth.status, detail: dbHealth.detail },
+    { name: "Collector Service", status: collectorHealth.status, detail: collectorHealth.detail },
   ];
 
   return (

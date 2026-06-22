@@ -74,7 +74,7 @@ export async function getEndpointStats(organizationId: string, projectId?: strin
     prisma.discoveredEndpoint.count({ where }),
     prisma.discoveredEndpoint.count({ where: { ...where, isShadowApi: true } }),
     prisma.discoveredEndpoint.count({ where: { ...where, isZombieApi: true } }),
-    prisma.discoveredEndpoint.count({ where: { ...where, authStatus: "none" } }),
+    prisma.discoveredEndpoint.count({ where: { ...where, authStatus: "unauthenticated" } }),
   ]);
   return { total, shadow, zombie, unauthenticated };
 }

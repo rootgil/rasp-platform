@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, ChevronDown, LogOut, User, Settings, Menu, ShieldCheck, ShieldAlert, Check, X } from "lucide-react";
+import { Bell, Search, ChevronDown, LogOut, User, Settings, Menu, ShieldCheck, ShieldAlert, Check, X, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +47,23 @@ interface Notification {
   };
 }
 
+interface UserNotification {
+  id:        string;
+  type:      string;
+  title:     string;
+  body:      string | null;
+  orgId:     string | null;
+  projectId: string | null;
+  createdAt: string;
+}
+
+const USER_NOTIF_LINK: Record<string, string> = {
+  "kill_switch.enabled":       "/dashboard/agent-lifecycle",
+  "kill_switch.disabled":      "/dashboard/agent-lifecycle",
+  "agent_version.quarantined": "/dashboard/agent-lifecycle",
+  "agent_version.rolledback":  "/dashboard/agent-lifecycle",
+};
+
 const SEVERITY_COLORS: Record<string, "destructive" | "secondary" | "outline"> = {
   critical: "destructive",
   high:     "destructive",
@@ -64,26 +81,63 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
   const name = session?.user?.name ?? session?.user?.email ?? "User";
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [expandedYaml, setExpandedYaml]   = useState<string | null>(null);
+  const [notifications,     setNotifications]     = useState<Notification[]>([]);
+  const [userNotifications, setUserNotifications] = useState<UserNotification[]>([]);
+  const [expandedYaml, setExpandedYaml]           = useState<string | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res  = await fetch("/api/project-rules/notifications");
-      if (!res.ok) return;
-      const data = await res.json() as { notifications: Notification[]; totalCount: number };
-      setNotifications(data.notifications);
-      onNotifCountChange?.(data.totalCount);
+      const [ruleRes, userRes] = await Promise.all([
+        fetch("/api/project-rules/notifications"),
+        fetch("/api/user-notifications"),
+      ]);
+      if (ruleRes.ok) {
+        const data = await ruleRes.json() as { notifications: Notification[]; totalCount: number };
+        setNotifications(data.notifications);
+      }
+      if (userRes.ok) {
+        const data = await userRes.json() as { notifications: UserNotification[]; unreadCount: number };
+        setUserNotifications(data.notifications);
+      }
+      const total = (ruleRes.ok ? (await ruleRes.clone().json().catch(() => ({ totalCount: 0 })) as { totalCount: number }).totalCount : 0);
+      onNotifCountChange?.(total);
+    } catch {
+      // Fail silently
+    }
+  }, [onNotifCountChange]);
+
+  // Simplified: re-fetch after state update to get correct count
+  const fetchAndCount = useCallback(async () => {
+    try {
+      const [ruleRes, userRes] = await Promise.all([
+        fetch("/api/project-rules/notifications"),
+        fetch("/api/user-notifications"),
+      ]);
+      let ruleNotifs: Notification[] = [];
+      let userNotifs: UserNotification[] = [];
+      if (ruleRes.ok) {
+        const data = await ruleRes.json() as { notifications: Notification[] };
+        ruleNotifs = data.notifications;
+        setNotifications(ruleNotifs);
+      }
+      if (userRes.ok) {
+        const data = await userRes.json() as { notifications: UserNotification[] };
+        userNotifs = data.notifications;
+        setUserNotifications(userNotifs);
+      }
+      onNotifCountChange?.(ruleNotifs.length + userNotifs.length);
     } catch {
       // Fail silently
     }
   }, [onNotifCountChange]);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
+    fetchAndCount();
+    const interval = setInterval(fetchAndCount, 30_000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchAndCount]);
+
+  void fetchNotifications;
 
   async function handleAccept(notifId: string, ruleName: string) {
     try {
@@ -115,7 +169,17 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
     }
   }
 
-  const pendingCount = notifications.length;
+  const pendingCount = notifications.length + userNotifications.length;
+
+  async function handleMarkUserNotifRead(notifId: string) {
+    try {
+      await fetch(`/api/user-notifications/${notifId}/read`, { method: "POST" });
+      setUserNotifications((prev) => prev.filter((n) => n.id !== notifId));
+      onNotifCountChange?.(notifications.length + userNotifications.length - 1);
+    } catch {
+      // non-critical
+    }
+  }
 
   return (
     <header className="fixed top-0 left-0 lg:left-[260px] right-0 h-16 bg-white border-b border-border flex items-center justify-between px-4 lg:px-6 z-30">
@@ -175,13 +239,53 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
               )}
             </div>
 
-            {notifications.length === 0 ? (
+            {notifications.length === 0 && userNotifications.length === 0 ? (
               <div className="px-4 py-8 text-center">
                 <ShieldCheck size={24} className="mx-auto text-success mb-2" />
-                <p className="text-sm text-text-secondary">All rules reviewed</p>
+                <p className="text-sm text-text-secondary">All notifications reviewed</p>
               </div>
             ) : (
               <div className="divide-y divide-border">
+                {/* Operational notifications from admin actions */}
+                {userNotifications.map((notif) => (
+                  <div key={notif.id} className="px-4 py-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <AlertTriangle size={13} className="text-yellow-500 shrink-0" />
+                          <span className="text-sm font-medium text-text-primary">{notif.title}</span>
+                        </div>
+                        {notif.body && (
+                          <p className="text-xs text-text-secondary">{notif.body}</p>
+                        )}
+                        <p className="text-[10px] text-text-muted">
+                          {new Date(notif.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {USER_NOTIF_LINK[notif.type] && (
+                        <Link
+                          href={USER_NOTIF_LINK[notif.type]}
+                          className="flex-1 h-7 text-xs flex items-center justify-center rounded-md border border-border bg-background hover:bg-border-light transition-colors text-text-primary"
+                          onClick={() => handleMarkUserNotifRead(notif.id)}
+                        >
+                          View details
+                        </Link>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => handleMarkUserNotifRead(notif.id)}
+                      >
+                        <Check size={12} className="mr-1" />
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {/* Rule catalogue opt-in notifications */}
                 {notifications.map((notif) => (
                   <div key={notif.id} className="px-4 py-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
@@ -246,7 +350,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              className="bg-destructive hover:bg-destructive/90"
+                              className="bg-critical hover:bg-[#b91c1c]"
                               onClick={() => handleDecline(notif.id)}
                             >
                               Yes, ignore
