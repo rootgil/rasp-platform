@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -710,19 +711,16 @@ function MfaSection() {
           <div className="space-y-4 py-2">
             <div>
               <p className="text-xs font-medium text-text-secondary mb-1.5">
-                1. Open your authenticator app and add a new TOTP account.
+                1. Scannez le QR code avec votre application d&apos;authentification.
               </p>
-              <a
-                href={otpauthUrl}
-                className="block w-full text-xs font-mono bg-background border border-border rounded-md px-3 py-2 break-all text-brand hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {otpauthUrl}
-              </a>
+              {otpauthUrl && (
+                <div className="flex justify-center p-4 bg-white rounded-md border border-border">
+                  <QRCodeSVG value={otpauthUrl} size={180} />
+                </div>
+              )}
             </div>
             <div>
-              <p className="text-xs font-medium text-text-secondary mb-1.5">Manual key:</p>
+              <p className="text-xs font-medium text-text-secondary mb-1.5">Clé manuelle :</p>
               <code className="block w-full text-sm font-mono bg-background border border-border rounded-md px-3 py-2 tracking-widest select-all">
                 {secret}
               </code>

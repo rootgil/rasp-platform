@@ -435,6 +435,13 @@ All token activity appears in **Backoffice → Audit Logs**:
 | `break_glass.used` | Raw token exchanged for JWT (includes IP) |
 | `break_glass.revoked` | Token manually revoked |
 
+### Local testing
+
+Step-by-step dev testing (UI, curl against `localhost:3000`, validation checklist,
+audit SQL, troubleshooting empty `curl`/`jq` output):
+
+→ **[docs/break-glass-testing.md](docs/break-glass-testing.md)**
+
 ---
 
 ## 9. Global Kill-Switch
