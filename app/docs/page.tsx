@@ -1,57 +1,15 @@
-export const metadata = {
+import type { Metadata } from "next";
+import { SwaggerUi } from "@/components/docs/swagger-ui";
+
+export const metadata: Metadata = {
   title: "API Docs - RASP Platform",
   description: "Interactive OpenAPI documentation for the RASP Platform API",
 };
 
 /**
- * Swagger UI for admins only (gated by proxy.ts + /api/openapi requireAdmin).
+ * Swagger UI — open in development; admin-only in production (proxy.ts + /api/openapi).
  * Version pinned; withCredentials disabled to avoid session cookie exfiltration via CDN.
  */
 export default function DocsPage() {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>RASP Platform - API Docs</title>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
-          crossOrigin="anonymous"
-        />
-        <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: sans-serif; }
-          #swagger-ui .topbar { display: none; }
-        `}</style>
-      </head>
-      <body>
-        <div id="swagger-ui" />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener("load", function () {
-                SwaggerUIBundle({
-                  url: "/api/openapi",
-                  dom_id: "#swagger-ui",
-                  presets: [
-                    SwaggerUIBundle.presets.apis,
-                    SwaggerUIBundle.SwaggerUIStandalonePreset,
-                  ],
-                  layout: "BaseLayout",
-                  docExpansion: "list",
-                  deepLinking: true,
-                  persistAuthorization: true,
-                  tryItOutEnabled: true,
-                  withCredentials: false,
-                });
-              });
-            `,
-          }}
-        />
-      </body>
-    </html>
-  );
+  return <SwaggerUi />;
 }

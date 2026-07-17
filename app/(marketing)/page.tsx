@@ -314,8 +314,8 @@ export default function LandingPage() {
       {/* ── 6. Agent snippet + redaction ───────────────────── */}
       <section className="py-16 md:py-24 bg-text-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            <div>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+            <div className="lg:sticky lg:top-28">
               <h2 className="text-3xl font-bold text-white mb-4">
                 Zero config. Full coverage.
               </h2>
@@ -345,21 +345,18 @@ export default function LandingPage() {
               <Button className="mt-8" size="lg" asChild>
                 <Link href="/contact">Get started →</Link>
               </Button>
-
-              <div className="mt-10">
-                <RedactionPipeline />
-              </div>
             </div>
 
-            {/* Code block */}
-            <div className="rounded-lg bg-[#1e293b] border border-white/10 overflow-hidden lg:sticky lg:top-24">
-              <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/10">
-                <div className="h-3 w-3 rounded-full bg-critical/70" />
-                <div className="h-3 w-3 rounded-full bg-medium/70" />
-                <div className="h-3 w-3 rounded-full bg-success/70" />
-                <span className="ml-2 text-xs text-text-secondary">server.js</span>
-              </div>
-              <pre className="p-6 text-sm font-mono text-border overflow-auto leading-relaxed">
+            {/* Code + redaction pipeline — same column, same width */}
+            <div className="flex flex-col gap-4 min-w-0">
+              <div className="rounded-xl bg-[#1e293b] border border-white/10 overflow-hidden">
+                <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/10">
+                  <div className="h-3 w-3 rounded-full bg-critical/70" />
+                  <div className="h-3 w-3 rounded-full bg-medium/70" />
+                  <div className="h-3 w-3 rounded-full bg-success/70" />
+                  <span className="ml-2 text-xs text-text-secondary">server.js</span>
+                </div>
+                <pre className="p-6 text-sm font-mono text-border overflow-auto leading-relaxed">
 {`// npm install @queno/agent-node
 
 require('@queno/agent-node').init({
@@ -379,7 +376,10 @@ require('@queno/agent-node').init({
 const express = require('express');
 const app = express();
 // ...`}
-              </pre>
+                </pre>
+              </div>
+
+              <RedactionPipeline />
             </div>
           </div>
         </div>
@@ -467,7 +467,7 @@ const app = express();
       </section>
 
       {/* ── 9. CTA ─────────────────────────────────────────── */}
-      <section className="py-16 md:py-20 bg-brand">
+      <section className="py-16 md:py-20 bg-brand-hover">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to protect your APIs?

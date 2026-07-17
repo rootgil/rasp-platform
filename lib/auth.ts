@@ -10,7 +10,11 @@ import { verifyTotp } from "@/lib/totp";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  totpCode: z.string().regex(/^\d{6}$/).optional(),
+  // Auth.js Credentials always posts defined fields as strings; empty means "no MFA yet".
+  totpCode: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().regex(/^\d{6}$/).optional()
+  ),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

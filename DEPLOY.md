@@ -185,10 +185,13 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 
 ```bash
 # Ports 3000/4000 exposés — pas de Caddy
+# Source monté en volume → hot reload (pas besoin de rebuild pour chaque edit)
 cp .env.example .env
 cp ../collector/.env.example ../collector/.env
 docker compose up -d --build
 ```
+
+Rebuild uniquement après changement de `Dockerfile`, `package.json` / lockfile, ou deps.
 
 ---
 

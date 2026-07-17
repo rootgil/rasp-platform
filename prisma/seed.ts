@@ -667,9 +667,9 @@ async function main() {
   });
 
   console.log("✅ Seed complete");
-  console.log("  Admin:   admin@rasp.io   / admin1234");
-  console.log("  Admin 2: admin2@rasp.io  / admin1234  (dual-auth approver)");
-  console.log("  Demo:    demo@acme.io    / demo1234");
+  console.log("  Admin:   admin@rasp.io");
+  console.log("  Admin 2: admin2@rasp.io (dual-auth approver)");
+  console.log("  Demo:    demo@acme.io");
 }
 
 main()

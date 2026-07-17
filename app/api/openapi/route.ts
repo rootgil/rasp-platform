@@ -15,7 +15,10 @@ export async function GET() {
     if (!docsEnabled()) {
       return jsonError("Not found", 404);
     }
-    await requireAdmin();
+    // Production: admin session required. Dev: open for local Swagger UI.
+    if (process.env.NODE_ENV === "production") {
+      await requireAdmin();
+    }
     const spec = buildOpenApiSpec();
     return new Response(JSON.stringify(spec, null, 2), {
       headers: {

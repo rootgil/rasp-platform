@@ -13,7 +13,7 @@ export function ArchitectureFlow() {
     {
       label: "Queno agent",
       sub: "Detect · Redact · Fail-open",
-      accent: "#2563eb",
+      accent: "#1d4ed8",
       badge: "In-process",
       highlight: true,
     },
@@ -85,28 +85,52 @@ export function ArchitectureFlow() {
 
                 {i < nodes.length - 1 && (
                   <div
-                    className="flex md:flex-col items-center justify-center py-1 md:py-0 md:px-2 shrink-0"
+                    className="flex flex-col md:flex-row items-center justify-center py-1.5 md:py-0 md:px-2.5 shrink-0"
                     aria-hidden="true"
                   >
-                    <div className="md:hidden h-5 w-px bg-linear-to-b from-[#93c5fd] to-[#cbd5e1]" />
-                    <div className="hidden md:block w-6 h-px bg-linear-to-r from-[#93c5fd] to-[#cbd5e1]" />
+                    {/* Mobile: vertical line + down arrow */}
                     <svg
-                      className="hidden md:block text-brand/50 -ml-0.5"
-                      width="8"
-                      height="10"
-                      viewBox="0 0 8 10"
-                      fill="currentColor"
+                      className="md:hidden text-brand/55"
+                      width="10"
+                      height="28"
+                      viewBox="0 0 10 28"
+                      fill="none"
                     >
-                      <path d="M0 0L8 5L0 10V0Z" />
+                      <path
+                        d="M5 0V20"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M1.5 17.5L5 22.5L8.5 17.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
+                    {/* Desktop: horizontal line + right arrow */}
                     <svg
-                      className="md:hidden text-brand/50 -mt-0.5 rotate-90"
-                      width="8"
-                      height="10"
-                      viewBox="0 0 8 10"
-                      fill="currentColor"
+                      className="hidden md:block text-brand/55"
+                      width="36"
+                      height="12"
+                      viewBox="0 0 36 12"
+                      fill="none"
                     >
-                      <path d="M0 0L8 5L0 10V0Z" />
+                      <path
+                        d="M0 6H28"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M24.5 2L30.5 6L24.5 10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </div>
                 )}

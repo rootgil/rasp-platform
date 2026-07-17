@@ -17,18 +17,21 @@ export default auth((req) => {
   const isAdmin = (session?.user as { role?: string })?.role === "admin";
   const mustChangePassword = (session?.user as { mustChangePassword?: boolean })?.mustChangePassword === true;
 
-  // API docs: disabled in production by default, or admin-only when enabled.
+  // API docs: open in development; admin-only in production when DOCS_ENABLED=true.
   if (nextUrl.pathname.startsWith("/docs")) {
     if (!docsEnabled()) {
       return NextResponse.redirect(new URL("/", nextUrl));
     }
-    if (!isLoggedIn) {
-      return NextResponse.redirect(
-        new URL(`/login?callbackUrl=${encodeURIComponent("/docs")}`, nextUrl)
-      );
-    }
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    const isProd = process.env.NODE_ENV === "production";
+    if (isProd) {
+      if (!isLoggedIn) {
+        return NextResponse.redirect(
+          new URL(`/login?callbackUrl=${encodeURIComponent("/docs")}`, nextUrl)
+        );
+      }
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL("/dashboard", nextUrl));
+      }
     }
   }
 

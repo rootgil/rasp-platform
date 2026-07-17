@@ -16,7 +16,6 @@ const AGENT_PUBLIC_SELECT = {
   pinnedVersion: true,
   maintenanceWindow: true,
   createdAt: true,
-  updatedAt: true,
 } as const;
 
 export async function createAgent(

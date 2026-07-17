@@ -14,7 +14,6 @@ import { sanitizeCallbackUrl } from "@/lib/safe-url";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +27,7 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email: opts.email,
       password: opts.password,
-      totpCode: opts.totpCode,
+      ...(opts.totpCode ? { totpCode: opts.totpCode } : {}),
       redirect: false,
     });
     if (result?.error) {
@@ -39,7 +38,9 @@ function LoginForm() {
     if (user?.mustChangePassword) {
       router.push("/change-password");
     } else {
-      router.push(user?.role === "admin" ? "/backoffice" : callbackUrl);
+      const home = user?.role === "admin" ? "/backoffice" : "/dashboard";
+      const rawCallback = searchParams.get("callbackUrl");
+      router.push(rawCallback ? sanitizeCallbackUrl(rawCallback, home) : home);
     }
     router.refresh();
     return { ok: true as const };
