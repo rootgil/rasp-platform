@@ -1,4 +1,5 @@
 import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireOrgRole } from "@/lib/rbac";
 import { purgeProjectData, purgeByRetention } from "@/modules/compliance/retention.server";
 import { destroyProjectKeys } from "@/lib/envelope";
 import { z } from "zod";
@@ -21,6 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const user = await requireSession();
     const orgId = await getOrgId(user.id);
+    await requireOrgRole(user.id, orgId, ["owner"]);
     const { id } = await params;
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return jsonError(parsed.error.message, 400);
@@ -31,6 +33,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       counts = await purgeByRetention(id, orgId, parsed.data.retentionDays ?? 90);
     } else {
       counts = await purgeProjectData(id, orgId);
+      // Crypto-shred is irreversible — owners only (already gated) and explicit flag.
       if (counts && parsed.data.cryptoShred) {
         keysDestroyed = await destroyProjectKeys(id);
       }

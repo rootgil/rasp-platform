@@ -3,6 +3,10 @@ export const metadata = {
   description: "Interactive OpenAPI documentation for the RASP Platform API",
 };
 
+/**
+ * Swagger UI for admins only (gated by proxy.ts + /api/openapi requireAdmin).
+ * Version pinned; withCredentials disabled to avoid session cookie exfiltration via CDN.
+ */
 export default function DocsPage() {
   return (
     <html lang="en">
@@ -12,7 +16,8 @@ export default function DocsPage() {
         <title>RASP Platform - API Docs</title>
         <link
           rel="stylesheet"
-          href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+          href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
+          crossOrigin="anonymous"
         />
         <style>{`
           * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,10 +28,7 @@ export default function DocsPage() {
       <body>
         <div id="swagger-ui" />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script
-          src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
-          // next/script is not usable in a root html layout; inline script is fine here
-        />
+        <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -43,7 +45,7 @@ export default function DocsPage() {
                   deepLinking: true,
                   persistAuthorization: true,
                   tryItOutEnabled: true,
-                  withCredentials: true,
+                  withCredentials: false,
                 });
               });
             `,

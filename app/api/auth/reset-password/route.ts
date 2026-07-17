@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/auth-helpers";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -12,6 +13,10 @@ const schema = z.object({
 /** POST /api/auth/reset-password — public endpoint */
 export async function POST(req: Request) {
   try {
+    const ip = clientIp(req);
+    const limited = checkRateLimit(`reset-password:${ip}`, 10, 15 * 60_000);
+    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

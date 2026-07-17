@@ -30,12 +30,26 @@ const auditLogGuard = {
   },
 };
 
+function resolveSsl(): { rejectUnauthorized: boolean } | undefined {
+  const url = process.env.DATABASE_URL ?? "";
+  const verify =
+    process.env.DATABASE_SSL_VERIFY === "true" ||
+    url.includes("sslmode=verify-full");
+  if (verify) {
+    return { rejectUnauthorized: true };
+  }
+  // Neon / managed Postgres often need TLS; default remains permissive for
+  // sslmode=require without a pinned CA. Prefer DATABASE_SSL_VERIFY=true in prod.
+  if (url.includes("neon.tech") || url.includes("sslmode=require")) {
+    return { rejectUnauthorized: false };
+  }
+  return undefined;
+}
+
 function createPrismaClient() {
   const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes("neon.tech")
-      ? { rejectUnauthorized: false }
-      : undefined,
+    ssl: resolveSsl(),
     max: 3,
     connectionTimeoutMillis: 20000,
     idleTimeoutMillis: 30000,

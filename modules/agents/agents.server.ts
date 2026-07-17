@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "node:crypto";
 
+/** Public agent fields — never includes hmacSecret. */
+const AGENT_PUBLIC_SELECT = {
+  id: true,
+  projectId: true,
+  language: true,
+  framework: true,
+  version: true,
+  mode: true,
+  status: true,
+  killSwitch: true,
+  lastHeartbeatAt: true,
+  channel: true,
+  pinnedVersion: true,
+  maintenanceWindow: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export async function createAgent(
   projectId: string,
   organizationId: string,
@@ -10,6 +28,7 @@ export async function createAgent(
     where: { id: projectId, organizationId },
   });
   if (!project) return null;
+  // hmacSecret is returned once at creation for operator configuration.
   return prisma.agent.create({
     data: {
       projectId,
@@ -18,8 +37,6 @@ export async function createAgent(
       mode: data.mode ?? "monitor",
       version: "unknown",
       status: "offline",
-      // Per-agent HMAC secret for payload integrity (Addendum E.5). Surfaced
-      // once at creation so the operator can configure `hmacSecret` on the agent.
       hmacSecret: randomBytes(32).toString("hex"),
     },
   });
@@ -28,7 +45,10 @@ export async function createAgent(
 export async function getAgents(organizationId: string) {
   return prisma.agent.findMany({
     where: { project: { organizationId } },
-    include: { project: { select: { name: true, language: true } } },
+    select: {
+      ...AGENT_PUBLIC_SELECT,
+      project: { select: { name: true, language: true } },
+    },
     orderBy: { lastHeartbeatAt: "desc" },
   });
 }
@@ -36,7 +56,17 @@ export async function getAgents(organizationId: string) {
 export async function getAgent(id: string, organizationId: string) {
   return prisma.agent.findFirst({
     where: { id, project: { organizationId } },
-    include: { project: true },
+    select: {
+      ...AGENT_PUBLIC_SELECT,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          language: true,
+          organizationId: true,
+        },
+      },
+    },
   });
 }
 
@@ -47,9 +77,14 @@ export async function setAgentKillSwitch(
 ) {
   const agent = await prisma.agent.findFirst({
     where: { id, project: { organizationId } },
+    select: { id: true },
   });
   if (!agent) return null;
-  return prisma.agent.update({ where: { id }, data: { killSwitch } });
+  return prisma.agent.update({
+    where: { id },
+    data: { killSwitch },
+    select: AGENT_PUBLIC_SELECT,
+  });
 }
 
 /**
@@ -63,6 +98,7 @@ export async function setAgentVersionControls(
 ) {
   const agent = await prisma.agent.findFirst({
     where: { id, project: { organizationId } },
+    select: { id: true },
   });
   if (!agent) return null;
   return prisma.agent.update({
@@ -73,5 +109,6 @@ export async function setAgentVersionControls(
         ? { maintenanceWindow: (data.maintenanceWindow ?? null) as never }
         : {}),
     },
+    select: AGENT_PUBLIC_SELECT,
   });
 }

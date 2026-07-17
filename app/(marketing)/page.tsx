@@ -14,6 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LiveDashboard } from "@/components/marketing/live-dashboard";
+import { ArchitectureFlow } from "@/components/marketing/architecture-flow";
+import { HowItWorksPanels } from "@/components/marketing/how-it-works-panels";
+import { RedactionPipeline } from "@/components/marketing/redaction-pipeline";
 
 /* ─── data ──────────────────────────────────────────────── */
 
@@ -67,27 +70,6 @@ const features = [
     title: "Local Audit Trail",
     description:
       "Every redaction decision is logged locally in an append-only audit file. You own the evidence chain.",
-  },
-];
-
-const steps = [
-  {
-    num: 1,
-    title: "Install in one line",
-    desc: "Add the Queno agent with a single require(). No proxies, no sidecars, no infrastructure changes.",
-    code: "npm install @queno/agent-node",
-  },
-  {
-    num: 2,
-    title: "Observe every request",
-    desc: "The agent instruments your runtime and inspects every inbound request with full context of headers, payloads, and session state.",
-    code: null,
-  },
-  {
-    num: 3,
-    title: "Block threats, redact PII",
-    desc: "AI-powered engines detect and block attacks in under a millisecond. Sensitive data is scrubbed before any telemetry leaves your environment.",
-    code: null,
   },
 ];
 
@@ -258,7 +240,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 3. Features grid ───────────────────────────────── */}
+      {/* ── 3. Architecture ────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-text-primary">
+              Where Queno lives
+            </h2>
+            <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
+              The agent runs inside your application process. Telemetry is
+              redacted before it ever reaches the collector or dashboard.
+            </p>
+          </div>
+          <ArchitectureFlow />
+        </div>
+      </section>
+
+      {/* ── 4. Features grid ───────────────────────────────── */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -298,7 +296,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 4. How it works ────────────────────────────────── */}
+      {/* ── 5. How it works ────────────────────────────────── */}
       <section className="py-16 md:py-24 bg-background border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -309,40 +307,14 @@ export default function LandingPage() {
               One require. No code changes. Full protection immediately.
             </p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-0 relative">
-            {/* Connector lines (desktop) */}
-            <div className="hidden md:block absolute top-[2.375rem] left-[calc(33.33%+8px)] right-[calc(33.33%+8px)] h-px bg-linear-to-r from-[#cbd5e1] via-[#93c5fd] to-[#cbd5e1]" />
-
-            {steps.map((step) => (
-              <div
-                key={step.num}
-                className="relative flex flex-col items-center text-center px-6 py-6"
-              >
-                <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white text-sm font-bold mb-5 shadow-[0_0_0_6px_rgba(37,99,235,0.12)]">
-                  {step.num}
-                </div>
-                <h3 className="font-semibold text-text-primary mb-2 text-base">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-text-secondary leading-relaxed mb-4">
-                  {step.desc}
-                </p>
-                {step.code && (
-                  <code className="text-xs bg-text-primary text-[#93c5fd] rounded-sm px-3 py-1.5 font-mono">
-                    {step.code}
-                  </code>
-                )}
-              </div>
-            ))}
-          </div>
+          <HowItWorksPanels />
         </div>
       </section>
 
-      {/* ── 5. Agent snippet ───────────────────────────────── */}
+      {/* ── 6. Agent snippet + redaction ───────────────────── */}
       <section className="py-16 md:py-24 bg-text-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
             <div>
               <h2 className="text-3xl font-bold text-white mb-4">
                 Zero config. Full coverage.
@@ -373,10 +345,14 @@ export default function LandingPage() {
               <Button className="mt-8" size="lg" asChild>
                 <Link href="/contact">Get started →</Link>
               </Button>
+
+              <div className="mt-10">
+                <RedactionPipeline />
+              </div>
             </div>
 
             {/* Code block */}
-            <div className="rounded-lg bg-[#1e293b] border border-white/10 overflow-hidden">
+            <div className="rounded-lg bg-[#1e293b] border border-white/10 overflow-hidden lg:sticky lg:top-24">
               <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/10">
                 <div className="h-3 w-3 rounded-full bg-critical/70" />
                 <div className="h-3 w-3 rounded-full bg-medium/70" />
@@ -409,7 +385,7 @@ const app = express();
         </div>
       </section>
 
-      {/* ── 6. Testimonials ────────────────────────────────── */}
+      {/* ── 7. Testimonials ────────────────────────────────── */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -462,7 +438,7 @@ const app = express();
         </div>
       </section>
 
-      {/* ── 7. Compliance ──────────────────────────────────── */}
+      {/* ── 8. Compliance ──────────────────────────────────── */}
       <section className="py-16 md:py-24 bg-background border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -490,7 +466,7 @@ const app = express();
         </div>
       </section>
 
-      {/* ── 8. CTA ─────────────────────────────────────────── */}
+      {/* ── 9. CTA ─────────────────────────────────────────── */}
       <section className="py-16 md:py-20 bg-brand">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">

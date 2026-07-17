@@ -1,0 +1,30 @@
+# Production reverse-proxy (TLS via Let's Encrypt).
+# Used by docker-compose.prod.yml — do NOT expose app:3000 or collector:4000 publicly.
+#
+# Replace rasp.example.com / collector.example.com with your real domains.
+# Point DNS A/AAAA records at this VPS before first start so ACME can succeed.
+
+rasp.example.com {
+	encode gzip
+	reverse_proxy app:3000
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+# Public collector endpoint for agents (optional subdomain).
+# If agents only reach the collector via a private network, remove this block
+# and keep collector on the internal Docker network only.
+collector.example.com {
+	encode gzip
+	reverse_proxy collector:4000
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+}

@@ -1,4 +1,5 @@
 import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireOrgRole } from "@/lib/rbac";
 import { getProject, deleteProject } from "@/modules/projects/projects.server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -63,6 +64,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const user = await requireSession();
     const orgId = await getOrgId(user.id);
+    await requireOrgRole(user.id, orgId, ["owner"]);
     await deleteProject(id, orgId);
     await createAuditLog({
       actorId: user.id,

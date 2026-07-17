@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getAppUrl } from "@/lib/env";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST ?? "smtp.gmail.com",
@@ -11,7 +12,6 @@ const transporter = nodemailer.createTransport({
 });
 
 const FROM = process.env.SMTP_FROM ?? process.env.SMTP_USER ?? "noreply@rasp.io";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export async function sendInviteEmail({
   to,
@@ -24,7 +24,7 @@ export async function sendInviteEmail({
   invitedBy: string;
   token: string;
 }) {
-  const link = `${APP_URL}/invite/${token}`;
+  const link = `${getAppUrl()}/invite/${token}`;
   await transporter.sendMail({
     from: FROM,
     to,
@@ -53,7 +53,7 @@ export async function sendPasswordResetEmail({
   to: string;
   token: string;
 }) {
-  const link = `${APP_URL}/reset-password?token=${token}`;
+  const link = `${getAppUrl()}/reset-password?token=${token}`;
   await transporter.sendMail({
     from: FROM,
     to,

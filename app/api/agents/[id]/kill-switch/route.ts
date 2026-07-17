@@ -1,4 +1,5 @@
 import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireOrgRole } from "@/lib/rbac";
 import { setAgentKillSwitch } from "@/modules/agents/agents.server";
 import { z } from "zod";
 
@@ -9,6 +10,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const user = await requireSession();
     const orgId = await getOrgId(user.id);
+    await requireOrgRole(user.id, orgId, ["owner"]);
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

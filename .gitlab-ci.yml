@@ -1,13 +1,7 @@
 # rasp-platform — GitLab CI Pipeline
 #
 # Stages:
-#   lint       → ESLint
-#   typecheck  → tsc --noEmit
-#   test       → vitest run
-#   migrate-check → verify no pending migrations on staging DB
-#
-# CI variables (set in GitLab Settings → CI/CD → Variables):
-#   DATABASE_URL   (masked, protected) — real DB for migrate-check stage only
+#   lint / typecheck / test / build / audit / migrate-check
 #
 # Image is SHA-pinned to prevent tag-based supply chain substitution (E.3.2).
 
@@ -17,6 +11,8 @@ stages:
   - lint
   - typecheck
   - test
+  - build
+  - audit
   - migrate-check
 
 default:
@@ -93,15 +89,56 @@ test:
       - coverage/
     expire_in: 7 days
 
-# Verifies that prisma migrate status reports no pending migrations.
-# Only runs on main branch pushes — requires a real staging DATABASE_URL.
+build:
+  stage: build
+  <<: *only_mr_and_main
+  needs:
+    - job: test
+      artifacts: false
+  variables:
+    DATABASE_URL: "postgresql://test:test@localhost:5432/test_rasp"
+    AUTH_SECRET: "ci-build-secret-not-for-production-use-32b"
+    NEXTAUTH_SECRET: "ci-build-secret-not-for-production-use-32b"
+    NEXTAUTH_URL: "http://localhost:3000"
+    NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+    NODE_ENV: production
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm exec prisma generate
+    - pnpm build
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
+audit:
+  stage: audit
+  <<: *only_mr_and_main
+  allow_failure: true
+  needs:
+    - job: build
+      artifacts: false
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm audit --audit-level=high
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
 migrate-check:
   stage: migrate-check
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: on_success
   needs:
-    - job: test
+    - job: build
       artifacts: false
   script:
     - pnpm install --frozen-lockfile

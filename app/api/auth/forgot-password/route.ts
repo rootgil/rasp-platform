@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { jsonError } from "@/lib/auth-helpers";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { randomBytes, createHash } from "node:crypto";
 import { z } from "zod";
 
@@ -9,6 +10,10 @@ const schema = z.object({ email: z.string().email() });
 /** POST /api/auth/forgot-password — public endpoint, never reveals if email exists */
 export async function POST(req: Request) {
   try {
+    const ip = clientIp(req);
+    const limited = checkRateLimit(`forgot-password:${ip}`, 5, 15 * 60_000);
+    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid email", 400);

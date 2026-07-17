@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { createHash } from "node:crypto";
 import { SignJWT } from "jose";
 import { z } from "zod";
@@ -33,6 +34,10 @@ function getJwtSecret(): Uint8Array {
  */
 export async function POST(req: Request) {
   try {
+    const ip = clientIp(req);
+    const limited = checkRateLimit(`break-glass:${ip}`, 5, 15 * 60_000);
+    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
     const body = await req.json().catch(() => ({}));
     const parsed = exchangeSchema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid request body", 400);
