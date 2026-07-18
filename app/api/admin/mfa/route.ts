@@ -1,5 +1,6 @@
 import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { beginMfaEnrollment, confirmMfaEnrollment, disableMfa } from "@/modules/admin/mfa.server";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -36,6 +37,12 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid request", 400);
+
+    if (parsed.data.action === "confirm") {
+      const ip = clientIp(req);
+      const limited = checkRateLimit(`mfa-confirm:${user.id}:${ip}`, 10, 15 * 60_000);
+      if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+    }
 
     if (parsed.data.action === "enroll") {
       const result = await beginMfaEnrollment(user.id, user.email);

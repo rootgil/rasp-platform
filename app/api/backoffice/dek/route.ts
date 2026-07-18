@@ -1,4 +1,6 @@
 import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireMfa } from "@/modules/admin/mfa.server";
+import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -41,15 +43,11 @@ const actionSchema = z.object({
 /**
  * POST /api/backoffice/dek
  *  - action "rotate": deactivates current DEK and creates a new version.
- *    Re-encryption of existing ciphertext is NOT automatic — new writes use
- *    the new DEK; old ciphertext remains readable via old DEK until fully
- *    migrated or shredded.
- *  - action "shred": marks all keys as destroyed and nulls wrappedDek.
- *    This is an irreversible crypto-shredding operation.
+ *  - action "shred": irreversible crypto-shred — requires MFA + dual-auth approval.
  */
 export async function POST(req: Request) {
   try {
-    const user = await requireAdmin();
+    const user = await requireAdmin(req);
     const orgId = await getOrgId(user.id).catch(() => undefined);
     const body = await req.json().catch(() => ({}));
     const parsed = actionSchema.safeParse(body);
@@ -58,6 +56,9 @@ export async function POST(req: Request) {
     const { action, projectId } = parsed.data;
 
     if (action === "rotate") {
+      const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
+      await requireMfa(user.id, mfaToken);
+
       const current = await prisma.tenantKey.findFirst({
         where: { projectId, active: true, destroyed: false },
         orderBy: { version: "desc" },
@@ -66,7 +67,6 @@ export async function POST(req: Request) {
       const nextVersion = (current?.version ?? 0) + 1;
 
       await prisma.$transaction([
-        // Deactivate current key
         ...(current
           ? [
               prisma.tenantKey.update({
@@ -75,9 +75,6 @@ export async function POST(req: Request) {
               }),
             ]
           : []),
-        // The actual DEK generation happens in the collector (envelope.ts) on
-        // next write. We create a placeholder row here so the rotation is
-        // recorded immediately; the collector will populate wrappedDek on first use.
         prisma.tenantKey.create({
           data: {
             projectId,
@@ -99,7 +96,21 @@ export async function POST(req: Request) {
       return Response.json({ rotated: true, version: nextVersion });
     }
 
-    // shred: destroy all keys for this project (irreversible)
+    // shred: MFA + dual-authorization required (tenant.crypto_shred)
+    const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
+    await requireMfa(user.id, mfaToken);
+
+    try {
+      const approval = await requireApproval({
+        action: "tenant.crypto_shred",
+        target: projectId,
+        executorId: user.id,
+      });
+      await markExecuted(approval.id);
+    } catch (err) {
+      return jsonError(err instanceof Error ? err.message : "Approval required", 403);
+    }
+
     await prisma.tenantKey.updateMany({
       where: { projectId },
       data: { active: false, destroyed: true, wrappedDek: null },

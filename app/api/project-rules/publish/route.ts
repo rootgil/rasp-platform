@@ -1,4 +1,5 @@
 import { requireSession, getOrgId, jsonError } from "@/lib/auth-helpers";
+import { requireOrgRole } from "@/lib/rbac";
 import { publishProjectRules, PublishError } from "@/modules/project-rules/publish";
 import { RuleCompileError } from "@/modules/project-rules/yaml-compiler";
 import { z } from "zod";
@@ -11,6 +12,7 @@ export async function POST(req: Request) {
   try {
     const user   = await requireSession();
     const orgId  = await getOrgId(user.id);
+    await requireOrgRole(user.id, orgId, ["owner"]);
     const body   = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

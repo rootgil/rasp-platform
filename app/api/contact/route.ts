@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const schema = z.object({
@@ -10,6 +11,10 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const ip = clientIp(req);
+    const limited = checkRateLimit(`contact:${ip}`, 5, 60 * 60_000);
+    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {

@@ -713,6 +713,10 @@ Payload :
   "metadata": {
     "redacted": true,
     "matchedRule": "SQLI_BASIC_001",
+    "matchedRules": [
+      { "id": "BRUTE_FORCE_001", "eventType": "brute_force", "severity": "medium", "location": "path" },
+      { "id": "SQLI_BASIC_001", "eventType": "sql_injection", "severity": "high", "location": "query" }
+    ],
     "auditLoggedLocally": true
   }
 }

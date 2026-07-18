@@ -95,6 +95,33 @@ export function normalizePatternForJs(
 function validateJsRegex(
   pattern: string
 ): { pattern: string } | { error: string } {
+  const MAX_PATTERN_LENGTH = 512;
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    return { error: `pattern exceeds maximum length of ${MAX_PATTERN_LENGTH} characters` };
+  }
+
+  // Heuristic anti-ReDoS: nested quantifiers / ambiguous repetition.
+  if (/(?:\+|\*|\{)\s*(?:\+|\*|\{)|(?:\([^)]*[+*][^)]*\))[+*]/.test(pattern)) {
+    return {
+      error:
+        "pattern rejected: nested or ambiguous quantifiers may cause catastrophic backtracking (ReDoS)",
+    };
+  }
+  // Excessively nested groups.
+  let depth = 0;
+  let maxDepth = 0;
+  for (const ch of pattern) {
+    if (ch === "(") {
+      depth += 1;
+      maxDepth = Math.max(maxDepth, depth);
+    } else if (ch === ")") {
+      depth = Math.max(0, depth - 1);
+    }
+  }
+  if (maxDepth > 12) {
+    return { error: "pattern rejected: nesting depth exceeds safe limit" };
+  }
+
   try {
     new RegExp(pattern, AGENT_REGEX_FLAGS);
     return { pattern };

@@ -115,7 +115,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <AutoRefresh />
+      <AutoRefresh intervalMs={60_000} />
       <OnboardingTour show={!me?.onboardedAt} />
       <PageHeader
         title="Security Overview"

@@ -1,6 +1,8 @@
-# Déploiement VPS
+# Déploiement VPS (production)
 
-Stack : **rasp** (Next.js :3000) + **collector** (Fastify :4000) + **Neon** (Postgres externe).
+Stack : **Caddy** (TLS :80/:443) → **rasp** (Next.js interne :3000) + **collector** (Fastify interne :4000) + **Redis** + **Neon** (Postgres externe).
+
+> **Ne jamais exposer les ports 3000 et 4000 sur Internet.** Seuls 80 et 443 sont publics.
 
 ---
 
@@ -35,7 +37,7 @@ Structure attendue :
 ## 3. Générer les secrets
 
 ```bash
-# AUTH_SECRET et NEXTAUTH_SECRET (deux valeurs distinctes)
+# AUTH_SECRET et NEXTAUTH_SECRET (deux valeurs distinctes et fortes)
 openssl rand -base64 32
 openssl rand -base64 32
 
@@ -46,6 +48,8 @@ openssl rand -base64 32
 openssl rand -base64 32
 ```
 
+Les valeurs template (`change-me`, etc.) sont **rejetées au boot** en production.
+
 ---
 
 ## 3b. Générer le keypair Ed25519 pour la signature des policies - une seule fois
@@ -55,21 +59,18 @@ openssl rand -base64 32
 ```bash
 cd ~/app/rasp
 
-# Clé privée - reste sur le VPS uniquement, jamais commitée
 openssl genpkey -algorithm ed25519 -out policy_signing_private.pem
 chmod 600 policy_signing_private.pem
 
-# Clé publique - non-secrète, à pinner dans le package agent-node
 openssl pkey -in policy_signing_private.pem -pubout -out policy_signing_public.pem
 
-# Convertir en une seule ligne pour le fichier .env (échappe les sauts de ligne)
 echo "POLICY_SIGNING_PRIVATE_KEY=\"$(awk 'NF{printf "%s\\n", $0}' policy_signing_private.pem)\""
 echo "POLICY_SIGNING_PUBLIC_KEY=\"$(awk 'NF{printf "%s\\n", $0}' policy_signing_public.pem)\""
 ```
 
-Copier les deux lignes affichées dans `~/app/rasp/.env.production` (étape suivante).
+Copier les deux lignes dans `~/app/rasp/.env.production`.
 
-> **Pour un déploiement de test uniquement**, tu peux utiliser la paire de dev déjà présente dans `.env.example` - elle est déjà pinnée dans l'agent. Ne pas faire ça en production réelle.
+> **Test uniquement :** la paire de `.env.example` (dev) est pinnée dans l'agent — ne jamais l'utiliser en production réelle.
 
 ---
 
@@ -82,47 +83,51 @@ cp ~/app/rasp/.env.production.example ~/app/rasp/.env.production
 nano ~/app/rasp/.env.production
 ```
 
-Variables à renseigner :
+Voir les annotations `REQUIRED` / `OPTIONAL` dans `.env.production.example`. Variables critiques :
 
 | Variable | Valeur |
 |---|---|
-| `DATABASE_URL` | URL Neon avec `?sslmode=require` |
-| `AUTH_SECRET` | secret généré ci-dessus |
-| `NEXTAUTH_SECRET` | secret généré ci-dessus |
-| `NEXTAUTH_URL` | `https://rasp.ton-domaine.com` (ou IP) |
-| `COLLECTOR_INTERNAL_URL` | `http://collector:4000` ← DNS interne compose |
+| `DATABASE_URL` | URL Neon (`sslmode=require` ou `verify-full`) |
+| `AUTH_SECRET` / `NEXTAUTH_SECRET` | secrets forts distincts |
+| `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` | `https://rasp.ton-domaine.com` (pas localhost) |
+| `CORS_ALLOWED_ORIGINS` | même origine HTTPS |
+| `COLLECTOR_INTERNAL_URL` | `http://collector:4000` |
 | `KEK_MASTER_KEY` | même valeur que collector |
-| `POLICY_SIGNING_PRIVATE_KEY` | clé privée générée à l'étape 3b (PEM, `\n` échappés) |
-| `POLICY_SIGNING_PUBLIC_KEY` | clé publique correspondante (PEM, `\n` échappés) |
-| `SEED_ADMIN_EMAIL` | email admin (seed one-shot uniquement) |
-| `SEED_ADMIN_PASSWORD` | mot de passe fort (seed one-shot uniquement) |
+| `POLICY_SIGNING_*` | paire prod (étape 3b) |
+| `DOCS_ENABLED` | `false` |
+| `SMTP_*` | requis si invites / reset password |
 
 ### collector
 
 ```bash
-cp ~/app/collector/.env.example ~/app/collector/.env
+cp ~/app/collector/.env.production.example ~/app/collector/.env
 nano ~/app/collector/.env
 ```
-
-Variables à renseigner :
 
 | Variable | Valeur |
 |---|---|
 | `DATABASE_URL` | même URL Neon que rasp |
 | `KEK_MASTER_KEY` | même valeur que rasp |
-| `HMAC_REQUIRED` | `true` en production |
-| `HMAC_SECRET` | secret généré ci-dessus |
+| `HMAC_REQUIRED` | `true` |
+| `QUEUE_ENABLED` | `true` |
+| `REDIS_URL` | `redis://redis:6379` |
+
+### Caddyfile
+
+Éditer `~/app/rasp/deploy/Caddyfile` : remplacer `rasp.example.com` / `collector.example.com` par tes domaines. DNS A/AAAA doivent pointer vers le VPS **avant** le premier démarrage (ACME).
 
 ---
 
-## 5. Build et démarrage
+## 5. Build et démarrage (production)
 
 ```bash
 cd ~/app/rasp
-docker compose build          # construit les 3 images (migrate, app, collector)
-docker compose up -d          # migrate tourne en premier, puis app + collector
-docker compose logs -f        # suivre tous les logs en temps réel
+docker compose -f docker-compose.prod.yml --env-file .env.production build
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+docker compose -f docker-compose.prod.yml logs -f
 ```
+
+Services : `migrate` → `redis` → `app` + `collector` → `caddy`.
 
 ---
 
@@ -130,7 +135,7 @@ docker compose logs -f        # suivre tous les logs en temps réel
 
 ```bash
 cd ~/app/rasp
-docker compose run --rm migrate pnpm db:seed:prod
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm migrate pnpm db:seed:prod
 ```
 
 > Ensuite, supprimer `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` de `.env.production`.
@@ -140,18 +145,26 @@ docker compose run --rm migrate pnpm db:seed:prod
 ## 7. Vérifier que tout tourne
 
 ```bash
-docker compose ps                          # tous les services doivent être "healthy"
-curl http://localhost:3000/api/health      # {"status":"ok",...}
-curl http://localhost:4000/health          # {"status":"ok",...}
+docker compose -f docker-compose.prod.yml ps
+# Healthchecks internes (depuis le VPS) :
+curl -fsS http://127.0.0.1:80/api/health   # via Caddy → app (si domain local / hosts)
+curl -fsS https://rasp.ton-domaine.com/api/health
+# Collector via sous-domaine :
+curl -fsS https://collector.ton-domaine.com/health
 ```
+
+Ne pas compter sur `localhost:3000` / `:4000` — ces ports ne sont pas publiés en prod.
 
 ---
 
-## 8. Ouvrir le firewall
+## 8. Firewall (production)
 
 ```bash
-sudo ufw allow 3000/tcp comment "rasp platform"
-sudo ufw allow 4000/tcp comment "rasp collector"
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp comment "HTTP ACME + redirect"
+sudo ufw allow 443/tcp comment "HTTPS Caddy"
+# NE PAS ouvrir 3000 ni 4000
+sudo ufw enable
 sudo ufw status
 ```
 
@@ -163,43 +176,46 @@ sudo ufw status
 cd ~/app/rasp      && git pull
 cd ~/app/collector && git pull
 cd ~/app/rasp
-docker compose up -d --build   # rebuild + redémarre ; migrate repasse avant app
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
+
+---
+
+## Développement local
+
+```bash
+# Ports 3000/4000 exposés — pas de Caddy
+# Source monté en volume → hot reload (pas besoin de rebuild pour chaque edit)
+cp .env.example .env
+cp ../collector/.env.example ../collector/.env
+docker compose up -d --build
+```
+
+Rebuild uniquement après changement de `Dockerfile`, `package.json` / lockfile, ou deps.
 
 ---
 
 ## Commandes utiles
 
 ```bash
-# Logs par service
-docker compose logs app
-docker compose logs collector
-docker compose logs migrate
-
-# Redémarrer un service
-docker compose restart app
-
-# Tout arrêter
-docker compose down
-
-# Tout arrêter + supprimer les volumes (⚠ irréversible)
-docker compose down -v
+docker compose -f docker-compose.prod.yml logs app
+docker compose -f docker-compose.prod.yml logs collector
+docker compose -f docker-compose.prod.yml logs caddy
+docker compose -f docker-compose.prod.yml restart app
+docker compose -f docker-compose.prod.yml down
 ```
 
 ---
 
-## Architecture des services
+## Architecture des services (production)
 
 ```
-migrate (one-shot)
-  └─ prisma migrate deploy
-        ↓ completed_successfully
-  ┌─────────────────┐     réseau rasp-net     ┌──────────────────────┐
-  │  app (rasp)     │ ──────────────────────→ │  collector (Fastify) │
-  │  :3000          │  http://collector:4000   │  :4000               │
-  └────────┬────────┘                         └──────────┬───────────┘
-           │                                             │
-           └─────────────────────┬───────────────────────┘
-                                 ↓
-                         Neon PostgreSQL
+Internet → Caddy :80/:443 (TLS)
+              ├─ rasp.example.com      → app:3000
+              └─ collector.example.com → collector:4000
+                                              │
+migrate (one-shot) ── prisma migrate deploy ──┤
+redis (BullMQ) ←──────────────────────────────┘
+                    │
+                    └─ Neon PostgreSQL
 ```

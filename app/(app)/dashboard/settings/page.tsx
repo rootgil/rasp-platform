@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteMemberDialog } from "./invite-member-dialog";
 import { EditNameForm } from "./settings-forms";
+import { MemberRoleSelect } from "./member-role-select";
+import { RevokeInviteButton } from "./revoke-invite-button";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -38,6 +40,7 @@ export default async function SettingsPage() {
   });
 
   const isOwner = membership.role === "owner";
+  const ownerCount = members.filter((m) => m.role === "owner").length;
 
   return (
     <div className="space-y-6">
@@ -121,13 +124,23 @@ export default async function SettingsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {members.map((m) => (
-                    <tr key={m.id} className="hover:bg-background">
-                      <td className="px-5 py-3 font-medium text-text-primary">{m.user.name ?? "-"}</td>
-                      <td className="px-5 py-3 text-text-secondary">{m.user.email}</td>
-                      <td className="px-5 py-3 capitalize text-xs font-medium text-text-secondary">{m.role}</td>
-                    </tr>
-                  ))}
+                  {members.map((m) => {
+                    const isLastOwner = m.role === "owner" && ownerCount <= 1;
+                    return (
+                      <tr key={m.id} className="hover:bg-background">
+                        <td className="px-5 py-3 font-medium text-text-primary">{m.user.name ?? "-"}</td>
+                        <td className="px-5 py-3 text-text-secondary">{m.user.email}</td>
+                        <td className="px-5 py-3">
+                          <MemberRoleSelect
+                            membershipId={m.id}
+                            memberEmail={m.user.email}
+                            currentRole={m.role}
+                            disabled={!isOwner || isLastOwner}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -145,6 +158,11 @@ export default async function SettingsPage() {
                       <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
                       <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Role</th>
                       <th className="px-5 py-3 text-left text-xs font-medium text-text-secondary uppercase">Expires</th>
+                      {isOwner && (
+                        <th className="px-5 py-3 text-right text-xs font-medium text-text-secondary uppercase">
+                          Actions
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -155,6 +173,11 @@ export default async function SettingsPage() {
                         <td className="px-5 py-3 text-xs text-text-muted">
                           {new Date(inv.expiresAt).toLocaleDateString("en-CA")}
                         </td>
+                        {isOwner && (
+                          <td className="px-5 py-3 text-right">
+                            <RevokeInviteButton invitationId={inv.id} email={inv.email} />
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

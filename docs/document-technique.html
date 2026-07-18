@@ -575,7 +575,7 @@ ul.std li { margin-bottom: 0.3rem; font-size: 0.88rem; }
     <span class="flow-arrow">→</span>
     <div class="flow-step blue">Middleware RASP<br><small>inspect()</small></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-step">Détecteurs (×10)<br><small>first-match</small></div>
+    <div class="flow-step">Détecteurs<br><small>all matches → severity wins</small></div>
     <span class="flow-arrow">→</span>
     <div class="flow-step purple">Redaction Engine<br><small>fail-closed</small></div>
     <span class="flow-arrow">→</span>
@@ -1215,7 +1215,7 @@ process<span class="p">.</span><span class="f">on</span><span class="p">(</span>
 
   <h3 id="agent-detectors">Détecteurs (src/detectors/)</h3>
 
-  <p>Contrat <code>Detector</code> : <code>{ name: string; detect(req: NormalizedRequest): DetectionResult | null }</code>. Premier détecteur qui renvoie un résultat non-null gagne (first-match). Les exceptions par détecteur sont swallowées.</p>
+  <p>Contrat <code>Detector</code> : <code>{ name: string; detect(req): DetectionResult | null; detectAll?(req): DetectionResult[] }</code>. L’agent <strong>collecte tous les matches</strong> (règles custom via <code>detectAll</code>), émet <strong>un seul</strong> event, et prend comme primaire la <strong>sévérité max</strong> (<code>critical</code> &gt; <code>high</code> &gt; <code>medium</code> &gt; <code>low</code>). <code>metadata.matchedRule</code> = primaire ; <code>metadata.matchedRules</code> = liste complète. Les exceptions par détecteur sont swallowées.</p>
 
   <div class="table-wrap">
     <table>

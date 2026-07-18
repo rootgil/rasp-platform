@@ -1,3 +1,19 @@
+# Development stack — ports 3000/4000 published on the host for local work.
+# Source is bind-mounted; app/collector run in watch mode (no rebuild for UI/code edits).
+# Includes Redis for BullMQ when collector has QUEUE_ENABLED=true.
+# For production (TLS reverse-proxy, no public 3000/4000), use:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# See DEPLOY.md for production firewall (80/443 only) and Caddy setup.
+#
+# Env for Docker networking:
+#   rasp/.env          → COLLECTOR_INTERNAL_URL=http://collector:4000
+#   collector/.env     → REDIS_URL=redis://redis:6379  (+ QUEUE_ENABLED=true to use queue)
+#
+# First start (or after lockfile change):
+#   docker compose up -d --build
+# Then edit locally — Next.js / tsx watch pick up changes automatically.
+
 services:
 
   # ── migrate: run prisma migrate deploy once before app/collector start ──────
@@ -10,13 +26,39 @@ services:
     networks:
       - rasp-net
 
-  # ── app: Next.js rasp platform ───────────────────────────────────────────────
+  # ── redis: BullMQ backlog for async event ingestion ─────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - rasp-net
+
+  # ── app: Next.js rasp platform (dev / hot reload) ───────────────────────────
   app:
     build:
       context: .
+      target: dev
     env_file: .env
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+      - app_next:/app/.next
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -25,31 +67,45 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      start_period: 60s
     networks:
       - rasp-net
 
-  # ── collector: Fastify telemetry collector ───────────────────────────────────
+  # ── collector: Fastify telemetry collector (dev / hot reload) ───────────────
   collector:
     build:
       context: ../collector
+      target: dev
     env_file: ../collector/.env
+    environment:
+      NODE_ENV: development
     ports:
       - "4000:4000"
+    volumes:
+      - ../collector:/app
+      - collector_node_modules:/app/node_modules
     depends_on:
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 15s
+      retries: 5
+      start_period: 40s
     networks:
       - rasp-net
 
 networks:
   rasp-net:
     driver: bridge
+
+volumes:
+  redis-data:
+  app_node_modules:
+  app_next:
+  collector_node_modules:

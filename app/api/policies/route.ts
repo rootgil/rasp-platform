@@ -33,6 +33,12 @@ export async function POST(req: Request) {
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);
 
+    // Publishing block-mode policies requires org owner.
+    if (parsed.data.mode === "block") {
+      const { requireOrgRole } = await import("@/lib/rbac");
+      await requireOrgRole(user.id, orgId, ["owner"]);
+    }
+
     let policy;
     try {
       policy = await createPolicy(parsed.data.projectId, orgId, parsed.data);

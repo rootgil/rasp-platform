@@ -4,11 +4,36 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
+function docsEnabled(): boolean {
+  if (process.env.DOCS_ENABLED !== undefined) {
+    return process.env.DOCS_ENABLED === "true";
+  }
+  return process.env.NODE_ENV !== "production";
+}
+
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session?.user;
   const isAdmin = (session?.user as { role?: string })?.role === "admin";
   const mustChangePassword = (session?.user as { mustChangePassword?: boolean })?.mustChangePassword === true;
+
+  // API docs: open in development; admin-only in production when DOCS_ENABLED=true.
+  if (nextUrl.pathname.startsWith("/docs")) {
+    if (!docsEnabled()) {
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+    const isProd = process.env.NODE_ENV === "production";
+    if (isProd) {
+      if (!isLoggedIn) {
+        return NextResponse.redirect(
+          new URL(`/login?callbackUrl=${encodeURIComponent("/docs")}`, nextUrl)
+        );
+      }
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL("/dashboard", nextUrl));
+      }
+    }
+  }
 
   // Logged-in user with a required password change: allow only /change-password (and sign-out).
   if (isLoggedIn && mustChangePassword) {

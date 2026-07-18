@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 export function InviteMemberDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -31,6 +33,7 @@ export function InviteMemberDialog() {
         setEmail("");
         setRole("member");
         setOpen(false);
+        router.refresh();
       }
     } catch {
       toast.error("Failed to send invitation");
@@ -69,6 +72,7 @@ export function InviteMemberDialog() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="owner">Owner</SelectItem>
               </SelectContent>
             </Select>

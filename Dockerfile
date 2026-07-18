@@ -8,6 +8,22 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
+# ── dev: hot-reload via bind mount (docker-compose.yml) ──────────────────────
+FROM deps AS dev
+WORKDIR /app
+
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+
+EXPOSE 3000
+
+# Source is bind-mounted; keep node_modules in a named volume.
+# Install (no-op when lockfile unchanged) → Prisma client → Next.js dev.
+CMD ["sh", "-c", "pnpm install --frozen-lockfile && pnpm db:generate && pnpm exec next dev -H 0.0.0.0 -p 3000"]
+
 # ── builder: generate Prisma client + compile Next.js ───────────────────────
 FROM base AS builder
 WORKDIR /app
