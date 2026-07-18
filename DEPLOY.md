@@ -181,6 +181,25 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 
 ---
 
+## Docker : `DOCKER_MODE`
+
+| Valeur | Comportement | Quand |
+|---|---|---|
+| `dev` | Bind-mount du code + hot reload (`docker-compose.dev.yml`) | Machine locale |
+| `image` | Image bakeée, **pas** de volume source ; ports 3000/4000 | VPS / IP publique |
+| `prod` | `docker-compose.prod.yml` + Caddy (80/443) | Production TLS |
+
+```bash
+# Dans .env (ou .env.production pour prod)
+DOCKER_MODE=image   # VPS
+# DOCKER_MODE=dev   # local
+# DOCKER_MODE=prod  # Caddy
+
+pnpm docker:up      # = ./scripts/docker-up.sh up -d --build
+pnpm docker:logs
+pnpm docker:down
+```
+
 ## Développement local
 
 ```bash
@@ -188,10 +207,12 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 # Source monté en volume → hot reload (pas besoin de rebuild pour chaque edit)
 cp .env.example .env
 cp ../collector/.env.example ../collector/.env
-docker compose up -d --build
+# DOCKER_MODE=dev (défaut dans .env.example)
+pnpm docker:up
 ```
 
-Rebuild uniquement après changement de `Dockerfile`, `package.json` / lockfile, ou deps.
+En `dev`, rebuild uniquement après changement de `Dockerfile`, `package.json` / lockfile, ou deps.
+En `image` / `prod`, **rebuild après chaque changement de code** (`pnpm docker:up`).
 
 ---
 
