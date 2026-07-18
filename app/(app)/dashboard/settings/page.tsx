@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership, getOrgSettingsPage } from "@/modules/organizations/membership.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteMemberDialog } from "./invite-member-dialog";
@@ -10,37 +10,18 @@ import { RevokeInviteButton } from "./revoke-invite-button";
 
 export default async function SettingsPage() {
   const session = await auth();
+  if (!session?.user?.id) redirect("/login");
 
-  const [membership, user] = await Promise.all([
-    prisma.organizationMember.findFirst({
-      where: { userId: session?.user?.id },
-      include: {
-        organization: true,
-        user: { select: { name: true, email: true, role: true, createdAt: true } },
-      },
-    }),
-    prisma.user.findUnique({ where: { id: session?.user?.id } }),
-  ]);
-
+  const membership = await getMembership(session.user.id);
   if (!membership) redirect("/login");
 
-  const members = await prisma.organizationMember.findMany({
-    where: { organizationId: membership.organizationId },
-    include: { user: { select: { name: true, email: true, role: true } } },
-  });
+  const page = await getOrgSettingsPage(session.user.id, membership.organizationId);
+  if (!page) redirect("/login");
 
-  const pendingInvites = await prisma.invitation.findMany({
-    where: {
-      organizationId: membership.organizationId,
-      acceptedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-    select: { id: true, email: true, role: true, expiresAt: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const isOwner = membership.role === "owner";
+  const { members, invitations: pendingInvites, user } = page;
+  const isOwner = page.membership.role === "owner";
   const ownerCount = members.filter((m) => m.role === "owner").length;
+  const org = page.membership.organization;
 
   return (
     <div className="space-y-6">
@@ -59,19 +40,19 @@ export default async function SettingsPage() {
                 <dd>
                   {isOwner ? (
                     <EditNameForm
-                      initialName={membership.organization.name}
+                      initialName={org.name}
                       label="Organization name"
-                      endpoint={`/api/organizations/${membership.organizationId}`}
+                      endpoint={`/api/organizations/${page.membership.organizationId}`}
                       fieldKey="name"
                     />
                   ) : (
-                    <span className="text-sm font-medium text-text-primary">{membership.organization.name}</span>
+                    <span className="text-sm font-medium text-text-primary">{org.name}</span>
                   )}
                 </dd>
               </div>
               {[
-                { label: "Plan", value: membership.organization.plan.toUpperCase() },
-                { label: "Created", value: membership.organization.createdAt.toLocaleDateString("en-CA") },
+                { label: "Plan", value: org.plan.toUpperCase() },
+                { label: "Created", value: org.createdAt.toLocaleDateString("en-CA") },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <dt className="text-sm text-text-secondary">{label}</dt>
@@ -99,7 +80,7 @@ export default async function SettingsPage() {
               </div>
               {[
                 { label: "Email", value: user?.email ?? "-" },
-                { label: "Role", value: membership.role },
+                { label: "Role", value: page.membership.role },
                 { label: "Member since", value: user?.createdAt.toLocaleDateString("en-CA") ?? "-" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">

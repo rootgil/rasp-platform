@@ -1,7 +1,7 @@
-import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireAdmin, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { requireMfa } from "@/modules/admin/mfa.server";
 import { setVersionQuarantine } from "@/modules/admin/incident.server";
-import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { requireApproval } from "@/modules/admin/approvals.server";
 import { notifyAffectedProjects } from "@/modules/notifications/user-notifications.server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -19,9 +19,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const user = await requireAdmin(req);
     const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
-    await requireMfa(user.id, mfaToken);
+    await requireMfa(user.id, mfaToken, { required: true });
 
-    const orgId = await getOrgId(user.id).catch(() => undefined);
+    const orgId = await getOrgIdForSession(user).catch(() => undefined);
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
@@ -29,12 +29,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     if (parsed.data.quarantined) {
       try {
-        const approval = await requireApproval({
+        await requireApproval({
           action: "agent_version.quarantine",
           target: id,
           executorId: user.id,
         });
-        await markExecuted(approval.id);
       } catch (err) {
         return jsonError(err instanceof Error ? err.message : "Approval required", 403);
       }

@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { requireOrgRole } from "@/lib/rbac";
 import { getProject, deleteProject } from "@/modules/projects/projects.server";
 import { prisma } from "@/lib/prisma";
@@ -14,7 +14,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     const project = await getProject(id, orgId);
     if (!project) return jsonError("Not found", 404);
@@ -49,7 +49,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const project = await getProject(id, orgId);
     if (!project) return jsonError("Not found", 404);
     return Response.json(project);
@@ -63,7 +63,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     await requireOrgRole(user.id, orgId, ["owner"]);
     await deleteProject(id, orgId);
     await createAuditLog({

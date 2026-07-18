@@ -11,14 +11,20 @@ const schema = z.object({ email: z.string().email() });
 export async function POST(req: Request) {
   try {
     const ip = clientIp(req);
-    const limited = checkRateLimit(`forgot-password:${ip}`, 5, 15 * 60_000);
-    if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+    const limitedIp = checkRateLimit(`forgot-password:ip:${ip}`, 5, 15 * 60_000);
+    if (!limitedIp.ok) return rateLimitResponse(limitedIp.retryAfterSec);
 
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid email", 400);
 
     const { email } = parsed.data;
+    const limitedEmail = checkRateLimit(
+      `forgot-password:email:${email.toLowerCase()}`,
+      3,
+      15 * 60_000
+    );
+    if (!limitedEmail.ok) return rateLimitResponse(limitedEmail.retryAfterSec);
 
     const user = await prisma.user.findUnique({ where: { email } });
 

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CopyButton } from "@/components/shared/copy-button";
@@ -30,13 +30,16 @@ function JsonSection({ title, data }: { title: string; data: unknown }) {
 export default async function PolicyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
-  const policy = await getPolicy(id, membership.organizationId);
+  const policy = await getPolicy(id, orgId);
   if (!policy) notFound();
 
-  const latest = await getLatestPolicy(membership.organizationId, policy.projectId, policy.channel);
+  const latest = await getLatestPolicy(orgId, policy.projectId, policy.channel);
   const isLatest = latest?.version === policy.version;
 
   return (

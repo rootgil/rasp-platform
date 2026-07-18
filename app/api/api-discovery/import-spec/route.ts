@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, jsonOk, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, jsonOk, createAuditLog } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 
 type OpenApiSpec = {
@@ -9,7 +9,7 @@ type OpenApiSpec = {
 export async function POST(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     let spec: OpenApiSpec;
     try {

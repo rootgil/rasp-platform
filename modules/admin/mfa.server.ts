@@ -35,16 +35,32 @@ export async function disableMfa(userId: string) {
 }
 
 /**
- * Assert the caller provided a valid TOTP code. Throws a 403 Response when MFA
- * is enabled but the code is missing/invalid. No-op if the user hasn't enrolled
- * (enrolment can be enforced separately per role).
+ * Assert the caller provided a valid TOTP code.
+ *
+ * @param opts.required - When true (sensitive admin actions), fail closed if
+ *   MFA is not enrolled. Default false preserves legacy soft check for
+ *   non-critical call sites.
  */
-export async function requireMfa(userId: string, token?: string): Promise<void> {
+export async function requireMfa(
+  userId: string,
+  token?: string,
+  opts: { required?: boolean } = {}
+): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { totpSecret: true, mfaEnabled: true },
   });
-  if (!user?.mfaEnabled || !user.totpSecret) return;
+
+  if (!user?.mfaEnabled || !user.totpSecret) {
+    if (opts.required) {
+      throw new Response(
+        JSON.stringify({ error: "MFA enrollment required before this action" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return;
+  }
+
   if (!token || !verifyTotp(user.totpSecret, token)) {
     throw new Response(JSON.stringify({ error: "MFA code required or invalid" }), {
       status: 403,

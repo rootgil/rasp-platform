@@ -1,30 +1,19 @@
-import { prisma } from "@/lib/prisma";
+import {
+  getPlatformStats,
+  getRecentOrganizations,
+} from "@/modules/organizations/organizations.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Server, ShieldAlert, Activity } from "lucide-react";
 
 export default async function BackofficePage() {
-  const since24h = new Date(new Date().getTime() - 86400000);
+  const [stats, recentOrgs] = await Promise.all([
+    getPlatformStats(),
+    getRecentOrganizations(5),
+  ]);
 
-  const [totalOrgs, totalAgents, onlineAgents, events24h, versionDist, recentOrgs] =
-    await Promise.all([
-      prisma.organization.count(),
-      prisma.agent.count(),
-      prisma.agent.count({ where: { status: "online" } }),
-      prisma.securityEvent.count({ where: { createdAt: { gte: since24h } } }),
-      prisma.agent.groupBy({
-        by: ["version"],
-        _count: true,
-        orderBy: { _count: { version: "desc" } },
-        take: 5,
-      }),
-      prisma.organization.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: { _count: { select: { members: true, projects: true } } },
-      }),
-    ]);
+  const { totalOrgs, totalAgents, onlineAgents, events24h, versionDist } = stats;
 
   return (
     <div className="space-y-6">

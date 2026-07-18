@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
 import { jwtVerify } from "jose";
+import { headers } from "next/headers";
 
 export type SessionUser = {
   id: string;
@@ -10,9 +11,12 @@ export type SessionUser = {
   name?: string | null;
   role: string;
   organizationId?: string;
+  mustChangePassword?: boolean;
 };
 
-export async function requireSession(): Promise<SessionUser> {
+export async function requireSession(opts?: {
+  allowMustChangePassword?: boolean;
+}): Promise<SessionUser> {
   const session = await auth();
   if (!session?.user) {
     throw new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -20,7 +24,40 @@ export async function requireSession(): Promise<SessionUser> {
       headers: { "Content-Type": "application/json" },
     });
   }
-  return session.user as SessionUser;
+  const user = session.user as SessionUser & { passwordChangedAt?: string | null };
+
+  // Live DB check: password change / demotion / mustChangePassword flag.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, mustChangePassword: true, passwordChangedAt: true },
+  });
+  if (!dbUser) {
+    throw new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const tokenChanged = user.passwordChangedAt ?? null;
+  const dbChanged = dbUser.passwordChangedAt?.toISOString() ?? null;
+  if (tokenChanged && dbChanged && dbChanged > tokenChanged) {
+    throw new Response(JSON.stringify({ error: "Session expired — password changed" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  user.role = dbUser.role;
+  user.mustChangePassword = dbUser.mustChangePassword;
+
+  if (user.mustChangePassword && !opts?.allowMustChangePassword) {
+    throw new Response(
+      JSON.stringify({ error: "Password change required", code: "MUST_CHANGE_PASSWORD" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  return user;
 }
 
 /**
@@ -57,22 +94,51 @@ async function tryBreakGlassJwt(req?: Request): Promise<SessionUser | null> {
 }
 
 export async function requireAdmin(req?: Request): Promise<SessionUser> {
+  // Always try to read Authorization for break-glass even when caller omits req.
+  let request = req;
+  if (!request) {
+    try {
+      const h = await headers();
+      const authz = h.get("authorization");
+      if (authz) {
+        request = new Request("http://local/admin", {
+          headers: { authorization: authz },
+        });
+      }
+    } catch {
+      // headers() unavailable outside request context
+    }
+  }
+
   // 1. Try normal Next-Auth session first
   const session = await auth();
   if (session?.user) {
-    const user = session.user as SessionUser;
-    if (user.role !== "admin") {
+    const user = session.user as SessionUser & { passwordChangedAt?: string | null };
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { role: true, mustChangePassword: true, passwordChangedAt: true },
+    });
+    if (!dbUser || dbUser.role !== "admin") {
       throw new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { "Content-Type": "application/json" },
       });
     }
+    const tokenChanged = user.passwordChangedAt ?? null;
+    const dbChanged = dbUser.passwordChangedAt?.toISOString() ?? null;
+    if (tokenChanged && dbChanged && dbChanged > tokenChanged) {
+      throw new Response(JSON.stringify({ error: "Session expired — password changed" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    user.role = dbUser.role;
     return user;
   }
 
   // 2. Fall back to break-glass JWT (for emergency access without a session)
-  if (req) {
-    const bgUser = await tryBreakGlassJwt(req);
+  if (request) {
+    const bgUser = await tryBreakGlassJwt(request);
     if (bgUser) return bgUser;
   }
 
@@ -83,9 +149,22 @@ export async function requireAdmin(req?: Request): Promise<SessionUser> {
   });
 }
 
-export async function getOrgId(userId: string): Promise<string> {
+export async function getOrgId(
+  userId: string,
+  preferredOrgId?: string | null
+): Promise<string> {
+  if (preferredOrgId) {
+    const preferred = await prisma.organizationMember.findFirst({
+      where: { userId, organizationId: preferredOrgId },
+      select: { organizationId: true },
+    });
+    if (preferred) return preferred.organizationId;
+  }
+
   const membership = await prisma.organizationMember.findFirst({
     where: { userId },
+    orderBy: { createdAt: "asc" },
+    select: { organizationId: true },
   });
   if (!membership) {
     throw new Response(JSON.stringify({ error: "No organization found" }), {
@@ -94,6 +173,11 @@ export async function getOrgId(userId: string): Promise<string> {
     });
   }
   return membership.organizationId;
+}
+
+/** Prefer the org embedded in the session JWT when the user still belongs to it. */
+export async function getOrgIdForSession(user: SessionUser): Promise<string> {
+  return getOrgId(user.id, user.organizationId);
 }
 
 export async function createAuditLog({
@@ -109,38 +193,43 @@ export async function createAuditLog({
   target?: string;
   metadata?: Record<string, unknown>;
 }) {
-  // Hash-chain the entry to the previous one for tamper-evidence.
-  const prev = await prisma.auditLog.findFirst({
-    orderBy: { createdAt: "desc" },
-    select: { hash: true },
-  });
-  const prevHash = prev?.hash ?? null;
-  const createdAt = new Date();
-  const hash = createHash("sha256")
-    .update(
-      JSON.stringify({
-        prevHash,
-        actorId: actorId ?? null,
-        organizationId: organizationId ?? null,
-        action,
-        target: target ?? null,
-        metadata: metadata ?? null,
-        createdAt: createdAt.toISOString(),
-      })
-    )
-    .digest("hex");
+  // Serialize hash-chain inserts with a Postgres advisory lock to avoid forks
+  // under concurrent admin actions.
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(87201401)`;
 
-  return prisma.auditLog.create({
-    data: {
-      actorId,
-      organizationId,
-      action,
-      target,
-      metadata: metadata as Prisma.InputJsonValue | undefined,
-      prevHash,
-      hash,
-      createdAt,
-    },
+    const prev = await tx.auditLog.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { hash: true },
+    });
+    const prevHash = prev?.hash ?? null;
+    const createdAt = new Date();
+    const hash = createHash("sha256")
+      .update(
+        JSON.stringify({
+          prevHash,
+          actorId: actorId ?? null,
+          organizationId: organizationId ?? null,
+          action,
+          target: target ?? null,
+          metadata: metadata ?? null,
+          createdAt: createdAt.toISOString(),
+        })
+      )
+      .digest("hex");
+
+    return tx.auditLog.create({
+      data: {
+        actorId,
+        organizationId,
+        action,
+        target,
+        metadata: metadata as Prisma.InputJsonValue | undefined,
+        prevHash,
+        hash,
+        createdAt,
+      },
+    });
   });
 }
 

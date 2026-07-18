@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { getAgent } from "@/modules/agents/agents.server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const agent = await getAgent(id, orgId);
     if (!agent) return jsonError("Not found", 404);
     return Response.json(agent);
@@ -26,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     const body = await req.json().catch(() => ({}));
     const parsed = patchSchema.safeParse(body);
@@ -73,7 +73,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const user   = await requireSession();
-    const orgId  = await getOrgId(user.id);
+    const orgId  = await getOrgIdForSession(user);
 
     const agent = await prisma.agent.findFirst({
       where:  { id, project: { organizationId: orgId } },

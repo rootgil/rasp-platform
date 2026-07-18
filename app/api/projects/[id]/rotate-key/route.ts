@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { rotateProjectKey } from "@/lib/envelope";
 
@@ -11,7 +11,7 @@ import { rotateProjectKey } from "@/lib/envelope";
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const { id } = await params;
 
     const project = await prisma.project.findFirst({

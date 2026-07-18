@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getRules } from "@/modules/rules/rules.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,7 @@ import { CreateGlobalRuleDialog } from "./create-global-rule-dialog";
 import { BackofficeRulesTable } from "./backoffice-rules-table";
 
 export default async function BackofficeRulesPage() {
-  const rules = await prisma.rule.findMany({
-    orderBy: { createdAt: "asc" },
-  });
+  const rules = await getRules();
 
   const active   = rules.filter((r) => r.enabled).length;
   const inactive = rules.filter((r) => !r.enabled).length;

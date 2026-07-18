@@ -99,11 +99,23 @@ export async function requireApproval(params: {
       action: params.action,
       target: params.target ?? null,
       status: "approved",
+      // Separation of duties: executor must not be the requester.
+      NOT: { requestedById: params.executorId },
     },
     orderBy: { resolvedAt: "desc" },
   });
   if (!approved) {
     throw new Error(`No approved authorization for ${params.action}`);
   }
+
+  // Atomically consume approval (approved → executed) to prevent double-exec.
+  const claimed = await prisma.approvalRequest.updateMany({
+    where: { id: approved.id, status: "approved" },
+    data: { status: "executed" },
+  });
+  if (claimed.count !== 1) {
+    throw new Error(`No approved authorization for ${params.action}`);
+  }
+
   return approved;
 }

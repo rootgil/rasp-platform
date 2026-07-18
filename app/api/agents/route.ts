@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { getAgents, createAgent } from "@/modules/agents/agents.server";
 import { createApiKey } from "@/modules/api-keys/api-keys.server";
 
@@ -13,7 +13,7 @@ const createSchema = z.object({
 export async function GET() {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const agents = await getAgents(orgId);
     return Response.json(agents);
   } catch (e) {
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const body = await req.json();
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

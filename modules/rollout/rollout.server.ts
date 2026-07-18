@@ -169,6 +169,22 @@ export async function rollbackVersion(versionId: string, reason: string) {
   return { rolledBack: affected.length, mttrSeconds };
 }
 
+/** All agent versions (backoffice catalogue), newest first. */
+export async function listAgentVersions() {
+  return prisma.agentVersion.findMany({ orderBy: { createdAt: "desc" } });
+}
+
+/** Published agent versions, optionally filtered by channel. */
+export async function listPublishedVersions(channel?: string) {
+  return prisma.agentVersion.findMany({
+    where: {
+      status: "published",
+      ...(channel ? { channel } : {}),
+    },
+    orderBy: { releasedAt: "desc" },
+  });
+}
+
 /** Aggregate rollout KPIs across all versions (Addendum D.5). */
 export async function getRolloutKpis() {
   const [versions, metrics] = await Promise.all([

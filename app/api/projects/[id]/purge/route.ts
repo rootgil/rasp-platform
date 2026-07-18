@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { requireOrgRole } from "@/lib/rbac";
 import { purgeProjectData, purgeByRetention } from "@/modules/compliance/retention.server";
 import { destroyProjectKeys } from "@/lib/envelope";
@@ -21,7 +21,7 @@ const schema = z.object({
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     await requireOrgRole(user.id, orgId, ["owner"]);
     const { id } = await params;
     const parsed = schema.safeParse(await req.json().catch(() => ({})));

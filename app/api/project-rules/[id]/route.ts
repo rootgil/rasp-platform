@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { updateProjectRule, deleteProjectRule } from "@/modules/project-rules/project-rules.server";
 import { formatRuleCompileErrors } from "@/modules/project-rules/rule-yaml-help";
 import { z } from "zod";
@@ -15,7 +15,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const user   = await requireSession();
-    const orgId  = await getOrgId(user.id);
+    const orgId  = await getOrgIdForSession(user);
     const body   = await req.json();
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);
@@ -46,7 +46,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const user   = await requireSession();
-    const orgId  = await getOrgId(user.id);
+    const orgId  = await getOrgIdForSession(user);
 
     const result = await deleteProjectRule(id, orgId);
     if (!result) return jsonError("Rule not found", 404);

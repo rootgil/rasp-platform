@@ -182,6 +182,22 @@ pnpm dev
 - Dashboard: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 - Backoffice: [http://localhost:3000/backoffice](http://localhost:3000/backoffice)
 
+### Docker local (hot reload)
+
+Clone `collector` next to this repo. With `DOCKER_MODE=dev` in `.env` (default in `.env.example`):
+
+```bash
+cp .env.example .env
+cp ../collector/.env.example ../collector/.env
+pnpm docker:up      # bind-mounts source → watch / hot reload
+pnpm docker:logs
+pnpm docker:down
+```
+
+Equivalent without the npm script: `./scripts/docker-up.sh up -d --build`.  
+Full modes (`dev` / `image` / `prod`) and VPS deploy: see [DEPLOY.md](./DEPLOY.md).  
+**Production VPS:** use `docker compose` only — do not assume host `pnpm`.
+
 ## Available scripts
 
 | Script | Description |
@@ -196,6 +212,9 @@ pnpm dev
 | `pnpm db:migrate` | Run Prisma migrations (production) |
 | `pnpm db:seed` | Load demo data |
 | `pnpm db:studio` | Open Prisma Studio |
+| `pnpm docker:up` | Local Docker stack (`DOCKER_MODE` from `.env`) |
+| `pnpm docker:logs` | Follow Docker logs |
+| `pnpm docker:down` | Stop Docker stack |
 
 ## Architecture
 

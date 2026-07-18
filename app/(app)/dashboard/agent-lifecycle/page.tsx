@@ -1,12 +1,15 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getAgents } from "@/modules/agents/agents.server";
+import { listPublishedVersions } from "@/modules/rollout/rollout.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KillSwitchToggle } from "./kill-switch-toggle";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { formatDate } from "@/lib/utils";
+
 const CHANNEL_DESCRIPTIONS: Record<string, string> = {
   stable: "2-week delay after canary. Recommended for production.",
   early: "1-week delay. Early access to improvements.",
@@ -15,21 +18,15 @@ const CHANNEL_DESCRIPTIONS: Record<string, string> = {
 
 export default async function AgentLifecyclePage() {
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+
+  const membership = await getMembership(session.user.id);
   if (!membership) redirect("/login");
 
   const [agents, versions] = await Promise.all([
-    prisma.agent.findMany({
-      where: { project: { organizationId: membership.organizationId } },
-      include: { project: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.agentVersion.findMany({
-      where: { status: "published" },
-      orderBy: { releasedAt: "desc" },
-    }),
+    getAgents(membership.organizationId),
+    listPublishedVersions(),
   ]);
-
 
   return (
     <div className="space-y-6">
