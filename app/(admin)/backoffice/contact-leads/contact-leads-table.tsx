@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
+import { copyToClipboard } from "@/lib/clipboard";
 import { Copy, Check, UserPlus } from "lucide-react";
 
 type Lead = {
@@ -95,9 +96,10 @@ export function ContactLeadsTable({ leads }: { leads: Lead[] }) {
     }
   }
 
-  function copyPassword() {
+  async function copyPassword() {
     if (!result) return;
-    navigator.clipboard.writeText(result.tempPassword);
+    const ok = await copyToClipboard(result.tempPassword);
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

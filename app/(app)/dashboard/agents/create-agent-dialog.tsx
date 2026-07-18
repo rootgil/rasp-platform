@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Copy, Check } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const LANGUAGES = [
   { value: "node", label: "Node.js" },
@@ -96,8 +97,9 @@ export function CreateAgentDialog({
     }
   }
 
-  function handleCopy(field: keyof CopyState, value: string) {
-    navigator.clipboard.writeText(value);
+  async function handleCopy(field: keyof CopyState, value: string) {
+    const ok = await copyToClipboard(value);
+    if (!ok) return;
     setCopied((s) => ({ ...s, [field]: true }));
     setTimeout(() => setCopied((s) => ({ ...s, [field]: false })), 2000);
   }

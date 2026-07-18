@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, Check } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 export function CreateApiKeyDialog({
   children,
@@ -53,8 +54,9 @@ export function CreateApiKeyDialog({
     }
   }
 
-  function handleCopy() {
-    navigator.clipboard.writeText(rawKey);
+  async function handleCopy() {
+    const ok = await copyToClipboard(rawKey);
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
