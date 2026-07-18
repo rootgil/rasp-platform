@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import {
   listProjectRules,
   addFromCatalogue,
@@ -26,7 +26,7 @@ const postSchema = z.discriminatedUnion("source", [
 export async function GET(req: Request) {
   try {
     const user  = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const projectId = new URL(req.url).searchParams.get("projectId");
     if (!projectId) return jsonError("projectId is required", 400);
 
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user  = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const body  = await req.json();
     const parsed = postSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError } from "@/lib/auth-helpers";
 import { markUserNotificationRead } from "@/modules/notifications/user-notifications.server";
 
 /** POST /api/user-notifications/:id/read - mark a notification as read. */
@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const user  = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const { id } = await params;
     await markUserNotificationRead(id, orgId);
     return Response.json({ ok: true });

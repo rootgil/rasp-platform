@@ -10,7 +10,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const user = await requireSession();
+    const user = await requireSession({ allowMustChangePassword: true });
 
     const body = await req.json();
     const parsed = schema.safeParse(body);

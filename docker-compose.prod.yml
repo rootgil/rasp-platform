@@ -1,9 +1,9 @@
 # Production stack — reverse-proxy (Caddy) terminates TLS.
 # App and collector are NOT published on the host; only Caddy exposes 80/443.
+# No source bind mounts (code is baked into images).
 #
-# Usage:
+# Usage (VPS — no host pnpm required; use docker compose only):
 #   cp .env.production.example .env.production
-#   cp ../collector/.env.production.example ../collector/.env
 #   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 #
 # Firewall: allow 80/tcp and 443/tcp only. Do NOT open 3000 or 4000.
@@ -23,6 +23,8 @@ services:
     build:
       context: .
     env_file: .env.production
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
     expose:
       - "3000"
     depends_on:

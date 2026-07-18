@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { rollbackToPolicyVersion } from "@/modules/policies/policies.server";
 import { z } from "zod";
 
@@ -15,7 +15,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const parsed = schema.safeParse(await req.json());
     if (!parsed.success) return jsonError(parsed.error.message, 400);
 

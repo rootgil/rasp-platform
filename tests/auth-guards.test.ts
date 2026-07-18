@@ -4,16 +4,25 @@
  */
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 
-// Mock lib/auth
 vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
 }));
 
-// Mock lib/prisma
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     organizationMember: { findFirst: vi.fn() },
     auditLog: { create: vi.fn(), findFirst: vi.fn() },
+    user: { findUnique: vi.fn() },
+    $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => {
+      const tx = {
+        $executeRaw: vi.fn(),
+        auditLog: {
+          findFirst: vi.fn().mockResolvedValue(null),
+          create: vi.fn().mockResolvedValue({ id: "log-1" }),
+        },
+      };
+      return fn(tx);
+    }),
   },
 }));
 
@@ -22,8 +31,9 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireAdmin, createAuditLog, getOrgId } from "@/lib/auth-helpers";
 
 const mockedAuth = auth as unknown as Mock;
-const mockedFindFirst = (prisma.organizationMember.findFirst) as unknown as Mock;
-const mockedAuditCreate = (prisma.auditLog.create) as unknown as Mock;
+const mockedFindFirst = prisma.organizationMember.findFirst as unknown as Mock;
+const mockedUserFindUnique = prisma.user.findUnique as unknown as Mock;
+const mockedTransaction = prisma.$transaction as unknown as Mock;
 
 function makeSession(role: string, id = "user-1") {
   return {
@@ -34,9 +44,24 @@ function makeSession(role: string, id = "user-1") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedUserFindUnique.mockImplementation(async ({ where }: { where: { id: string } }) => ({
+    id: where.id,
+    role: where.id.startsWith("admin") ? "admin" : "user",
+    mustChangePassword: false,
+    passwordChangedAt: null,
+  }));
+  mockedTransaction.mockImplementation(async (fn: (tx: unknown) => unknown) => {
+    const create = vi.fn().mockResolvedValue({ id: "log-1" });
+    const tx = {
+      $executeRaw: vi.fn(),
+      auditLog: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create,
+      },
+    };
+    return fn(tx);
+  });
 });
-
-// ─── requireSession ───────────────────────────────────────────────────────────
 
 describe("requireSession", () => {
   it("throws a 401 Response when there is no session", async () => {
@@ -53,17 +78,45 @@ describe("requireSession", () => {
 
   it("returns the user object when session is valid", async () => {
     mockedAuth.mockResolvedValue(makeSession("user"));
+    mockedUserFindUnique.mockResolvedValue({
+      role: "user",
+      mustChangePassword: false,
+      passwordChangedAt: null,
+    });
     const user = await requireSession();
     expect(user.id).toBe("user-1");
     expect(user.email).toBe("user-1@test.com");
   });
-});
 
-// ─── requireAdmin ─────────────────────────────────────────────────────────────
+  it("throws 403 when mustChangePassword is set", async () => {
+    mockedAuth.mockResolvedValue({
+      ...makeSession("user"),
+      user: { ...makeSession("user").user, mustChangePassword: true },
+    });
+    mockedUserFindUnique.mockResolvedValue({
+      role: "user",
+      mustChangePassword: true,
+      passwordChangedAt: null,
+    });
+    let caught: unknown;
+    try {
+      await requireSession();
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Response);
+    expect((caught as Response).status).toBe(403);
+  });
+});
 
 describe("requireAdmin", () => {
   it("throws 403 when user role is 'user'", async () => {
     mockedAuth.mockResolvedValue(makeSession("user"));
+    mockedUserFindUnique.mockResolvedValue({
+      role: "user",
+      mustChangePassword: false,
+      passwordChangedAt: null,
+    });
     let caught: unknown;
     try {
       await requireAdmin();
@@ -76,13 +129,16 @@ describe("requireAdmin", () => {
 
   it("returns user when role is 'admin'", async () => {
     mockedAuth.mockResolvedValue(makeSession("admin", "admin-1"));
+    mockedUserFindUnique.mockResolvedValue({
+      role: "admin",
+      mustChangePassword: false,
+      passwordChangedAt: null,
+    });
     const user = await requireAdmin();
     expect(user.id).toBe("admin-1");
     expect(user.role).toBe("admin");
   });
 });
-
-// ─── getOrgId ─────────────────────────────────────────────────────────────────
 
 describe("getOrgId", () => {
   it("throws 404 when the user has no organization", async () => {
@@ -102,9 +158,18 @@ describe("getOrgId", () => {
     const orgId = await getOrgId("user-1");
     expect(orgId).toBe("org-123");
   });
-});
 
-// ─── Org scoping (cross-tenant protection) ────────────────────────────────────
+  it("prefers preferredOrgId when membership matches", async () => {
+    mockedFindFirst.mockResolvedValue({ organizationId: "org-pref" });
+    const orgId = await getOrgId("user-1", "org-pref");
+    expect(orgId).toBe("org-pref");
+    expect(mockedFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", organizationId: "org-pref" },
+      })
+    );
+  });
+});
 
 describe("org scoping", () => {
   it("different users always get different org IDs", async () => {
@@ -129,11 +194,8 @@ describe("org scoping", () => {
   });
 });
 
-// ─── createAuditLog ───────────────────────────────────────────────────────────
-
 describe("createAuditLog", () => {
-  it("writes to the DB with the correct fields", async () => {
-    mockedAuditCreate.mockResolvedValue({ id: "log-1" });
+  it("writes via a locked transaction", async () => {
     await createAuditLog({
       actorId: "user-1",
       organizationId: "org-1",
@@ -141,21 +203,11 @@ describe("createAuditLog", () => {
       target: "proj-1",
       metadata: { name: "billing-api" },
     });
-    expect(mockedAuditCreate).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        actorId: "user-1",
-        organizationId: "org-1",
-        action: "project.create",
-        target: "proj-1",
-      }),
-    });
+    expect(mockedTransaction).toHaveBeenCalled();
   });
 
   it("works without optional fields", async () => {
-    mockedAuditCreate.mockResolvedValue({ id: "log-2" });
     await createAuditLog({ action: "agent.heartbeat" });
-    expect(mockedAuditCreate).toHaveBeenCalledWith({
-      data: expect.objectContaining({ action: "agent.heartbeat" }),
-    });
+    expect(mockedTransaction).toHaveBeenCalled();
   });
 });

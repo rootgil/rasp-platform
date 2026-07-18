@@ -1,6 +1,7 @@
-import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireAdmin, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { requireMfa } from "@/modules/admin/mfa.server";
-import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { requireApproval } from "@/modules/admin/approvals.server";
+import { rotateProjectKey } from "@/lib/envelope";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -48,7 +49,7 @@ const actionSchema = z.object({
 export async function POST(req: Request) {
   try {
     const user = await requireAdmin(req);
-    const orgId = await getOrgId(user.id).catch(() => undefined);
+    const orgId = await getOrgIdForSession(user).catch(() => undefined);
     const body = await req.json().catch(() => ({}));
     const parsed = actionSchema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid request", 400);
@@ -57,40 +58,19 @@ export async function POST(req: Request) {
 
     if (action === "rotate") {
       const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
-      await requireMfa(user.id, mfaToken);
+      await requireMfa(user.id, mfaToken, { required: true });
 
-      const current = await prisma.tenantKey.findFirst({
-        where: { projectId, active: true, destroyed: false },
-        orderBy: { version: "desc" },
-      });
-
-      const nextVersion = (current?.version ?? 0) + 1;
-
-      await prisma.$transaction([
-        ...(current
-          ? [
-              prisma.tenantKey.update({
-                where: { id: current.id },
-                data: { active: false, rotatedAt: new Date() },
-              }),
-            ]
-          : []),
-        prisma.tenantKey.create({
-          data: {
-            projectId,
-            version: nextVersion,
-            active: true,
-            destroyed: false,
-          },
-        }),
-      ]);
+      const nextVersion = await rotateProjectKey(projectId);
+      if (nextVersion == null) {
+        return jsonError("KEK_MASTER_KEY not configured — cannot rotate DEK", 500);
+      }
 
       await createAuditLog({
         actorId: user.id,
         organizationId: orgId,
         action: "dek.rotated",
         target: projectId,
-        metadata: { previousVersion: current?.version ?? null, nextVersion },
+        metadata: { nextVersion },
       });
 
       return Response.json({ rotated: true, version: nextVersion });
@@ -98,15 +78,14 @@ export async function POST(req: Request) {
 
     // shred: MFA + dual-authorization required (tenant.crypto_shred)
     const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
-    await requireMfa(user.id, mfaToken);
+    await requireMfa(user.id, mfaToken, { required: true });
 
     try {
-      const approval = await requireApproval({
+      await requireApproval({
         action: "tenant.crypto_shred",
         target: projectId,
         executorId: user.id,
       });
-      await markExecuted(approval.id);
     } catch (err) {
       return jsonError(err instanceof Error ? err.message : "Approval required", 403);
     }

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getAuditLogs } from "@/modules/audit/audit.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
@@ -8,15 +9,13 @@ import { FileSearch } from "lucide-react";
 
 export default async function AuditLogsPage() {
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
-  const logs = await prisma.auditLog.findMany({
-    where: { organizationId: membership.organizationId },
-    include: { actor: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-    take: 200,
-  });
+  const logs = await getAuditLogs(orgId, { limit: 200 });
 
   return (
     <div className="space-y-6">

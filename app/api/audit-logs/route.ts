@@ -1,10 +1,10 @@
-import { requireSession, getOrgId, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError } from "@/lib/auth-helpers";
 import { getAuditLogs } from "@/modules/audit/audit.server";
 
 export async function GET() {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const logs = await getAuditLogs(orgId);
     return Response.json(logs);
   } catch (e) {

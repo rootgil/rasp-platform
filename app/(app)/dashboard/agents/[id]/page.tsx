@@ -1,28 +1,27 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getAgent, getLatestStableVersion } from "@/modules/agents/agents.server";
 import { getLatestPolicy } from "@/modules/policies/policies.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CopyButton } from "@/components/shared/copy-button";
-import { SecretField } from "@/components/shared/secret-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EnforcementModeSelect } from "./enforcement-mode-select";
 import { ChannelSelect } from "./channel-select";
 import { DeleteAgentButton } from "./delete-agent-button";
+import { RotateHmacButton } from "./rotate-hmac-button";
 
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect("/login");
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session.user.id } });
+  if (!session?.user?.id) redirect("/login");
+
+  const membership = await getMembership(session.user.id);
   if (!membership) redirect("/login");
 
-  const agent = await prisma.agent.findFirst({
-    where: { id, project: { organizationId: membership.organizationId } },
-    include: { project: { select: { id: true, name: true } } },
-  });
+  const agent = await getAgent(id, membership.organizationId);
   if (!agent) notFound();
 
   const latestPolicy = await getLatestPolicy(
@@ -31,22 +30,15 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
     agent.channel
   );
 
-  const latestStableVersion = await prisma.agentVersion.findFirst({
-    where: { channel: "stable", status: "published", quarantined: false },
-    orderBy: { releasedAt: "desc" },
-    select: { version: true },
-  });
+  const latestStableVersion = await getLatestStableVersion();
 
   const rows: {
     label: string;
     value: string;
     mono?: boolean;
-    custom?: "mode" | "hmac";
+    custom?: "mode";
   }[] = [
     { label: "Agent ID", value: agent.id, mono: true },
-    ...(agent.hmacSecret
-      ? [{ label: "HMAC Secret", value: agent.hmacSecret, custom: "hmac" as const }]
-      : []),
     { label: "Application", value: agent.project.name },
     { label: "Language", value: agent.language },
     { label: "Framework", value: agent.framework ?? "-" },
@@ -83,8 +75,6 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
                         projectName={agent.project.name}
                         channel={agent.channel}
                       />
-                    ) : custom === "hmac" ? (
-                      <SecretField value={value} />
                     ) : (
                       <>
                         {value}
@@ -141,6 +131,17 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
             currentPinnedVersion={agent.pinnedVersion ?? null}
             latestStableVersion={latestStableVersion?.version ?? null}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Credentials</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-text-secondary">
+            The HMAC secret is shown only once at creation (or after rotation).
+            It cannot be retrieved later — rotate to issue a new one.
+          </p>
+          <RotateHmacButton agentId={agent.id} />
         </CardContent>
       </Card>
 

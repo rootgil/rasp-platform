@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { Copy, Check, Eye, EyeOff } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 export function SecretField({ value }: { value: string }) {
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  function handleCopy() {
-    navigator.clipboard.writeText(value);
+  async function handleCopy() {
+    const ok = await copyToClipboard(value);
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

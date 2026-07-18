@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { requireOrgRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
@@ -10,7 +10,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     await requireOrgRole(user.id, orgId, ["owner"]);
 
     const invitation = await prisma.invitation.findFirst({

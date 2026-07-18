@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-header";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -9,7 +8,7 @@ import { NewVersionButton } from "./new-version-button";
 import { VersionActions } from "./version-actions";
 import { VersionExposureDialog } from "./version-exposure-dialog";
 import { VersionCompareDialog } from "./version-compare-dialog";
-import { getRolloutKpis } from "@/modules/rollout/rollout.server";
+import { getRolloutKpis, listAgentVersions } from "@/modules/rollout/rollout.server";
 import { CheckCircle2, Percent, Clock, Activity } from "lucide-react";
 
 const STAGE_LABELS: Record<number, string> = {
@@ -22,7 +21,7 @@ const STAGE_LABELS: Record<number, string> = {
 
 export default async function AgentVersionsPage() {
   const [versions, kpis] = await Promise.all([
-    prisma.agentVersion.findMany({ orderBy: { createdAt: "desc" } }),
+    listAgentVersions(),
     getRolloutKpis(),
   ]);
 

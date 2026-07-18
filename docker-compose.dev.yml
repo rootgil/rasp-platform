@@ -1,0 +1,39 @@
+# Dev override — bind-mounts source for hot reload (local only).
+# Applied when DOCKER_MODE=dev (via scripts/docker-up.sh / pnpm docker:up).
+#
+#   DOCKER_MODE=dev pnpm docker:up
+#   # or: ./scripts/docker-up.sh up -d --build
+
+services:
+
+  app:
+    build:
+      context: .
+      target: dev
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+      - app_next:/app/.next
+    healthcheck:
+      start_period: 60s
+
+  collector:
+    build:
+      context: ../collector
+      target: dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../collector:/app
+      - collector_node_modules:/app/node_modules
+    healthcheck:
+      start_period: 40s
+
+volumes:
+  app_node_modules:
+  app_next:
+  collector_node_modules:

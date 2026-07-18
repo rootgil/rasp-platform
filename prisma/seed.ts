@@ -121,6 +121,10 @@ async function main() {
   await prisma.agentVersion.deleteMany();
   await prisma.platformSetting.deleteMany();
   await prisma.contactLead.deleteMany();
+  await prisma.adminNotification.deleteMany();
+  await prisma.breakGlassToken.deleteMany();
+  await prisma.invitation.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
   await prisma.user.deleteMany();
 
   // Users

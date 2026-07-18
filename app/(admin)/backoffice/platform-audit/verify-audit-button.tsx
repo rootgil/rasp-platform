@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, ShieldAlert, Copy, Check, ExternalLink } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 import type { AuditChainResult, AuditChainBrokenRecord } from "@/lib/auth-helpers";
 
 // ─── Verify button + chain intact badge ──────────────────────────────────────
@@ -99,7 +100,8 @@ function TamperingPanel({
   }
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(buildReport());
+    const ok = await copyToClipboard(buildReport());
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

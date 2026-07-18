@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getAlerts } from "@/modules/alerts/alerts.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -17,20 +18,13 @@ export default async function AlertsPage({
 }) {
   const { status } = await searchParams;
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
-  const alerts = await prisma.alert.findMany({
-    where: {
-      project: { organizationId: membership.organizationId },
-      ...(status ? { status } : {}),
-    },
-    include: {
-      project: { select: { name: true } },
-      securityEvent: { select: { type: true, path: true, method: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const alerts = await getAlerts(orgId, { status });
 
   const open = alerts.filter((a) => a.status === "open").length;
 

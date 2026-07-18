@@ -33,6 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password, totpCode } = parsed.data;
 
+        // Throttle by account identity (email). Multi-replica needs Redis store.
         const limited = checkRateLimit(`login:${email.toLowerCase()}`, 10, 15 * 60_000);
         if (!limited.ok) return null;
 
@@ -59,6 +60,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           organizationId: membership?.organizationId,
           mustChangePassword: user.mustChangePassword,
+          passwordChangedAt: user.passwordChangedAt?.toISOString() ?? null,
         };
       },
     }),

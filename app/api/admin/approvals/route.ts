@@ -1,4 +1,4 @@
-import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireAdmin, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { listApprovals, raiseApproval } from "@/modules/admin/approvals.server";
 import { createAdminNotification } from "@/modules/admin/admin-notifications.server";
 import { z } from "zod";
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await requireAdmin();
-    const orgId = await getOrgId(user.id).catch(() => undefined);
+    const orgId = await getOrgIdForSession(user).catch(() => undefined);
     const body = await req.json().catch(() => ({}));
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid request", 400);

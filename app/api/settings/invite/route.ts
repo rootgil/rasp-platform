@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { sendInviteEmail } from "@/lib/email";
 import { randomBytes } from "node:crypto";
@@ -6,13 +6,13 @@ import { z } from "zod";
 
 const schema = z.object({
   email: z.string().email(),
-  role: z.enum(["member", "admin", "owner"]).default("member"),
+  role: z.enum(["member", "owner"]).default("member"),
 });
 
 export async function POST(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     // Only org owners can invite
     const membership = await prisma.organizationMember.findUnique({
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     const invitations = await prisma.invitation.findMany({
       where: { organizationId: orgId, acceptedAt: null, expiresAt: { gt: new Date() } },

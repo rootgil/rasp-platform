@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getProject } from "@/modules/projects/projects.server";
+import { listProjectRules } from "@/modules/project-rules/project-rules.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -22,21 +24,12 @@ import Link from "next/link";
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
+  if (!session?.user?.id) redirect("/login");
 
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  const membership = await getMembership(session.user.id);
   if (!membership) redirect("/login");
 
-  const project = await prisma.project.findFirst({
-    where: { id, organizationId: membership.organizationId },
-    include: {
-      agents: { orderBy: { createdAt: "desc" } },
-      apiKeys: { where: { revoked: false }, orderBy: { createdAt: "desc" } },
-      securityEvents: { orderBy: { createdAt: "desc" }, take: 10 },
-      discoveredEndpoints: { orderBy: { riskScore: "desc" }, take: 10 },
-      _count: { select: { securityEvents: true, alerts: true, discoveredEndpoints: true } },
-    },
-  });
-
+  const project = await getProject(id, membership.organizationId);
   if (!project) notFound();
 
   const latestPolicy = await getLatestPolicy(membership.organizationId, id, "stable")
@@ -47,11 +40,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     ? (latestPolicy!.detectionRules as unknown as DetectionRule[])
     : [];
 
-  const projectRules = await prisma.projectRule.findMany({
-    where:   { projectId: id },
-    orderBy: { createdAt: "asc" },
-    select:  { id: true, name: true, type: true, severity: true, enabled: true, source: true, target: true },
-  });
+  const projectRules = (await listProjectRules(id, membership.organizationId)) ?? [];
 
   const SEV_COLOR: Record<string, string> = {
     critical: "destructive", high: "destructive", medium: "secondary", low: "outline",

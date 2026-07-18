@@ -1,7 +1,7 @@
-import { requireAdmin, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireAdmin, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { requireMfa } from "@/modules/admin/mfa.server";
 import { getPlatformSetting, setGlobalKillSwitch } from "@/modules/admin/incident.server";
-import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { requireApproval } from "@/modules/admin/approvals.server";
 import { notifyAllOrgs } from "@/modules/notifications/user-notifications.server";
 import { z } from "zod";
 
@@ -33,23 +33,20 @@ export async function POST(req: Request) {
     // MFA is mandatory for the kill-switch regardless of whether MFA is
     // enrolled — an admin without MFA cannot operate this action (E.4.3).
     const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
-    await requireMfa(user.id, mfaToken);
+    await requireMfa(user.id, mfaToken, { required: true });
 
-    const orgId = await getOrgId(user.id).catch(() => undefined);
+    const orgId = await getOrgIdForSession(user).catch(() => undefined);
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError("Invalid request", 400);
 
-    if (parsed.data.enabled) {
-      try {
-        const approval = await requireApproval({
-          action: "platform.kill_switch",
-          executorId: user.id,
-        });
-        await markExecuted(approval.id);
-      } catch (err) {
-        return jsonError(err instanceof Error ? err.message : "Approval required", 403);
-      }
+    try {
+      await requireApproval({
+        action: "platform.kill_switch",
+        executorId: user.id,
+      });
+    } catch (err) {
+      return jsonError(err instanceof Error ? err.message : "Approval required", 403);
     }
 
     const setting = await setGlobalKillSwitch(parsed.data.enabled, parsed.data.reason);

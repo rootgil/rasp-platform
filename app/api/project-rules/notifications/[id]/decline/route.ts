@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { declineNotification } from "@/modules/project-rules/notifications.server";
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
   try {
     const { id } = await params;
     const user   = await requireSession();
-    const orgId  = await getOrgId(user.id);
+    const orgId  = await getOrgIdForSession(user);
 
     const result = await declineNotification(id, orgId);
     if (!result) return jsonError("Notification not found", 404);

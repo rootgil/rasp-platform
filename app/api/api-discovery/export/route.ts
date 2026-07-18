@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError } from "@/lib/auth-helpers";
 import { getDiscoveredEndpoints } from "@/modules/api-discovery/api-discovery.server";
 
 /** Map inferred JSON type names to OpenAPI schema types. */
@@ -32,7 +32,7 @@ const BODY_METHODS = new Set(["post", "put", "patch"]);
 export async function POST(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const body = await req.json().catch(() => ({}));
     const endpoints = await getDiscoveredEndpoints(orgId, body.projectId);
 

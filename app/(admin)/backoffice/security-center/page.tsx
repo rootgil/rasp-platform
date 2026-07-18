@@ -32,6 +32,7 @@ import {
   Check,
   Hourglass,
 } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -824,8 +825,9 @@ function BreakGlassSection() {
     }
   }
 
-  function handleCopy() {
-    navigator.clipboard.writeText(rawToken);
+  async function handleCopy() {
+    const ok = await copyToClipboard(rawToken);
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getAgents } from "@/modules/agents/agents.server";
+import { listProjectOptions } from "@/modules/projects/projects.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,19 +15,15 @@ import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 export default async function AgentsPage() {
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
   const [agents, projects] = await Promise.all([
-    prisma.agent.findMany({
-      where: { project: { organizationId: membership.organizationId } },
-      include: { project: { select: { name: true } } },
-      orderBy: { lastHeartbeatAt: "desc" },
-    }),
-    prisma.project.findMany({
-      where: { organizationId: membership.organizationId },
-      select: { id: true, name: true },
-    }),
+    getAgents(orgId),
+    listProjectOptions(orgId),
   ]);
 
   const online = agents.filter((a) => a.status === "online").length;

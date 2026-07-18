@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError, createAuditLog } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError, createAuditLog } from "@/lib/auth-helpers";
 import { setAgentVersionControls } from "@/modules/agents/agents.server";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return jsonError(parsed.error.message, 400);
 

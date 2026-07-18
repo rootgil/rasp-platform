@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getEvents } from "@/modules/events/events.server";
+import { listProjectOptions } from "@/modules/projects/projects.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -18,28 +20,22 @@ export default async function EventsPage({
 }) {
   const filters = await searchParams;
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
-  const where: Record<string, unknown> = {
-    project: { organizationId: membership.organizationId },
-  };
-  if (filters.severity) where.severity = filters.severity;
-  if (filters.type) where.type = filters.type;
-  if (filters.projectId) where.projectId = filters.projectId;
-
-  const [events, projects] = await Promise.all([
-    prisma.securityEvent.findMany({
-      where,
-      include: { project: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 100,
+  const [eventsResult, projects] = await Promise.all([
+    getEvents(orgId, {
+      severity: filters.severity,
+      type: filters.type,
+      projectId: filters.projectId,
+      pageSize: 100,
     }),
-    prisma.project.findMany({
-      where: { organizationId: membership.organizationId },
-      select: { id: true, name: true },
-    }),
+    listProjectOptions(orgId),
   ]);
+  const events = eventsResult.items;
 
   return (
     <div className="space-y-6">
