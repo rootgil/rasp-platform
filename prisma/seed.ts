@@ -415,7 +415,7 @@ async function main() {
       severity: "critical",
       description: "Detects Server-Side Template Injection (SSTI) patterns.",
       enabled: true,
-      pattern: "(\\{\\{\\s*[0-9*+\\-/]|\\$\\{\\s*[0-9*+\\-/]|#\\{\\s*[0-9*+\\-/]|<%=\\s*[0-9]|\\{\\{\\s*config\\s*\\}\\}|\\{\\{\\s*self\\.__dict__|\\{\\{\\s*request\\.|@\\{\\s*[0-9])",
+      pattern: "(\\{\\{\\s*[0-9+\\-/*]|\\$\\{\\s*[0-9+\\-/*]|#\\{\\s*[0-9+\\-/*]|<%=\\s*[0-9]|\\{\\{\\s*config\\s*\\}\\}|\\{\\{\\s*self\\.__dict__|\\{\\{\\s*request\\.|@\\{\\s*[0-9])",
       target: "any",
       config: { patterns: ["{{7*7}}", "${7*7}", "#{7*7}", "<%= 7*7 %>", "{{config}}", "{{self.__dict__}}"] },
     },

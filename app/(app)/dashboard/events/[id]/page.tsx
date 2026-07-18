@@ -26,6 +26,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const matchedRule = meta?.matchedRule as string | undefined;
   const detectorDescription = meta?.detectorDescription as string | undefined;
   const auditLoggedLocally = meta?.auditLoggedLocally as boolean | undefined;
+  const matchedRules = Array.isArray(meta?.matchedRules)
+    ? (meta.matchedRules as Array<{
+        id?: string;
+        eventType?: string;
+        severity?: string;
+        location?: string;
+      }>)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -68,11 +76,51 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <CardContent className="space-y-4">
             {matchedRule && (
               <div>
-                <p className="text-xs text-text-secondary mb-1">Detector</p>
+                <p className="text-xs text-text-secondary mb-1">Primary detector</p>
                 <p className="text-sm font-mono font-medium text-text-primary">{matchedRule}</p>
+                <p className="text-xs text-text-muted mt-1">
+                  Highest severity among all matches on this request
+                </p>
                 {detectorDescription && (
                   <p className="text-xs text-text-muted mt-1">{detectorDescription}</p>
                 )}
+              </div>
+            )}
+
+            {matchedRules.length > 0 && (
+              <div>
+                <p className="text-xs text-text-secondary mb-2">
+                  All matched rules ({matchedRules.length})
+                </p>
+                <ul className="divide-y divide-border rounded-md border border-border overflow-hidden">
+                  {matchedRules.map((rule, i) => {
+                    const id = rule.id ?? `rule-${i}`;
+                    const isPrimary = matchedRule != null && rule.id === matchedRule;
+                    return (
+                      <li
+                        key={`${id}-${i}`}
+                        className="flex items-center justify-between gap-3 px-3 py-2 bg-surface"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-mono font-medium text-text-primary truncate">
+                            {id}
+                            {isPrimary ? (
+                              <span className="ml-2 text-[10px] uppercase tracking-wide text-text-muted">
+                                primary
+                              </span>
+                            ) : null}
+                          </p>
+                          <p className="text-xs text-text-muted font-mono truncate">
+                            {[rule.eventType, rule.location].filter(Boolean).join(" · ") || "—"}
+                          </p>
+                        </div>
+                        {rule.severity ? (
+                          <SeverityBadge severity={rule.severity} />
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             )}
 
