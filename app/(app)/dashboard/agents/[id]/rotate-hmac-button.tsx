@@ -47,7 +47,10 @@ export function RotateHmacButton({ agentId }: { agentId: string }) {
   async function handleCopy() {
     if (!hmacSecret) return;
     const ok = await copyToClipboard(hmacSecret);
-    if (!ok) return;
+    if (!ok) {
+      toast.error("Copy failed — select the value and press Ctrl+C");
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

@@ -56,7 +56,10 @@ export function CreateApiKeyDialog({
 
   async function handleCopy() {
     const ok = await copyToClipboard(rawKey);
-    if (!ok) return;
+    if (!ok) {
+      toast.error("Copy failed — select the value and press Ctrl+C");
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
