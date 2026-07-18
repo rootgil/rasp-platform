@@ -1,9 +1,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { createHash } from "node:crypto";
 import { jwtVerify } from "jose";
 import { headers } from "next/headers";
+import { computeAuditHash } from "@/lib/audit-hash";
 
 export type SessionUser = {
   id: string;
@@ -204,19 +204,15 @@ export async function createAuditLog({
     });
     const prevHash = prev?.hash ?? null;
     const createdAt = new Date();
-    const hash = createHash("sha256")
-      .update(
-        JSON.stringify({
-          prevHash,
-          actorId: actorId ?? null,
-          organizationId: organizationId ?? null,
-          action,
-          target: target ?? null,
-          metadata: metadata ?? null,
-          createdAt: createdAt.toISOString(),
-        })
-      )
-      .digest("hex");
+    const hash = computeAuditHash({
+      prevHash,
+      actorId: actorId ?? null,
+      organizationId: organizationId ?? null,
+      action,
+      target: target ?? null,
+      metadata: metadata ?? null,
+      createdAt,
+    });
 
     return tx.auditLog.create({
       data: {
@@ -263,19 +259,15 @@ export async function verifyAuditChain(): Promise<AuditChainResult> {
   });
   let prevHash: string | null = null;
   for (const log of logs) {
-    const expectedHash: string = createHash("sha256")
-      .update(
-        JSON.stringify({
-          prevHash,
-          actorId: log.actorId ?? null,
-          organizationId: log.organizationId ?? null,
-          action: log.action,
-          target: log.target ?? null,
-          metadata: (log.metadata as unknown) ?? null,
-          createdAt: log.createdAt.toISOString(),
-        })
-      )
-      .digest("hex");
+    const expectedHash = computeAuditHash({
+      prevHash,
+      actorId: log.actorId ?? null,
+      organizationId: log.organizationId ?? null,
+      action: log.action,
+      target: log.target ?? null,
+      metadata: (log.metadata as unknown) ?? null,
+      createdAt: log.createdAt,
+    });
     const prevLinkBroken = log.prevHash !== prevHash;
     const hashMismatch = log.hash !== expectedHash;
     if (prevLinkBroken || hashMismatch) {
