@@ -75,6 +75,7 @@ export default async function SettingsPage() {
                     label="Display name"
                     endpoint="/api/account/profile"
                     fieldKey="name"
+                    syncSessionName
                   />
                 </dd>
               </div>
