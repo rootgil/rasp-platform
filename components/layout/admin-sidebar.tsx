@@ -167,9 +167,14 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
               )}
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
-                  const isActive = (item as { exact?: boolean }).exact
+                  const exact = (item as { exact?: boolean }).exact;
+                  // Project detail lives under /backoffice/projects but is reached
+                  // from Organizations — keep that nav item highlighted.
+                  const isActive = exact
                     ? pathname === item.href
-                    : pathname.startsWith(item.href);
+                    : pathname.startsWith(item.href) ||
+                      (item.href === "/backoffice/organizations" &&
+                        pathname.startsWith("/backoffice/projects"));
                   const Icon = item.icon;
                   return (
                     <li key={item.href}>

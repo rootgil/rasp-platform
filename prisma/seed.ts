@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { createCipheriv, randomBytes } from "node:crypto";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import bcrypt from "bcryptjs";
 import { getSigningKeyId, signPolicy, type SignablePolicy } from "../lib/policy-signing";
+import { computeAuditHash } from "../lib/audit-hash";
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -657,18 +658,50 @@ async function main() {
     },
   });
 
-  // Audit Logs
-  await prisma.auditLog.createMany({
-    data: [
-      { actorId: clientUser.id, organizationId: org.id, action: "project.create",    target: projectNode.id,   metadata: { name: "banking-api" },        createdAt: daysAgo(10) },
-      { actorId: clientUser.id, organizationId: org.id, action: "api_key.create",    target: "api_key_1",      metadata: { prefix: "rasp_demo" },         createdAt: daysAgo(9) },
-      { actorId: clientUser.id, organizationId: org.id, action: "alert.update",      target: "alert_1",        metadata: { status: "investigating" },      createdAt: daysAgo(2) },
-      { actorId: clientUser.id, organizationId: org.id, action: "agent.kill_switch.enable", target: agent3.id, metadata: {},                              createdAt: daysAgo(1) },
-      { actorId: adminUser.id,  organizationId: org.id, action: "agent_version.promote", target: "v0.3.1",     metadata: { channel: "stable" },           createdAt: daysAgo(7) },
-      { actorId: clientUser.id, organizationId: org.id, action: "project.create",    target: projectPython.id, metadata: { name: "auth-service" },         createdAt: daysAgo(8) },
-      { actorId: clientUser.id, organizationId: org.id, action: "alert.update",      target: "alert_2",        metadata: { status: "resolved" },           createdAt: daysAgo(3) },
-    ],
-  });
+  // Audit Logs — must be hash-chained (same algorithm as createAuditLog) or
+  // "Verify integrity" will report tampering after every seed.
+  const auditEntries: Array<{
+    actorId: string;
+    organizationId: string;
+    action: string;
+    target: string;
+    metadata: Record<string, unknown>;
+    createdAt: Date;
+  }> = [
+    { actorId: clientUser.id, organizationId: org.id, action: "project.create", target: projectNode.id, metadata: { name: "banking-api" }, createdAt: daysAgo(10) },
+    { actorId: clientUser.id, organizationId: org.id, action: "api_key.create", target: "api_key_1", metadata: { prefix: "rasp_demo" }, createdAt: daysAgo(9) },
+    { actorId: clientUser.id, organizationId: org.id, action: "project.create", target: projectPython.id, metadata: { name: "auth-service" }, createdAt: daysAgo(8) },
+    { actorId: adminUser.id, organizationId: org.id, action: "agent_version.promote", target: "v0.3.1", metadata: { channel: "stable" }, createdAt: daysAgo(7) },
+    { actorId: clientUser.id, organizationId: org.id, action: "alert.update", target: "alert_2", metadata: { status: "resolved" }, createdAt: daysAgo(3) },
+    { actorId: clientUser.id, organizationId: org.id, action: "alert.update", target: "alert_1", metadata: { status: "investigating" }, createdAt: daysAgo(2) },
+    { actorId: clientUser.id, organizationId: org.id, action: "agent.kill_switch.enable", target: agent3.id, metadata: {}, createdAt: daysAgo(1) },
+  ];
+
+  let prevHash: string | null = null;
+  for (const entry of auditEntries) {
+    const hash = computeAuditHash({
+      prevHash,
+      actorId: entry.actorId,
+      organizationId: entry.organizationId,
+      action: entry.action,
+      target: entry.target,
+      metadata: entry.metadata,
+      createdAt: entry.createdAt,
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorId: entry.actorId,
+        organizationId: entry.organizationId,
+        action: entry.action,
+        target: entry.target,
+        metadata: entry.metadata as Prisma.InputJsonValue,
+        createdAt: entry.createdAt,
+        prevHash,
+        hash,
+      },
+    });
+    prevHash = hash;
+  }
 
   console.log("✅ Seed complete");
   console.log("  Admin:   admin@rasp.io");
