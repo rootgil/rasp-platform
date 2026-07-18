@@ -108,7 +108,10 @@ export function CreateAgentDialog({
 
   async function handleCopy(field: keyof CopyState, value: string) {
     const ok = await copyToClipboard(value);
-    if (!ok) return;
+    if (!ok) {
+      toast.error("Copy failed — select the value and press Ctrl+C");
+      return;
+    }
     setCopied((s) => ({ ...s, [field]: true }));
     setTimeout(() => setCopied((s) => ({ ...s, [field]: false })), 2000);
   }
