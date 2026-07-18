@@ -19,10 +19,12 @@ default:
   tags:
     - oriso-runner-01
   before_script:
+    # Shell executor shares $HOME across concurrent jobs — never install pnpm
+    # into $HOME/.local (races delete the binary mid-job). Scope to the build dir.
     - node --version
-    - npm config set prefix "$HOME/.local"
-    - npm install -g pnpm@10 --quiet
-    - export PATH="$HOME/.local/bin:$PATH"
+    - npm install -g --prefix "$CI_PROJECT_DIR/.ci-tools" pnpm@10 --quiet
+    - export PATH="$CI_PROJECT_DIR/.ci-tools/bin:$PATH"
+    - hash -r
     - pnpm --version
 
 .only_mr_and_main: &only_mr_and_main
