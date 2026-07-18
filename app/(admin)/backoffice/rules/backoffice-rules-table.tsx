@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { copyToClipboard } from "@/lib/clipboard";
 import { BackofficeRuleActions } from "./backoffice-rule-actions";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -51,11 +52,11 @@ export function BackofficeRulesTable({ rules }: { rules: Rule[] }) {
   const [expandedId, setExpandedId]   = useState<string | null>(null);
   const [copiedId, setCopiedId]       = useState<string | null>(null);
 
-  const copyYaml = useCallback((ruleId: string, yaml: string) => {
-    navigator.clipboard.writeText(yaml).then(() => {
-      setCopiedId(ruleId);
-      setTimeout(() => setCopiedId(null), 1500);
-    });
+  const copyYaml = useCallback(async (ruleId: string, yaml: string) => {
+    const ok = await copyToClipboard(yaml);
+    if (!ok) return;
+    setCopiedId(ruleId);
+    setTimeout(() => setCopiedId(null), 1500);
   }, []);
 
   function toggle(id: string) {
