@@ -16,6 +16,8 @@ const buttonVariants = cva(
           "bg-white text-text-primary border border-[#cbd5e1] hover:bg-background",
         danger:
           "bg-critical text-white hover:bg-[#b91c1c]",
+        destructive:
+          "bg-critical text-white hover:bg-[#b91c1c]",
         ghost:
           "hover:bg-border-light text-text-secondary",
         outline:
