@@ -117,7 +117,7 @@ function LoginForm() {
               : "Access your security dashboard"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form method="post" onSubmit={handleSubmit} className="space-y-4">
             {!needsMfa ? (
               <>
                 <div className="space-y-1.5">
