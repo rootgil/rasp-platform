@@ -221,7 +221,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
         {/* Notifications Bell */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="relative h-9 w-9 flex items-center justify-center rounded-md hover:bg-border-light transition-colors">
+            <button className="relative h-9 w-9 flex items-center justify-center rounded-md hover:bg-border-light transition-colors outline-none focus-visible:ring-1 focus-visible:ring-brand focus-visible:ring-offset-1 data-[state=open]:bg-border-light">
               <Bell size={18} className="text-text-secondary" />
               {pendingCount > 0 && (
                 <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-critical flex items-center justify-center text-[10px] font-bold text-white leading-none">
@@ -370,7 +370,7 @@ export function Topbar({ onMenuClick, onNotifCountChange }: TopbarProps) {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 h-9 px-2 rounded-md hover:bg-border-light transition-colors">
+            <button className="flex items-center gap-2 h-9 px-2 rounded-md hover:bg-border-light transition-colors outline-none focus-visible:ring-1 focus-visible:ring-brand focus-visible:ring-offset-1 data-[state=open]:bg-border-light">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white text-xs font-semibold">
                 {initials}
               </div>
