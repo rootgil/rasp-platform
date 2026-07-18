@@ -27,6 +27,8 @@
   --color-critical: #dc2626;
   --color-critical-bg: #fef2f2;
   --color-critical-text: #991b1b;
+  /* shadcn-style alias → design tokens (bg/text/border-destructive) */
+  --color-destructive: var(--color-critical);
   --color-high: #ea580c;
   --color-high-bg: #fff7ed;
   --color-high-text: #9a3412;
