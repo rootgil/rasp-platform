@@ -1,11 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { listContactLeads } from "@/modules/admin/contact-leads.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { ContactLeadsTable } from "./contact-leads-table";
 
 export default async function ContactLeadsPage() {
-  const leads = await prisma.contactLead.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const leads = await listContactLeads();
 
   const pending = leads.filter((l) => l.status === "pending").length;
 

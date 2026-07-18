@@ -60,16 +60,20 @@ export async function POST(req: Request) {
       return jsonError("Invalid, expired, or already-used token", 401);
     }
 
-    // Consume the token — mark used immediately (one-time use)
+    // Consume the token atomically — one-time use under concurrency.
     const usedByIp =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
       "unknown";
 
-    await prisma.breakGlassToken.update({
-      where: { id: record.id },
+    const claimed = await prisma.breakGlassToken.updateMany({
+      where: { id: record.id, usedAt: null, revoked: false },
       data: { usedAt: new Date(), usedByIp },
     });
+
+    if (claimed.count !== 1) {
+      return jsonError("Invalid, expired, or already-used token", 401);
+    }
 
     // Audit log (actor = the admin who originally created the token)
     await createAuditLog({

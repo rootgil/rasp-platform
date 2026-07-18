@@ -3,6 +3,10 @@
 #
 #   DOCKER_MODE=dev|image|prod
 #
+# Convenience for local machines that have pnpm (`pnpm docker:up`).
+# On a production VPS without host pnpm, prefer explicit docker compose:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
 # Examples:
 #   ./scripts/docker-up.sh up -d --build
 #   ./scripts/docker-up.sh down

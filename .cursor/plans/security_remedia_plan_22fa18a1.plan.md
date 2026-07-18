@@ -4,25 +4,25 @@ overview: Plan de remédiation phasé pour fermer tous les findings Critical/Hig
 todos:
   - id: p0-agent-redaction
     content: "P0 agent-node: scrub matchedValue, redaction floor, default detectors, policy trust key"
-    status: pending
+    status: completed
   - id: p0-collector-idor
     content: "P0 collector: agent↔project bind, prefix slice(0,12), HMAC/project bind, metadata allowlist"
-    status: pending
+    status: completed
   - id: p0-rasp-secrets
     content: "P0 rasp: hide hmacSecret/keyHash, once-only secret on create, fix DEK rotate"
-    status: pending
+    status: completed
   - id: p1-sessions
     content: "P1 rasp: JWT passwordChangedAt + mustChangePassword in requireSession + role refresh"
-    status: pending
+    status: completed
   - id: p1-mfa-rbac
     content: "P1 rasp: MFA fail-closed, owner-gate block, invite session bind, break-glass atomic"
-    status: pending
+    status: completed
   - id: p2-hardening
     content: "P2: prod HMAC/KEK/mTLS, agent cfg clear, discovery redaction, audits manquants"
-    status: pending
+    status: completed
   - id: p3-debt
-    content: "P3: Prisma→modules, Low items, update review canvas status"
-    status: pending
+    content: "P3: Prisma→modules, Low items, getOrgId preferred, audit lock"
+    status: completed
 isProject: false
 ---
 

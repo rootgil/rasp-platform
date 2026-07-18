@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getOrganization } from "@/modules/organizations/organizations.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
@@ -12,20 +12,7 @@ interface Props {
 export default async function OrgDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const org = await prisma.organization.findUnique({
-    where: { id },
-    include: {
-      members: {
-        include: { user: true },
-        orderBy: { createdAt: "asc" },
-      },
-      projects: {
-        include: { _count: { select: { agents: true } } },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
-
+  const org = await getOrganization(id);
   if (!org) notFound();
 
   return (

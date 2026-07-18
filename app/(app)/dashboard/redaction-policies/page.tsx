@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getRedactionPolicies } from "@/modules/redaction/redaction.server";
+import { listProjectOptions } from "@/modules/projects/projects.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,20 +20,15 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
 
 export default async function RedactionPoliciesPage() {
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
   const [policies, projects] = await Promise.all([
-    prisma.redactionPolicy.findMany({
-      where: { project: { organizationId: membership.organizationId } },
-      include: { project: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.project.findMany({
-      where: { organizationId: membership.organizationId },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    getRedactionPolicies(orgId),
+    listProjectOptions(orgId),
   ]);
 
   return (

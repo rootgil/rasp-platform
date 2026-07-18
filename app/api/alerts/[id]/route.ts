@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { updateAlert } from "@/modules/alerts/alerts.server";
 import { z } from "zod";
 
@@ -11,7 +11,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);

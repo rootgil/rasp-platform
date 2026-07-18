@@ -1,4 +1,5 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireOrgRole } from "@/lib/rbac";
 import { getAgent } from "@/modules/agents/agents.server";
 import { publishEnforcementModeChange } from "@/modules/policies/policies.server";
 import { z } from "zod";
@@ -9,10 +10,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message, 400);
+
+    if (parsed.data.mode === "block") {
+      await requireOrgRole(user.id, orgId, ["owner"]);
+    }
 
     const agent = await getAgent(id, orgId);
     if (!agent) return jsonError("Not found", 404);

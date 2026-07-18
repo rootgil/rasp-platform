@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { getApiKeys } from "@/modules/api-keys/api-keys.server";
+import { listProjectOptions } from "@/modules/projects/projects.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,20 +13,15 @@ import { CreateApiKeyDialog } from "./create-api-key-dialog";
 
 export default async function ApiKeysPage() {
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
   const [keys, projects] = await Promise.all([
-    prisma.apiKey.findMany({
-      where: { project: { organizationId: membership.organizationId } },
-      include: { project: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.project.findMany({
-      where: { organizationId: membership.organizationId },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    getApiKeys(orgId),
+    listProjectOptions(orgId),
   ]);
 
   return (

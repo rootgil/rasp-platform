@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { requireOrgRole } from "@/lib/rbac";
 import { revokeApiKey } from "@/modules/api-keys/api-keys.server";
 
@@ -6,7 +6,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     await requireOrgRole(user.id, orgId, ["owner"]);
     const key = await revokeApiKey(id, orgId);
     if (!key) return jsonError("Not found", 404);

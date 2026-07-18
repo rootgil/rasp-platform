@@ -1,9 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig: NextAuthConfig = {
-  // Self-hosted (Docker / reverse proxy): trust the incoming Host header.
-  // Without this Auth.js v5 throws UntrustedHost outside Vercel.
-  trustHost: true,
+  // Prefer AUTH_URL in production; trustHost only when unset (local/Docker).
+  trustHost: process.env.NODE_ENV !== "production" || !process.env.AUTH_URL,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -15,7 +14,10 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "user";
         token.organizationId = (user as { organizationId?: string }).organizationId;
-        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword ?? false;
+        token.mustChangePassword =
+          (user as { mustChangePassword?: boolean }).mustChangePassword ?? false;
+        token.passwordChangedAt =
+          (user as { passwordChangedAt?: string | null }).passwordChangedAt ?? null;
       }
       return token;
     },
@@ -27,6 +29,8 @@ export const authConfig: NextAuthConfig = {
           token.organizationId as string | undefined;
         (session.user as { mustChangePassword?: boolean }).mustChangePassword =
           token.mustChangePassword as boolean | undefined;
+        (session.user as { passwordChangedAt?: string | null }).passwordChangedAt =
+          (token.passwordChangedAt as string | null | undefined) ?? null;
       }
       return session;
     },

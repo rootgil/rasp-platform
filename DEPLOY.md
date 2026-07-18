@@ -3,6 +3,8 @@
 Stack : **Caddy** (TLS :80/:443) → **rasp** (Next.js interne :3000) + **collector** (Fastify interne :4000) + **Redis** + **Neon** (Postgres externe).
 
 > **Ne jamais exposer les ports 3000 et 4000 sur Internet.** Seuls 80 et 443 sont publics.
+>
+> **Sur le VPS : Docker suffit.** Ne pas installer / ne pas compter sur `pnpm` sur l’hôte — toutes les commandes de déploiement utilisent `docker compose`. (`pnpm` n’apparaît que *dans* une image, ex. seed one-shot.)
 
 ---
 
@@ -133,6 +135,8 @@ Services : `migrate` → `redis` → `app` + `collector` → `caddy`.
 
 ## 6. Seed admin - une seule fois après le premier déploiement
 
+`pnpm` n’est **pas** installé sur le VPS : la commande ci-dessous s’exécute **dans** l’image Docker (où pnpm est déjà présent).
+
 ```bash
 cd ~/app/rasp
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm migrate pnpm db:seed:prod
@@ -189,18 +193,13 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 | `image` | Image bakeée, **pas** de volume source ; ports 3000/4000 | VPS / IP publique |
 | `prod` | `docker-compose.prod.yml` + Caddy (80/443) | Production TLS |
 
-```bash
-# Dans .env (ou .env.production pour prod)
-DOCKER_MODE=image   # VPS
-# DOCKER_MODE=dev   # local
-# DOCKER_MODE=prod  # Caddy
+> **Sur le VPS / en prod : pas de `pnpm` sur l’hôte.** Utiliser uniquement `docker compose` (sections 5–9 et « Commandes utiles »). Les scripts `pnpm docker:*` sont un raccourci **local** uniquement.
 
-pnpm docker:up      # = ./scripts/docker-up.sh up -d --build
-pnpm docker:logs
-pnpm docker:down
-```
+---
 
-## Développement local
+## Développement local (hot reload)
+
+Prérequis machine locale : Docker + Node/`pnpm` (pour les scripts npm du repo).
 
 ```bash
 # Ports 3000/4000 exposés — pas de Caddy
@@ -208,22 +207,28 @@ pnpm docker:down
 cp .env.example .env
 cp ../collector/.env.example ../collector/.env
 # DOCKER_MODE=dev (défaut dans .env.example)
-pnpm docker:up
+
+pnpm docker:up      # = ./scripts/docker-up.sh up -d --build
+# équivalent sans pnpm :
+# ./scripts/docker-up.sh up -d --build
+
+pnpm docker:logs
+pnpm docker:down
 ```
 
 En `dev`, rebuild uniquement après changement de `Dockerfile`, `package.json` / lockfile, ou deps.
-En `image` / `prod`, **rebuild après chaque changement de code** (`pnpm docker:up`).
+En `image` / `prod`, **rebuild après chaque changement de code** avec `docker compose … up -d --build` (pas `pnpm` sur le VPS).
 
 ---
 
-## Commandes utiles
+## Commandes utiles (production — hôte sans pnpm)
 
 ```bash
-docker compose -f docker-compose.prod.yml logs app
-docker compose -f docker-compose.prod.yml logs collector
-docker compose -f docker-compose.prod.yml logs caddy
-docker compose -f docker-compose.prod.yml restart app
-docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml --env-file .env.production logs app
+docker compose -f docker-compose.prod.yml --env-file .env.production logs collector
+docker compose -f docker-compose.prod.yml --env-file .env.production logs caddy
+docker compose -f docker-compose.prod.yml --env-file .env.production restart app
+docker compose -f docker-compose.prod.yml --env-file .env.production down
 ```
 
 ---

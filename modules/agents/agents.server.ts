@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { randomBytes } from "node:crypto";
 
 /** Public agent fields — never includes hmacSecret. */
-const AGENT_PUBLIC_SELECT = {
+export const AGENT_PUBLIC_SELECT = {
   id: true,
   projectId: true,
   language: true,
@@ -27,8 +27,8 @@ export async function createAgent(
     where: { id: projectId, organizationId },
   });
   if (!project) return null;
-  // hmacSecret is returned once at creation for operator configuration.
-  return prisma.agent.create({
+  const hmacSecret = randomBytes(32).toString("hex");
+  const agent = await prisma.agent.create({
     data: {
       projectId,
       language: data.language,
@@ -36,9 +36,12 @@ export async function createAgent(
       mode: data.mode ?? "monitor",
       version: "unknown",
       status: "offline",
-      hmacSecret: randomBytes(32).toString("hex"),
+      hmacSecret,
     },
+    select: AGENT_PUBLIC_SELECT,
   });
+  // hmacSecret returned once at creation for operator configuration.
+  return { ...agent, hmacSecret };
 }
 
 export async function getAgents(organizationId: string) {
@@ -110,4 +113,32 @@ export async function setAgentVersionControls(
     },
     select: AGENT_PUBLIC_SELECT,
   });
+}
+
+/** Latest published non-quarantined stable agent version. */
+export async function getLatestStableVersion() {
+  return prisma.agentVersion.findFirst({
+    where: { channel: "stable", status: "published", quarantined: false },
+    orderBy: { releasedAt: "desc" },
+    select: { version: true },
+  });
+}
+
+/**
+ * Rotate the agent HMAC secret. Returns the new secret once — it is never
+ * readable again (same pattern as API keys).
+ */
+export async function rotateAgentHmacSecret(id: string, organizationId: string) {
+  const agent = await prisma.agent.findFirst({
+    where: { id, project: { organizationId } },
+    select: { id: true },
+  });
+  if (!agent) return null;
+
+  const hmacSecret = randomBytes(32).toString("hex");
+  await prisma.agent.update({
+    where: { id },
+    data: { hmacSecret },
+  });
+  return { id, hmacSecret };
 }

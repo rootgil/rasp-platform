@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getProjectAdmin } from "@/modules/projects/projects.server";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { KpiCard } from "@/components/shared/kpi-card";
@@ -12,18 +12,7 @@ import Link from "next/link";
 export default async function BackofficeProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: {
-      organization: true,
-      agents: { orderBy: { createdAt: "desc" } },
-      apiKeys: { where: { revoked: false }, orderBy: { createdAt: "desc" } },
-      securityEvents: { orderBy: { createdAt: "desc" }, take: 10 },
-      discoveredEndpoints: { orderBy: { riskScore: "desc" }, take: 10 },
-      _count: { select: { securityEvents: true, alerts: true, discoveredEndpoints: true } },
-    },
-  });
-
+  const project = await getProjectAdmin(id);
   if (!project) notFound();
 
   return (

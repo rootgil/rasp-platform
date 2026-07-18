@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, jsonError } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
 
     const url = new URL(req.url);
     let since = url.searchParams.get("since");

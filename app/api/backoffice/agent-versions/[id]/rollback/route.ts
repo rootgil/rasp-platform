@@ -1,6 +1,6 @@
 import { requireAdmin, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { requireMfa } from "@/modules/admin/mfa.server";
-import { requireApproval, markExecuted } from "@/modules/admin/approvals.server";
+import { requireApproval } from "@/modules/admin/approvals.server";
 import { rollbackVersion } from "@/modules/rollout/rollout.server";
 import { notifyAffectedProjects } from "@/modules/notifications/user-notifications.server";
 import { prisma } from "@/lib/prisma";
@@ -21,19 +21,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const user = await requireAdmin(req);
     const mfaToken = req.headers.get("x-mfa-token") ?? undefined;
-    await requireMfa(user.id, mfaToken);
+    await requireMfa(user.id, mfaToken, { required: true });
 
     const { id } = await params;
     const parsed = schema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return jsonError(parsed.error.message, 400);
 
     try {
-      const approval = await requireApproval({
+      await requireApproval({
         action: "agent_version.rollback",
         target: id,
         executorId: user.id,
       });
-      await markExecuted(approval.id);
     } catch (err) {
       return jsonError(err instanceof Error ? err.message : "Approval required", 403);
     }

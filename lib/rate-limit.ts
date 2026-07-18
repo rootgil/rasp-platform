@@ -1,7 +1,13 @@
 /**
  * Simple in-memory rate limiter.
- * Suitable for single-instance deployments. For multi-replica, swap the
- * store for Redis while keeping the same checkRateLimit() API.
+ *
+ * Suitable for single-instance deployments only. Multi-replica deployments
+ * must swap this Map for a shared Redis store (same checkRateLimit API) or
+ * rate limits will scale with replica count.
+ *
+ * Prefer keys that include both identity and IP where possible, e.g.
+ * `login:${email}:${ip}` / `forgot-password:${email}:${ip}`, so spoofed
+ * X-Forwarded-For alone cannot bypass per-account throttles.
  */
 
 type Bucket = { count: number; resetAt: number };

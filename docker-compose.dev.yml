@@ -1,7 +1,8 @@
-# Dev override — bind-mounts source for hot reload.
+# Dev override — bind-mounts source for hot reload (local only).
 # Applied when DOCKER_MODE=dev (via scripts/docker-up.sh / pnpm docker:up).
 #
 #   DOCKER_MODE=dev pnpm docker:up
+#   # or: ./scripts/docker-up.sh up -d --build
 
 services:
 

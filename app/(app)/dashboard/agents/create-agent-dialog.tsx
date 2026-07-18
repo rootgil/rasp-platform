@@ -28,9 +28,10 @@ const LANGUAGES = [
 type SetupData = {
   agentId: string;
   rawKey: string | null;
+  hmacSecret: string | null;
 };
 
-type CopyState = { agentId: boolean; rawKey: boolean };
+type CopyState = { agentId: boolean; rawKey: boolean; hmacSecret: boolean };
 
 type FixedProject = {
   id:         string;
@@ -63,7 +64,11 @@ export function CreateAgentDialog({
   const [step, setStep] = useState<"form" | "setup">("form");
   const [loading, setLoading] = useState(false);
   const [setup, setSetup] = useState<SetupData | null>(null);
-  const [copied, setCopied] = useState<CopyState>({ agentId: false, rawKey: false });
+  const [copied, setCopied] = useState<CopyState>({
+    agentId: false,
+    rawKey: false,
+    hmacSecret: false,
+  });
   const [form, setForm] = useState(initialForm);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -82,7 +87,11 @@ export function CreateAgentDialog({
       });
       if (res.ok) {
         const data = await res.json();
-        setSetup({ agentId: data.agent.id, rawKey: data.rawKey });
+        setSetup({
+          agentId: data.agent.id,
+          rawKey: data.rawKey,
+          hmacSecret: data.agent.hmacSecret ?? null,
+        });
         setStep("setup");
         toast.success("Agent enregistré");
         router.refresh();
@@ -109,6 +118,7 @@ export function CreateAgentDialog({
     setTimeout(() => {
       setStep("form");
       setSetup(null);
+      setCopied({ agentId: false, rawKey: false, hmacSecret: false });
       setForm(initialForm());
     }, 300);
   }
@@ -208,7 +218,7 @@ export function CreateAgentDialog({
         ) : setup ? (
           <div className="space-y-4 pt-2">
             <div className="rounded-md bg-critical-bg border border-[#fecaca] p-3 text-sm text-critical-text">
-              Copy these values now. The API key will not be shown again.
+              Copy these values now. The API key and HMAC secret will not be shown again.
             </div>
 
             <div className="space-y-3">
@@ -219,6 +229,7 @@ export function CreateAgentDialog({
                     {setup.agentId}
                   </div>
                   <button
+                    type="button"
                     onClick={() => handleCopy("agentId", setup.agentId)}
                     className="absolute right-2 top-2 rounded-sm p-1.5 text-text-muted hover:text-white transition-colors"
                   >
@@ -237,10 +248,31 @@ export function CreateAgentDialog({
                       {setup.rawKey}
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleCopy("rawKey", setup.rawKey!)}
                       className="absolute right-2 top-2 rounded-sm p-1.5 text-text-muted hover:text-white transition-colors"
                     >
                       {copied.rawKey
+                        ? <Check size={16} className="text-success" />
+                        : <Copy size={16} />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {setup.hmacSecret && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-text-secondary uppercase tracking-wide">RASP_HMAC_SECRET</Label>
+                  <div className="relative">
+                    <div className="rounded-md bg-text-primary p-3 pr-10 font-mono text-xs text-border break-all">
+                      {setup.hmacSecret}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy("hmacSecret", setup.hmacSecret!)}
+                      className="absolute right-2 top-2 rounded-sm p-1.5 text-text-muted hover:text-white transition-colors"
+                    >
+                      {copied.hmacSecret
                         ? <Check size={16} className="text-success" />
                         : <Copy size={16} />}
                     </button>

@@ -1,10 +1,10 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { requireOrgRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({
-  role: z.enum(["owner", "admin", "member"]),
+  role: z.enum(["owner", "member"]),
 });
 
 /** PATCH /api/settings/members/[id] — change an org member role (owner only). */
@@ -15,7 +15,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     await requireOrgRole(user.id, orgId, ["owner"]);
 
     const body = await req.json().catch(() => ({}));

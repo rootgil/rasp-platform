@@ -63,7 +63,22 @@ export async function POST(
     const existingUser = await prisma.user.findUnique({ where: { email: invitation.email } });
 
     if (existingUser) {
-      userId = existingUser.id;
+      // Existing accounts must prove identity: either session email match or password.
+      const { auth } = await import("@/lib/auth");
+      const session = await auth();
+      const sessionEmail = session?.user?.email?.toLowerCase();
+      if (sessionEmail && sessionEmail === invitation.email.toLowerCase()) {
+        userId = existingUser.id;
+      } else {
+        const passwordOk = await bcrypt.compare(password, existingUser.passwordHash);
+        if (!passwordOk) {
+          return jsonError(
+            "Account already exists — sign in with this email or provide the correct password",
+            401
+          );
+        }
+        userId = existingUser.id;
+      }
     } else {
       const newUser = await prisma.user.create({
         data: {
@@ -76,11 +91,14 @@ export async function POST(
       userId = newUser.id;
     }
 
+    // Org invites never elevate to platform admin; restrict to owner|member.
+    const orgRole = invitation.role === "owner" ? "owner" : "member";
+
     // Add to organization (upsert in case member was removed and re-invited)
     await prisma.organizationMember.upsert({
       where: { organizationId_userId: { organizationId: invitation.organizationId, userId } },
-      update: { role: invitation.role },
-      create: { organizationId: invitation.organizationId, userId, role: invitation.role },
+      update: { role: orgRole },
+      create: { organizationId: invitation.organizationId, userId, role: orgRole },
     });
 
     // Mark invitation as accepted
@@ -94,7 +112,7 @@ export async function POST(
       organizationId: invitation.organizationId,
       action: "member.joined",
       target: invitation.email,
-      metadata: { role: invitation.role, via: "invitation" },
+      metadata: { role: orgRole, via: "invitation" },
     });
 
     return Response.json({ ok: true, orgName: invitation.organization.name });

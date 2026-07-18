@@ -6,8 +6,10 @@
 #   image → docker-compose.yml only                      (this file)
 #   prod  → docker-compose.prod.yml                      (Caddy TLS, no public 3000/4000)
 #
-#   pnpm docker:up          # reads DOCKER_MODE from .env
-#   ./scripts/docker-up.sh up -d --build
+# Local (host has pnpm):  pnpm docker:up
+# Anywhere:               ./scripts/docker-up.sh up -d --build
+# VPS prod:               docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#                         (do not rely on host pnpm in production)
 
 services:
 
@@ -44,11 +46,14 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
     ports:
       - "3000:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]

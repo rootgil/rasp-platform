@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { getRules } from "@/modules/rules/rules.server";
 import { RulesClient } from "./rules-client";
@@ -8,23 +8,11 @@ import { RulesClient } from "./rules-client";
 export default async function RulesPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
-
-  const membership = await prisma.organizationMember.findFirst({
-    where:   { userId: session.user.id },
-    include: {
-      organization: {
-        include: {
-          projects: {
-            select:  { id: true, name: true },
-            orderBy: { createdAt: "desc" },
-          },
-        },
-      },
-    },
-  });
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
 
-  const projects      = membership.organization.projects;
+  const projects = membership.organization.projects;
   const catalogueRules = await getRules();
 
   return (

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -12,10 +12,13 @@ import { ShieldCheck } from "lucide-react";
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
+  const orgId = membership.organizationId;
 
-  const event = await getEvent(id, membership.organizationId);
+  const event = await getEvent(id, orgId);
   if (!event) notFound();
 
   const meta = (event.payload && typeof event.payload === "object")

@@ -1,4 +1,4 @@
-import { requireSession, getOrgId, createAuditLog, jsonError } from "@/lib/auth-helpers";
+import { requireSession, getOrgId, getOrgIdForSession, createAuditLog, jsonError } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ export async function PATCH(
 ) {
   try {
     const user = await requireSession();
-    const orgId = await getOrgId(user.id);
+    const orgId = await getOrgIdForSession(user);
     const { id } = await params;
 
     if (id !== orgId) return jsonError("Forbidden", 403);

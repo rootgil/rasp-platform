@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getMembership } from "@/modules/organizations/membership.server";
+import { listProjectOptions } from "@/modules/projects/projects.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -18,16 +19,13 @@ export default async function PoliciesPage({
 }) {
   const filters = await searchParams;
   const session = await auth();
-  const membership = await prisma.organizationMember.findFirst({ where: { userId: session?.user?.id } });
+  if (!session?.user?.id) redirect("/login");
+  const preferred = (session.user as { organizationId?: string }).organizationId;
+  const membership = await getMembership(session.user.id, preferred);
   if (!membership) redirect("/login");
-
   const orgId = membership.organizationId;
 
-  const projects = await prisma.project.findMany({
-    where: { organizationId: orgId },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  const projects = await listProjectOptions(orgId);
 
   const projectId =
     filters.projectId && projects.some((p) => p.id === filters.projectId)

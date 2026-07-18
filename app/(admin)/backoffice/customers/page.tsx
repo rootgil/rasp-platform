@@ -1,15 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { listCustomers } from "@/modules/organizations/organizations.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 
 export default async function BackofficeCustomersPage() {
-  const users = await prisma.user.findMany({
-    include: {
-      memberships: { include: { organization: { select: { name: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const users = await listCustomers();
 
   return (
     <div className="space-y-6">
